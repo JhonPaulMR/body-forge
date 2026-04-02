@@ -6,7 +6,7 @@
 
 O **Body Forge** é um aplicativo móvel projetado para substituir anotações de treino genéricas, oferecendo uma experiência de registro ultrarrápida (Logger) desenhada para não interromper o fluxo do treino na academia. 
 
-Utilizando a linguagem visual "Titanium Steel" (Dark mode minimalista com alto contraste), o aplicativo funciona inteiramente offline, garantindo que a instabilidade de rede em academias não afete o usuário. O app suporta desde divisões simples até programas complexos de periodização, incluindo registro de percepção de esforço (RPE), métricas corporais e um sistema de gamificação para consistência.
+O aplicativo funciona inteiramente offline, garantindo que a instabilidade de rede em academias não afete o usuário. O app suporta desde divisões simples até programas complexos de periodização, incluindo registro de percepção de esforço (RPE), métricas corporais e um sistema de gamificação para consistência.
 
 ### Funcionalidades Básicas (Prioritárias)
 - [ ] **Catálogo de Exercícios:** Base de dados local categorizada por grupo muscular e equipamento, com suporte a exercícios customizados.
@@ -33,7 +33,7 @@ As interfaces foram projetadas seguindo o padrão "Titanium Steel", focado em us
 
 ## Modelagem do banco
 
-A persistência de dados será estritamente **Local**, utilizando a robustez do **SQLite** (via Expo SQLite ou WatermelonDB) para garantir a arquitetura *offline-first*. O banco é relacional e foi projetado para suportar hierarquias complexas de treino (Rotina > Dia > Exercício) e o histórico detalhado de cada série executada.
+A persistência de dados será estritamente **Local**, utilizando **SQLite** (via Expo SQLite ou WatermelonDB). O banco é relacional e foi projetado para suportar hierarquias complexas de treino (Rotina > Dia > Exercício) e o histórico detalhado de cada série executada.
 
 * **Ferramenta utilizada:** DrawSQL / diagrams.net
 * **Modelo Entidade-Relacionamento (DER):**
@@ -49,7 +49,7 @@ O banco de dados é composto por 10 tabelas principais:
 6. `routine_exercises`: A relação de quais exercícios pertencem a qual dia, incluindo ordem e grupos de *Superset*.
 7. `sessions`: O registro histórico de uma ida à academia (Início, Fim, Volume Total).
 8. `session_exercises`: O agrupador de séries de um exercício específico naquele dia, permitindo anotações isoladas.
-9. `sets`: O grão mais fino do app: registro exato de Carga, Repetições e RPE de cada série.
+9. `sets`: Registro exato de Carga, Repetições e RPE de cada série.
 10. `reminders`: Configurações de alarmes locais para consistência de treino e pesagem.
 
 ---

@@ -58,7 +58,7 @@ O banco de dados é composto por 10 tabelas principais:
 
 O desenvolvimento está estruturado em 6 Sprints semanais, focando inicialmente na infraestrutura de dados e avançando para a interface e gamificação nas semanas finais.
 
-* [ ] **Sprint 1 (Semana 1): Infraestrutura e Navegação Base**
+* [x] **Sprint 1 (Semana 1): Infraestrutura e Navegação Base**
   * Configuração do Expo, React Navigation (Tabs) e repositório.
   * Implementação da conexão SQLite e execução das *migrations* das 10 tabelas criadas.
   * Criação do *Seed* de dados com exercícios básicos no catálogo.

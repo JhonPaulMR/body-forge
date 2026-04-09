@@ -1,37 +1,25 @@
-import { StyleSheet } from 'react-native';
-import { Text, View } from '@/components/Themed';
-import Colors from '@/constants/Colors';
+import React from 'react';
+import { StyleSheet, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function TreinoScreen() {
+export default function GenericScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Treino (Logger)</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <Text style={styles.subtitle}>Tela de preenchimento inteligente e treino ativo.</Text>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>Em desenvolvimento</Text>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#16181C',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.dark.background,
   },
   title: {
+    color: '#FFF',
     fontSize: 20,
     fontWeight: 'bold',
-    color: Colors.dark.primary,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: Colors.dark.textSecondary,
-    marginTop: 10,
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
   },
 });

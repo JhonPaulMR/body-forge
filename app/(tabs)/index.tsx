@@ -7,22 +7,19 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
-        {/* HEADER */}
+
         <View style={styles.header}>
           <TouchableOpacity>
             <Menu size={24} color="#FFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>BODY FORGE</Text>
           <View style={styles.avatarPlaceholder}>
-             {/* Simulando o mini avatar do protótipo */}
              <View style={{width: 32, height: 32, backgroundColor: '#333', borderRadius: 16, overflow: 'hidden'}}>
                <View style={{flex: 1, backgroundColor: '#FAD6B1', marginTop: 8, marginHorizontal: 6, borderTopLeftRadius: 10, borderTopRightRadius: 10}} />
              </View>
           </View>
         </View>
 
-        {/* CALENDAR SECTION */}
         <View style={styles.calendarSection}>
           <Text style={styles.monthText}>JUNHO 2024</Text>
           <View style={styles.progressRow}>
@@ -46,10 +43,8 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* SESSÕES DE HOJE */}
         <Text style={styles.sectionTitle}>SESSÕES DE HOJE</Text>
         
-        {/* SESSION 1 */}
         <View style={styles.sessionCard}>
            <Image
              source={{ uri: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1000' }}
@@ -67,7 +62,6 @@ export default function HomeScreen() {
            </View>
         </View>
 
-        {/* SESSION 2 */}
         <View style={styles.sessionCard}>
            <Image
              source={{ uri: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=1000' }}
@@ -85,14 +79,12 @@ export default function HomeScreen() {
            </View>
         </View>
 
-        {/* REGISTRO DE ATIVIDADE */}
         <View style={styles.activityCard}>
           <View style={styles.activityHeader}>
             <Text style={styles.activityTitle}>REGISTRO DE ATIVIDADE</Text>
             <Text style={styles.activityDots}>...</Text>
           </View>
           
-          {/* Chart Mockup */}
           <View style={styles.chartContainer}>
              <View style={[styles.bar, {height: 60, backgroundColor: '#A0C4FF'}]} />
              <View style={[styles.bar, {height: 35, backgroundColor: '#4ADE80'}]} />
@@ -100,7 +92,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* PESO E IMC */}
         <View style={styles.statsRow}>
            <View style={styles.statCard}>
              <Text style={styles.statTitle}>PESO</Text>
@@ -121,7 +112,6 @@ export default function HomeScreen() {
            </View>
         </View>
 
-        {/* LEMBRETES */}
         <Text style={styles.sectionTitle}>LEMBRETES</Text>
         <View style={styles.remindersCard}>
            <View style={styles.reminderItem}>

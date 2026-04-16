@@ -20,7 +20,6 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     <View style={[styles.tabBarContainer, { paddingBottom: insets.bottom > 0 ? insets.bottom : 12 }]}>
       <View style={styles.tabBarInner}>
         {state.routes.map((route, index) => {
-          // Esconde a tab "two" que não faz parte do protótipo
           if (route.name === 'two') return null;
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
@@ -86,7 +85,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderTopWidth: 1,
     borderTopColor: '#2A2D35',
-    // Sombra sutil para cima
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.3,

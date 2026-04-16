@@ -1,11 +1,9 @@
 import * as SQLite from 'expo-sqlite';
 
-// Padrão do Expo SDK 50+: SQLite.openDatabaseSync
 export const db = SQLite.openDatabaseSync('bodyforge.db');
 
 export const initDatabase = () => {
   try {
-    // Foreign keys em SQLite costumam vir desabilitadas por padrão no driver
     db.execSync('PRAGMA foreign_keys = ON;');
 
     db.execSync(`

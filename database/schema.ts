@@ -112,6 +112,14 @@ export const initDatabase = () => {
           FOREIGN KEY(user_id) REFERENCES users(id)
       );
     `);
+
+    // Migration: add set_configs column for per-set data (warmup, dropSet, untilFailure, etc.)
+    try {
+      db.runSync('ALTER TABLE routine_exercises ADD COLUMN set_configs TEXT');
+    } catch (_) {
+      // Column already exists — safe to ignore
+    }
+
     console.log('Database and tables initialized successfully');
   } catch (error) {
     console.error('Error initializing database:', error);

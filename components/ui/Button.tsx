@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, TouchableOpacityProps, StyleProp, ViewStyle } from 'react-native';
+import { TouchableOpacity, TouchableOpacityProps } from 'react-native';
 import { Typography } from './Typography';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -9,22 +9,37 @@ interface ButtonProps extends TouchableOpacityProps {
   variant?: 'primary' | 'secondary' | 'outline';
 }
 
-export function Button({ title, variant = 'primary', style, ...props }: ButtonProps) {
+export function Button({ title, variant = 'primary', className: extraClassName, style, ...props }: ButtonProps) {
   const colorScheme = useColorScheme();
   const tint = Colors[colorScheme ?? 'light'].tint;
 
-  const getVariantStyles = (): StyleProp<ViewStyle> => {
+  const baseClass = 'py-3 px-6 rounded-lg items-center justify-center my-2';
+
+  const variantClass = (() => {
     switch (variant) {
       case 'primary':
-        return { backgroundColor: tint, borderColor: tint, borderWidth: 1 };
+        return 'border';
+      case 'secondary':
+        return '';
+      case 'outline':
+        return 'bg-transparent border';
+      default:
+        return '';
+    }
+  })();
+
+  const variantStyle = (() => {
+    switch (variant) {
+      case 'primary':
+        return { backgroundColor: tint, borderColor: tint };
       case 'secondary':
         return { backgroundColor: colorScheme === 'dark' ? '#333' : '#EEE' };
       case 'outline':
-        return { backgroundColor: 'transparent', borderColor: tint, borderWidth: 1 };
+        return { borderColor: tint };
       default:
         return {};
     }
-  };
+  })();
 
   const getTextColor = () => {
     if (variant === 'primary') return '#FFFFFF';
@@ -34,34 +49,18 @@ export function Button({ title, variant = 'primary', style, ...props }: ButtonPr
 
   return (
     <TouchableOpacity
-      style={[
-        styles.button,
-        getVariantStyles(),
-        style,
-      ]}
+      className={`${baseClass} ${variantClass} ${extraClassName || ''}`}
+      style={[variantStyle, style]}
       activeOpacity={0.7}
       {...props}
     >
       <Typography
         variant="body"
-        style={[styles.text, { color: getTextColor() }]}
+        className="font-semibold"
+        style={{ color: getTextColor() }}
       >
         {title}
       </Typography>
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 8,
-  },
-  text: {
-    fontWeight: '600',
-  },
-});

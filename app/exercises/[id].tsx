@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Image,
   TouchableOpacity,
@@ -106,8 +105,8 @@ export default function ExerciseDetailScreen() {
 
   if (!exercise) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loadingText}>Carregando...</Text>
+      <SafeAreaView className="flex-1 bg-forge-bg">
+        <Text className="text-forge-muted text-base text-center mt-[100px]">Carregando...</Text>
       </SafeAreaView>
     );
   }
@@ -118,449 +117,139 @@ export default function ExerciseDetailScreen() {
   const exerciseType = exercise.equipment === 'Peso Corporal' ? 'CALISTENIA' : 'FORÇA';
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.heroContainer}>
-          <Image source={{ uri: heroImage }} style={styles.heroImage} />
-          <View style={styles.heroOverlay} />
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <View className="bg-forge-surface-hover" style={{ width: SCREEN_WIDTH, height: 220 }}>
+          <Image source={{ uri: heroImage }} className="w-full h-full opacity-50" />
+          <View className="absolute inset-0" style={{ backgroundColor: 'rgba(22,24,28,0.3)' }} />
+          <TouchableOpacity
+            className="absolute top-3 left-4 w-10 h-10 rounded-xl justify-center items-center"
+            style={{ backgroundColor: 'rgba(28,30,38,0.8)' }}
+            onPress={() => router.back()}
+          >
             <ArrowLeft size={22} color="#FFF" />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.tabsContainer}>
+        <View className="flex-row px-5 border-b border-forge-border mb-5">
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'resumo' && styles.tabActive]}
+            className={`py-4 mr-6 ${activeTab === 'resumo' ? 'border-b-2 border-white' : ''}`}
             onPress={() => setActiveTab('resumo')}
           >
-            <Text style={[styles.tabText, activeTab === 'resumo' && styles.tabTextActive]}>
+            <Text className={`text-[13px] font-bold tracking-wide ${activeTab === 'resumo' ? 'text-white' : 'text-forge-muted-dark'}`}>
               RESUMO
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'historico' && styles.tabActive]}
+            className={`py-4 mr-6 ${activeTab === 'historico' ? 'border-b-2 border-white' : ''}`}
             onPress={() => setActiveTab('historico')}
           >
-            <Text style={[styles.tabText, activeTab === 'historico' && styles.tabTextActive]}>
+            <Text className={`text-[13px] font-bold tracking-wide ${activeTab === 'historico' ? 'text-white' : 'text-forge-muted-dark'}`}>
               HISTÓRICO
             </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.content}>
+        <View className="px-5">
           {activeTab === 'resumo' ? (
             <>
-              <Text style={styles.exerciseTitle}>
+              <Text className="text-white text-[26px] font-black mb-2 leading-8">
                 {exercise.name.toUpperCase()}
               </Text>
-              <View style={styles.tagsRow}>
-                <Text style={styles.tag}>{exerciseType}</Text>
-                <Text style={styles.tagSeparator}>·</Text>
-                <Text style={styles.tag}>{exercise.equipment?.toUpperCase()}</Text>
+              <View className="flex-row items-center gap-2 mb-6">
+                <Text className="text-forge-accent text-[11px] font-bold tracking-wide">{exerciseType}</Text>
+                <Text className="text-forge-muted-dark text-sm">·</Text>
+                <Text className="text-forge-accent text-[11px] font-bold tracking-wide">{exercise.equipment?.toUpperCase()}</Text>
               </View>
 
-              <Text style={styles.instructionsLabel}>INSTRUÇÕES</Text>
-              <Text style={styles.instructionsText}>
+              <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-2">INSTRUÇÕES</Text>
+              <Text className="text-forge-text-secondary text-sm leading-[22px] mb-6">
                 {exercise.instructions || 'Nenhuma instrução disponível para este exercício.'}
               </Text>
 
-              <View style={styles.musclesCard}>
-                <Text style={styles.musclesCardTitle}>MÚSCULOS PRIMÁRIOS</Text>
-                <View style={styles.musclesCardContent}>
-                  <Image source={{ uri: muscleDetailImage }} style={styles.muscleImage} />
+              <View className="bg-forge-surface rounded-2xl p-4 mb-3">
+                <Text className="text-forge-muted text-[10px] font-bold tracking-wide mb-3">MÚSCULOS PRIMÁRIOS</Text>
+                <View className="flex-row items-center gap-4">
+                  <Image source={{ uri: muscleDetailImage }} className="w-[60px] h-[60px] rounded-xl bg-forge-border" />
                   <View>
-                    <Text style={styles.muscleName}>{exercise.muscle_group}</Text>
-                    <Text style={styles.muscleSubtext}>Grupo principal</Text>
+                    <Text className="text-white text-lg font-extrabold mb-0.5">{exercise.muscle_group}</Text>
+                    <Text className="text-forge-muted-dark text-[11px] font-semibold">Grupo principal</Text>
                   </View>
                 </View>
               </View>
 
-              <View style={styles.volumeCard}>
-                <Text style={styles.volumeLabel}>VOLUME SEMANAL</Text>
-                <View style={styles.volumeValue}>
-                  <Text style={styles.volumeNumber}>12</Text>
-                  <Text style={styles.volumeUnit}>Séries</Text>
+              <View className="bg-forge-surface rounded-2xl p-4 mb-4">
+                <Text className="text-forge-muted text-[10px] font-bold tracking-wide mb-2">VOLUME SEMANAL</Text>
+                <View className="flex-row items-baseline gap-1.5 mb-3">
+                  <Text className="text-white text-[36px] font-black">12</Text>
+                  <Text className="text-forge-muted text-sm font-semibold">Séries</Text>
                 </View>
-                <View style={styles.volumeBar}>
-                  <View style={styles.volumeBarFill} />
+                <View className="h-1 bg-forge-border-light rounded-sm">
+                  <View className="h-1 w-[70%] bg-forge-orange rounded-sm" />
                 </View>
               </View>
 
-              <TouchableOpacity style={styles.linkItem}>
+              <TouchableOpacity className="flex-row items-center py-4 gap-3 border-b border-forge-border">
                 <FileText size={18} color="#A0C4FF" />
-                <Text style={styles.linkText}>Visualizar notas</Text>
+                <Text className="text-white text-sm font-semibold">Visualizar notas</Text>
                 <ChevronRight size={18} color="#5F6368" style={{ marginLeft: 'auto' }} />
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.linkItem}>
+              <TouchableOpacity className="flex-row items-center py-4 gap-3 border-b border-forge-border">
                 <ExternalLink size={18} color="#A0C4FF" />
-                <Text style={styles.linkText}>Visualizar no YouTube</Text>
+                <Text className="text-white text-sm font-semibold">Visualizar no YouTube</Text>
                 <ExternalLink size={14} color="#5F6368" style={{ marginLeft: 'auto' }} />
               </TouchableOpacity>
             </>
           ) : (
             <>
-              <Text style={styles.historyTitle}>HISTÓRICO DO EXERCÍCIO</Text>
-              <Text style={styles.historyExerciseName}>{exercise.name}</Text>
+              <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-1">HISTÓRICO DO EXERCÍCIO</Text>
+              <Text className="text-white text-2xl font-black mb-6">{exercise.name}</Text>
 
               {mockHistory.map((session, sIdx) => (
-                <View key={sIdx} style={styles.historySession}>
-                  <View style={styles.historyDateRow}>
-                    <Text style={styles.historyDate}>{session.date}</Text>
+                <View key={sIdx} className="mb-6">
+                  <View className="flex-row justify-between items-center mb-3">
+                    <Text className="text-white text-[13px] font-extrabold tracking-tight flex-1">{session.date}</Text>
                     {session.isPersonalRecord && (
-                      <View style={styles.prBadge}>
-                        <Text style={styles.prBadgeText}>NOVO RECORDE{'\n'}PESSOAL</Text>
+                      <View className="bg-forge-green-bg px-3 py-1.5 rounded-lg">
+                        <Text className="text-forge-green text-[9px] font-extrabold tracking-tight text-center">NOVO RECORDE{'\n'}PESSOAL</Text>
                       </View>
                     )}
                   </View>
 
                   {session.sets.map((set, setIdx) => (
-                    <View key={setIdx} style={styles.setRow}>
-                      <View style={styles.setNumber}>
-                        <Text style={styles.setNumberText}>{set.set_order}</Text>
+                    <View key={setIdx} className="bg-forge-surface rounded-xl p-4 mb-2 flex-row items-center flex-wrap">
+                      <View className="w-8 h-8 rounded-2xl bg-forge-border-light justify-center items-center mr-4">
+                        <Text className="text-white text-sm font-extrabold">{set.set_order}</Text>
                       </View>
-                      <View style={styles.setDetails}>
-                        <Text style={styles.setWeight}>
-                          <Text style={styles.setWeightBold}>{set.weight}</Text>
-                          <Text style={styles.setWeightUnit}> kg</Text>
-                        </Text>
-                        <Text style={styles.setSeparator}>×</Text>
-                        <Text style={styles.setWeight}>
-                          <Text style={styles.setWeightBold}>{set.reps}</Text>
-                          <Text style={styles.setWeightUnit}> reps</Text>
-                        </Text>
+                      <View className="flex-1 flex-row items-baseline gap-2">
+                        <Text className="text-white text-[22px] font-black">{set.weight}</Text>
+                        <Text className="text-forge-muted text-[13px] font-semibold"> kg</Text>
+                        <Text className="text-forge-muted-dark text-lg font-semibold">×</Text>
+                        <Text className="text-white text-[22px] font-black">{set.reps}</Text>
+                        <Text className="text-forge-muted text-[13px] font-semibold"> reps</Text>
                       </View>
                       {set.volume > 0 && (
-                        <Text style={styles.setVolume}>VOLUME: {set.volume} KG</Text>
+                        <Text className="text-forge-muted-dark text-[9px] font-bold tracking-tight mt-1 w-full pl-12">VOLUME: {set.volume} KG</Text>
                       )}
                     </View>
                   ))}
                 </View>
               ))}
 
-              <View style={styles.trendCard}>
-                <Text style={styles.trendLabel}>TENDÊNCIA MENSAL</Text>
-                <Text style={styles.trendTitle}>Progresso de Carga</Text>
-                <Text style={styles.trendDescription}>
+              <View className="bg-forge-surface rounded-2xl p-5">
+                <Text className="text-forge-muted text-[10px] font-bold tracking-wide mb-2">TENDÊNCIA MENSAL</Text>
+                <Text className="text-white text-xl font-extrabold mb-2">Progresso de Carga</Text>
+                <Text className="text-forge-text-secondary text-[13px] leading-5">
                   Sua força no {exercise.name} aumentou 8% nas últimas 4 semanas.
                 </Text>
               </View>
             </>
           )}
 
-          <View style={{ height: 40 }} />
+          <View className="h-10" />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#16181C',
-  },
-  loadingText: {
-    color: '#888',
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 100,
-  },
-  heroContainer: {
-    width: SCREEN_WIDTH,
-    height: 220,
-    backgroundColor: '#22242A',
-  },
-  heroImage: {
-    width: '100%',
-    height: '100%',
-    opacity: 0.5,
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(22,24,28,0.3)',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 12,
-    left: 16,
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: 'rgba(28,30,38,0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2A2D35',
-    marginBottom: 20,
-  },
-  tab: {
-    paddingVertical: 16,
-    marginRight: 24,
-  },
-  tabActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#FFF',
-  },
-  tabText: {
-    color: '#5F6368',
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  tabTextActive: {
-    color: '#FFF',
-  },
-  content: {
-    paddingHorizontal: 20,
-  },
-  exerciseTitle: {
-    color: '#FFF',
-    fontSize: 26,
-    fontWeight: '900',
-    marginBottom: 8,
-    lineHeight: 32,
-  },
-  tagsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 24,
-  },
-  tag: {
-    color: '#A0C4FF',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  tagSeparator: {
-    color: '#5F6368',
-    fontSize: 14,
-  },
-  instructionsLabel: {
-    color: '#888',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: 8,
-  },
-  instructionsText: {
-    color: '#CCC',
-    fontSize: 14,
-    lineHeight: 22,
-    marginBottom: 24,
-  },
-  musclesCard: {
-    backgroundColor: '#1C1E26',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-  },
-  musclesCardTitle: {
-    color: '#888',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  musclesCardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  muscleImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    backgroundColor: '#2A2D35',
-  },
-  muscleName: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: '800',
-    marginBottom: 2,
-  },
-  muscleSubtext: {
-    color: '#5F6368',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  volumeCard: {
-    backgroundColor: '#1C1E26',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-  },
-  volumeLabel: {
-    color: '#888',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: 8,
-  },
-  volumeValue: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
-    marginBottom: 12,
-  },
-  volumeNumber: {
-    color: '#FFF',
-    fontSize: 36,
-    fontWeight: '900',
-  },
-  volumeUnit: {
-    color: '#888',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  volumeBar: {
-    height: 4,
-    backgroundColor: '#353945',
-    borderRadius: 2,
-  },
-  volumeBarFill: {
-    height: 4,
-    width: '70%',
-    backgroundColor: '#FFA07A',
-    borderRadius: 2,
-  },
-  linkItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    gap: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2A2D35',
-  },
-  linkText: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  historyTitle: {
-    color: '#888',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  historyExerciseName: {
-    color: '#FFF',
-    fontSize: 24,
-    fontWeight: '900',
-    marginBottom: 24,
-  },
-  historySession: {
-    marginBottom: 24,
-  },
-  historyDateRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  historyDate: {
-    color: '#FFF',
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-    flex: 1,
-  },
-  prBadge: {
-    backgroundColor: '#1A4D3A',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  prBadgeText: {
-    color: '#4ADE80',
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-    textAlign: 'center',
-  },
-  setRow: {
-    backgroundColor: '#1C1E26',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  setNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#353945',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  setNumberText: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  setDetails: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 8,
-  },
-  setWeight: {
-    flexDirection: 'row',
-  },
-  setWeightBold: {
-    color: '#FFF',
-    fontSize: 22,
-    fontWeight: '900',
-  },
-  setWeightUnit: {
-    color: '#888',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  setSeparator: {
-    color: '#5F6368',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  setVolume: {
-    color: '#5F6368',
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    marginTop: 4,
-    width: '100%',
-    paddingLeft: 48,
-  },
-  trendCard: {
-    backgroundColor: '#1C1E26',
-    borderRadius: 16,
-    padding: 20,
-  },
-  trendLabel: {
-    color: '#888',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: 8,
-  },
-  trendTitle: {
-    color: '#FFF',
-    fontSize: 20,
-    fontWeight: '800',
-    marginBottom: 8,
-  },
-  trendDescription: {
-    color: '#CCC',
-    fontSize: 13,
-    lineHeight: 20,
-  },
-});

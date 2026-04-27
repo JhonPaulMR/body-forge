@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   TextInput,
@@ -12,7 +11,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Menu, TrendingUp, Scale, Activity, ChevronDown } from 'lucide-react-native';
+import { Menu, TrendingUp, Scale, Activity } from 'lucide-react-native';
 import { db } from '@/database/schema';
 import { BarChart } from '@/components/ui/BarChart';
 import { DonutChart } from '@/components/ui/DonutChart';
@@ -167,53 +166,53 @@ export default function EstatisticasScreen() {
   const weightDiff = latestWeight && previousWeight ? latestWeight - previousWeight : null;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10 }} showsVerticalScrollIndicator={false}>
 
-        <View style={styles.header}>
+        <View className="flex-row items-center justify-between mb-6">
           <TouchableOpacity>
             <Menu size={24} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>BODY FORGE</Text>
-          <View style={styles.avatarPlaceholder}>
-            <View style={{ width: 32, height: 32, backgroundColor: '#333', borderRadius: 16, overflow: 'hidden' }}>
-              <View style={{ flex: 1, backgroundColor: '#FAD6B1', marginTop: 8, marginHorizontal: 6, borderTopLeftRadius: 10, borderTopRightRadius: 10 }} />
+          <Text className="text-white text-lg font-black tracking-wide">BODY FORGE</Text>
+          <View className="w-9 h-9 rounded-full bg-forge-border justify-center items-center">
+            <View className="w-8 h-8 bg-forge-avatar rounded-2xl overflow-hidden">
+              <View className="flex-1 bg-forge-skin mt-2 mx-1.5 rounded-t-[10px]" />
             </View>
           </View>
         </View>
 
-        <Text style={styles.sectionLabel}>ANALYTICS HUB</Text>
-        <Text style={styles.pageTitle}>Estatísticas</Text>
+        <Text className="text-forge-accent text-[11px] font-bold tracking-widest mb-1">ANALYTICS HUB</Text>
+        <Text className="text-white text-[32px] font-black mb-4">Estatísticas</Text>
 
-        <View style={styles.periodToggle}>
+        <View className="flex-row gap-2 mb-5">
           <TouchableOpacity
-            style={[styles.periodButton, periodFilter === '7' && styles.periodButtonActive]}
+            className={`px-4 py-2 rounded-[20px] border ${periodFilter === '7' ? 'bg-forge-accent-bg border-forge-accent' : 'border-forge-border'}`}
             onPress={() => setPeriodFilter('7')}
           >
-            <Text style={[styles.periodText, periodFilter === '7' && styles.periodTextActive]}>
+            <Text className={`text-[11px] font-bold tracking-tight ${periodFilter === '7' ? 'text-forge-accent' : 'text-forge-muted-dark'}`}>
               7 DIAS
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.periodButton, periodFilter === '30' && styles.periodButtonActive]}
+            className={`px-4 py-2 rounded-[20px] border ${periodFilter === '30' ? 'bg-forge-accent-bg border-forge-accent' : 'border-forge-border'}`}
             onPress={() => setPeriodFilter('30')}
           >
-            <Text style={[styles.periodText, periodFilter === '30' && styles.periodTextActive]}>
+            <Text className={`text-[11px] font-bold tracking-tight ${periodFilter === '30' ? 'text-forge-accent' : 'text-forge-muted-dark'}`}>
               30 DIAS
             </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>VOLUME SEMANAL</Text>
+        <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-forge-muted text-[11px] font-bold tracking-wide">VOLUME SEMANAL</Text>
             <TrendingUp size={18} color="#A0C4FF" />
           </View>
-          <View style={styles.volumeRow}>
-            <Text style={styles.bigNumber}>42,850</Text>
-            <Text style={styles.bigUnit}> lbs</Text>
+          <View className="flex-row items-baseline">
+            <Text className="text-forge-green text-[36px] font-black">42,850</Text>
+            <Text className="text-forge-muted text-sm font-semibold"> lbs</Text>
           </View>
-          <View style={{ alignItems: 'center', marginTop: 16 }}>
+          <View className="items-center mt-4">
             <BarChart
               data={weeklyVolumeData}
               width={CHART_WIDTH}
@@ -224,9 +223,9 @@ export default function EstatisticasScreen() {
           </View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>GRUPO MUSCULAR</Text>
-          <View style={{ alignItems: 'center', marginVertical: 16 }}>
+        <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
+          <Text className="text-forge-muted text-[11px] font-bold tracking-wide">GRUPO MUSCULAR</Text>
+          <View className="items-center my-4">
             <DonutChart
               data={muscleGroupData}
               size={150}
@@ -236,33 +235,33 @@ export default function EstatisticasScreen() {
             />
           </View>
           {muscleGroupData.map((g, i) => (
-            <View key={i} style={styles.legendRow}>
-              <View style={[styles.legendDot, { backgroundColor: g.color }]} />
-              <Text style={styles.legendLabel}>{g.label}</Text>
-              <Text style={styles.legendValue}>{g.value}%</Text>
+            <View key={i} className="flex-row items-center py-1.5 gap-2">
+              <View className="w-2 h-2 rounded-full" style={{ backgroundColor: g.color }} />
+              <Text className="text-forge-text-secondary text-[13px] font-semibold flex-1">{g.label}</Text>
+              <Text className="text-white text-[13px] font-bold">{g.value}%</Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>1RM ESTIMADO</Text>
-            <View style={styles.rmLegend}>
-              <View style={styles.rmLegendItem}>
-                <View style={[styles.rmLegendLine, { backgroundColor: '#A0C4FF' }]} />
-                <Text style={styles.rmLegendText}>SQUAT</Text>
+        <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-forge-muted text-[11px] font-bold tracking-wide">1RM ESTIMADO</Text>
+            <View className="flex-row gap-4">
+              <View className="flex-row items-center gap-1">
+                <View className="w-4 h-0.5 rounded-sm bg-forge-accent" />
+                <Text className="text-forge-muted text-[9px] font-bold tracking-tight">SQUAT</Text>
               </View>
-              <View style={styles.rmLegendItem}>
-                <View style={[styles.rmLegendLine, { backgroundColor: '#FFA07A' }]} />
-                <Text style={styles.rmLegendText}>BENCH</Text>
+              <View className="flex-row items-center gap-1">
+                <View className="w-4 h-0.5 rounded-sm bg-forge-orange" />
+                <Text className="text-forge-muted text-[9px] font-bold tracking-tight">BENCH</Text>
               </View>
             </View>
           </View>
-          <View style={styles.rmGoal}>
-            <Text style={styles.rmGoalLabel}>PRÓXIMA META</Text>
-            <Text style={styles.rmGoalValue}>315 lbs</Text>
+          <View className="items-end mb-1">
+            <Text className="text-forge-muted text-[9px] font-bold tracking-tight">PRÓXIMA META</Text>
+            <Text className="text-forge-green text-2xl font-black">315 lbs</Text>
           </View>
-          <View style={{ alignItems: 'center' }}>
+          <View className="items-center">
             <LineChart
               data={rm1Data}
               width={CHART_WIDTH}
@@ -273,7 +272,7 @@ export default function EstatisticasScreen() {
               fillGradient={false}
             />
           </View>
-          <View style={{ alignItems: 'center', marginTop: -120 }}>
+          <View className="items-center" style={{ marginTop: -120 }}>
             <LineChart
               data={rm1BenchData}
               width={CHART_WIDTH}
@@ -287,9 +286,9 @@ export default function EstatisticasScreen() {
           </View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>CONSISTÊNCIA MENSAL</Text>
-          <View style={{ marginTop: 12 }}>
+        <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
+          <Text className="text-forge-muted text-[11px] font-bold tracking-wide">CONSISTÊNCIA MENSAL</Text>
+          <View className="mt-3">
             <HeatmapGrid
               data={heatmapData}
               columns={7}
@@ -300,23 +299,23 @@ export default function EstatisticasScreen() {
           </View>
         </View>
 
-        <Text style={styles.sectionTitleOutside}>REGISTRO DE ATIVIDADE</Text>
+        <Text className="text-forge-muted text-xs font-bold tracking-wide mt-2 mb-3">REGISTRO DE ATIVIDADE</Text>
         {mockActivities.map((act, i) => (
-          <View key={i} style={styles.activityCard}>
-            <View style={styles.activityIcon}>
+          <View key={i} className="flex-row bg-forge-surface rounded-2xl p-4 mb-2.5 gap-3">
+            <View className="w-9 h-9 rounded-full bg-forge-accent-bg justify-center items-center">
               <Activity size={16} color={act.color} />
             </View>
-            <View style={{ flex: 1 }}>
-              <View style={styles.activityHeader}>
-                <Text style={styles.activityTitle}>{act.title}</Text>
-                <Text style={styles.activityTime}>{act.time}</Text>
+            <View className="flex-1">
+              <View className="flex-row justify-between items-center mb-1">
+                <Text className="text-white text-sm font-bold">{act.title}</Text>
+                <Text className="text-forge-muted-dark text-[11px] font-semibold">{act.time}</Text>
               </View>
-              <Text style={styles.activityDetails}>{act.details}</Text>
+              <Text className="text-forge-muted text-[11px] leading-4 mb-1.5">{act.details}</Text>
               {act.tags.length > 0 && (
-                <View style={styles.activityTags}>
+                <View className="flex-row gap-1.5">
                   {act.tags.map((tag, ti) => (
-                    <View key={ti} style={styles.activityTag}>
-                      <Text style={styles.activityTagText}>{tag}</Text>
+                    <View key={ti} className="bg-forge-green-bg px-2.5 py-1 rounded-md">
+                      <Text className="text-forge-green text-[9px] font-bold tracking-tight">{tag}</Text>
                     </View>
                   ))}
                 </View>
@@ -325,34 +324,37 @@ export default function EstatisticasScreen() {
           </View>
         ))}
 
-        <Text style={styles.sectionTitleOutside}>CORPO</Text>
+        <Text className="text-forge-muted text-xs font-bold tracking-wide mt-2 mb-3">CORPO</Text>
 
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>PESO ATUAL</Text>
+        <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-forge-muted text-[11px] font-bold tracking-wide">PESO ATUAL</Text>
             <Scale size={18} color="#A0C4FF" />
           </View>
           {latestWeight ? (
             <>
-              <View style={styles.volumeRow}>
-                <Text style={styles.bigNumber}>{latestWeight.toFixed(1)}</Text>
-                <Text style={styles.bigUnit}> kg</Text>
+              <View className="flex-row items-baseline">
+                <Text className="text-forge-green text-[36px] font-black">{latestWeight.toFixed(1)}</Text>
+                <Text className="text-forge-muted text-sm font-semibold"> kg</Text>
               </View>
               {weightDiff !== null && (
-                <Text style={[styles.weightDiff, { color: weightDiff <= 0 ? '#4ADE80' : '#FFA07A' }]}>
+                <Text
+                  className="text-[11px] font-bold mt-1.5"
+                  style={{ color: weightDiff <= 0 ? '#4ADE80' : '#FFA07A' }}
+                >
                   {weightDiff > 0 ? '+' : ''}{weightDiff.toFixed(1)} kg desde a última medição
                 </Text>
               )}
             </>
           ) : (
-            <Text style={styles.noDataText}>Nenhuma medição registrada</Text>
+            <Text className="text-forge-muted-dark text-[13px] mt-2">Nenhuma medição registrada</Text>
           )}
         </View>
 
         {weightChartData.length > 1 && (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>EVOLUÇÃO DO PESO</Text>
-            <View style={{ alignItems: 'center', marginTop: 12 }}>
+          <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
+            <Text className="text-forge-muted text-[11px] font-bold tracking-wide">EVOLUÇÃO DO PESO</Text>
+            <View className="items-center mt-3">
               <LineChart
                 data={weightChartData}
                 width={CHART_WIDTH}
@@ -364,48 +366,51 @@ export default function EstatisticasScreen() {
           </View>
         )}
 
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>HISTÓRICO DE MEDIÇÕES</Text>
+        <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-forge-muted text-[11px] font-bold tracking-wide">HISTÓRICO DE MEDIÇÕES</Text>
             <TouchableOpacity
-              style={styles.addButton}
+              className="bg-forge-accent-bg px-3.5 py-2 rounded-xl"
               onPress={() => setShowAddMetricModal(true)}
             >
-              <Text style={styles.addButtonText}>+ REGISTRAR</Text>
+              <Text className="text-forge-accent text-[10px] font-extrabold tracking-tight">+ REGISTRAR</Text>
             </TouchableOpacity>
           </View>
           {bodyMetrics.slice(0, 5).map((m, i) => (
-            <View key={m.id} style={[styles.metricRow, i < Math.min(bodyMetrics.length, 5) - 1 && styles.metricRowBorder]}>
+            <View
+              key={m.id}
+              className={`flex-row justify-between items-center py-3.5 ${i < Math.min(bodyMetrics.length, 5) - 1 ? 'border-b border-forge-border' : ''}`}
+            >
               <View>
-                <Text style={styles.metricDate}>
+                <Text className="text-forge-text-secondary text-[13px] font-semibold mb-0.5">
                   {new Date(m.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
                 </Text>
-                {m.notes && <Text style={styles.metricNotes}>{m.notes}</Text>}
+                {m.notes && <Text className="text-forge-muted-dark text-[11px]">{m.notes}</Text>}
               </View>
-              <View style={styles.metricValues}>
-                <Text style={styles.metricWeight}>{m.weight_kg.toFixed(1)} kg</Text>
+              <View className="items-end">
+                <Text className="text-white text-base font-extrabold">{m.weight_kg.toFixed(1)} kg</Text>
                 {m.body_fat_percentage && (
-                  <Text style={styles.metricBf}>{m.body_fat_percentage.toFixed(1)}% BF</Text>
+                  <Text className="text-forge-muted text-[11px] font-semibold mt-0.5">{m.body_fat_percentage.toFixed(1)}% BF</Text>
                 )}
               </View>
             </View>
           ))}
           {bodyMetrics.length === 0 && (
-            <Text style={styles.noDataText}>Nenhuma medição registrada ainda.</Text>
+            <Text className="text-forge-muted-dark text-[13px] mt-2">Nenhuma medição registrada ainda.</Text>
           )}
         </View>
 
-        <View style={{ height: 100 }} />
+        <View className="h-[100px]" />
       </ScrollView>
 
       <Modal visible={showAddMetricModal} transparent animationType="slide">
-        <Pressable style={styles.modalOverlay} onPress={() => setShowAddMetricModal(false)}>
-          <Pressable style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Registrar Medição</Text>
+        <Pressable className="flex-1 bg-black/60 justify-end" onPress={() => setShowAddMetricModal(false)}>
+          <Pressable className="bg-forge-surface rounded-t-3xl p-6 pb-10">
+            <Text className="text-white text-xl font-extrabold mb-5">Registrar Medição</Text>
 
-            <Text style={styles.inputLabel}>Peso (kg) *</Text>
+            <Text className="text-forge-muted text-[11px] font-bold tracking-tight mb-1.5 mt-3">Peso (kg) *</Text>
             <TextInput
-              style={styles.input}
+              className="bg-forge-accent-bg rounded-xl p-3.5 text-white text-sm font-semibold border border-forge-border"
               placeholder="Ex: 84.5"
               placeholderTextColor="#5F6368"
               keyboardType="decimal-pad"
@@ -413,9 +418,9 @@ export default function EstatisticasScreen() {
               onChangeText={setNewWeight}
             />
 
-            <Text style={styles.inputLabel}>% Gordura Corporal</Text>
+            <Text className="text-forge-muted text-[11px] font-bold tracking-tight mb-1.5 mt-3">% Gordura Corporal</Text>
             <TextInput
-              style={styles.input}
+              className="bg-forge-accent-bg rounded-xl p-3.5 text-white text-sm font-semibold border border-forge-border"
               placeholder="Ex: 15.0"
               placeholderTextColor="#5F6368"
               keyboardType="decimal-pad"
@@ -423,9 +428,10 @@ export default function EstatisticasScreen() {
               onChangeText={setNewBf}
             />
 
-            <Text style={styles.inputLabel}>Notas</Text>
+            <Text className="text-forge-muted text-[11px] font-bold tracking-tight mb-1.5 mt-3">Notas</Text>
             <TextInput
-              style={[styles.input, { height: 60, textAlignVertical: 'top' }]}
+              className="bg-forge-accent-bg rounded-xl p-3.5 text-white text-sm font-semibold border border-forge-border h-[60px]"
+              style={{ textAlignVertical: 'top' }}
               placeholder="Observações opcionais..."
               placeholderTextColor="#5F6368"
               multiline
@@ -433,15 +439,15 @@ export default function EstatisticasScreen() {
               onChangeText={setNewNotes}
             />
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleAddMetric}>
-              <Text style={styles.submitButtonText}>REGISTRAR</Text>
+            <TouchableOpacity className="bg-forge-accent rounded-2xl p-4 items-center mt-6" onPress={handleAddMetric}>
+              <Text className="text-forge-bg text-sm font-extrabold tracking-wide">REGISTRAR</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.cancelButton}
+              className="p-4 items-center mt-2"
               onPress={() => setShowAddMetricModal(false)}
             >
-              <Text style={styles.cancelButtonText}>CANCELAR</Text>
+              <Text className="text-forge-muted text-[13px] font-bold">CANCELAR</Text>
             </TouchableOpacity>
           </Pressable>
         </Pressable>
@@ -449,338 +455,3 @@ export default function EstatisticasScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#16181C',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  headerTitle: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  avatarPlaceholder: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#2A2C35',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sectionLabel: {
-    color: '#A0C4FF',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-    marginBottom: 4,
-  },
-  pageTitle: {
-    color: '#FFF',
-    fontSize: 32,
-    fontWeight: '900',
-    marginBottom: 16,
-  },
-  periodToggle: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 20,
-  },
-  periodButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#2A2D35',
-  },
-  periodButtonActive: {
-    backgroundColor: '#252B3B',
-    borderColor: '#A0C4FF',
-  },
-  periodText: {
-    color: '#5F6368',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  periodTextActive: {
-    color: '#A0C4FF',
-  },
-  card: {
-    backgroundColor: '#1C1E26',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  cardTitle: {
-    color: '#888',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  volumeRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  bigNumber: {
-    color: '#4ADE80',
-    fontSize: 36,
-    fontWeight: '900',
-  },
-  bigUnit: {
-    color: '#888',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  legendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-    gap: 8,
-  },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  legendLabel: {
-    color: '#CCC',
-    fontSize: 13,
-    fontWeight: '600',
-    flex: 1,
-  },
-  legendValue: {
-    color: '#FFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  rmLegend: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  rmLegendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  rmLegendLine: {
-    width: 16,
-    height: 2,
-    borderRadius: 1,
-  },
-  rmLegendText: {
-    color: '#888',
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  rmGoal: {
-    alignItems: 'flex-end',
-    marginBottom: 4,
-  },
-  rmGoalLabel: {
-    color: '#888',
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  rmGoalValue: {
-    color: '#4ADE80',
-    fontSize: 24,
-    fontWeight: '900',
-  },
-  sectionTitleOutside: {
-    color: '#888',
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  activityCard: {
-    flexDirection: 'row',
-    backgroundColor: '#1C1E26',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 10,
-    gap: 12,
-  },
-  activityIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#252B3B',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  activityHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  activityTitle: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  activityTime: {
-    color: '#5F6368',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  activityDetails: {
-    color: '#888',
-    fontSize: 11,
-    lineHeight: 16,
-    marginBottom: 6,
-  },
-  activityTags: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  activityTag: {
-    backgroundColor: '#1A4D3A',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  activityTagText: {
-    color: '#4ADE80',
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  weightDiff: {
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: 6,
-  },
-  noDataText: {
-    color: '#5F6368',
-    fontSize: 13,
-    marginTop: 8,
-  },
-  addButton: {
-    backgroundColor: '#252B3B',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-  addButtonText: {
-    color: '#A0C4FF',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  metricRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-  },
-  metricRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#2A2D35',
-  },
-  metricDate: {
-    color: '#CCC',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  metricNotes: {
-    color: '#5F6368',
-    fontSize: 11,
-  },
-  metricValues: {
-    alignItems: 'flex-end',
-  },
-  metricWeight: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  metricBf: {
-    color: '#888',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#1C1E26',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 40,
-  },
-  modalTitle: {
-    color: '#FFF',
-    fontSize: 20,
-    fontWeight: '800',
-    marginBottom: 20,
-  },
-  inputLabel: {
-    color: '#888',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    marginBottom: 6,
-    marginTop: 12,
-  },
-  input: {
-    backgroundColor: '#252B3B',
-    borderRadius: 12,
-    padding: 14,
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: '600',
-    borderWidth: 1,
-    borderColor: '#2A2D35',
-  },
-  submitButton: {
-    backgroundColor: '#A0C4FF',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  submitButtonText: {
-    color: '#16181C',
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  cancelButton: {
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  cancelButtonText: {
-    color: '#888',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-});

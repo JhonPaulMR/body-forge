@@ -1,415 +1,139 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Menu, Play, Plus, Droplet, Utensils } from 'lucide-react-native';
 
 export default function HomeScreen() {
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
 
-        <View style={styles.header}>
+        <View className="flex-row items-center justify-between mb-7">
           <TouchableOpacity>
             <Menu size={24} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>BODY FORGE</Text>
-          <View style={styles.avatarPlaceholder}>
-             <View style={{width: 32, height: 32, backgroundColor: '#333', borderRadius: 16, overflow: 'hidden'}}>
-               <View style={{flex: 1, backgroundColor: '#FAD6B1', marginTop: 8, marginHorizontal: 6, borderTopLeftRadius: 10, borderTopRightRadius: 10}} />
+          <Text className="text-white text-lg font-black tracking-wide">BODY FORGE</Text>
+          <View className="w-9 h-9 rounded-full bg-forge-border justify-center items-center">
+             <View className="w-8 h-8 bg-forge-avatar rounded-2xl overflow-hidden">
+               <View className="flex-1 bg-forge-skin mt-2 mx-1.5 rounded-t-[10px]" />
              </View>
           </View>
         </View>
 
-        <View style={styles.calendarSection}>
-          <Text style={styles.monthText}>JUNHO 2024</Text>
-          <View style={styles.progressRow}>
-            <Text style={styles.progressText}>2/5 DIAS CONCLUÍDOS</Text>
-            <View style={styles.progressBarBg}>
-              <View style={styles.progressBarFill} />
+        <View className="mb-6">
+          <Text className="text-forge-text-tertiary text-[13px] font-semibold tracking-wide">JUNHO 2024</Text>
+          <View className="flex-row items-center justify-between mt-1.5 mb-4">
+            <Text className="text-forge-orange text-[11px] font-bold tracking-tight">2/5 DIAS CONCLUÍDOS</Text>
+            <View className="w-[60px] h-1 bg-forge-border rounded-sm">
+              <View className="w-6 h-1 bg-forge-green rounded-sm" />
             </View>
           </View>
 
-          <View style={styles.daysRow}>
+          <View className="flex-row justify-between">
             {['SEG\n17', 'TER\n18', 'QUA\n19', 'QUI\n20', 'SEX\n21', 'SÁB\n22', 'DOM\n23'].map((day, i) => {
               const acts = day.split('\n');
               const isToday = acts[1] === '19';
               return (
-                <View key={i} style={[styles.dayCard, isToday && styles.dayCardActive]}>
-                  <Text style={[styles.dayName, isToday && styles.dayTextActive]}>{acts[0]}</Text>
-                  <Text style={[styles.dayNumber, isToday && styles.dayTextActive]}>{acts[1]}</Text>
+                <View key={i} className={`py-2.5 px-3 rounded-lg items-center ${isToday ? 'bg-forge-accent' : 'bg-[#1A1C23]'}`}>
+                  <Text className={`text-[11px] mb-1 font-semibold ${isToday ? 'text-forge-bg' : 'text-forge-muted'}`}>{acts[0]}</Text>
+                  <Text className={`text-base font-bold ${isToday ? 'text-forge-bg' : 'text-forge-text-secondary'}`}>{acts[1]}</Text>
                 </View>
               );
             })}
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>SESSÕES DE HOJE</Text>
+        <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-4">SESSÕES DE HOJE</Text>
         
-        <View style={styles.sessionCard}>
+        <View className="h-[120px] rounded-2xl overflow-hidden mb-4 bg-forge-surface-hover">
            <Image
              source={{ uri: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1000' }}
-             style={styles.sessionImage}
+             className="w-full h-full absolute opacity-40"
            />
-           <View style={styles.sessionOverlay}>
+           <View className="flex-1 p-4 flex-row justify-between items-end" style={{ backgroundColor: 'rgba(26,28,35,0.4)' }}>
              <View>
-               <Text style={styles.sessionCategory}>HIPERTROFIA</Text>
-               <Text style={styles.sessionTitle}>TREINO ABC</Text>
-               <Text style={styles.sessionSub}>⏱ 45 min   🔥 320 kcal</Text>
+               <Text className="text-forge-accent text-[10px] font-bold tracking-wide mb-1">HIPERTROFIA</Text>
+               <Text className="text-white text-xl font-black mb-1">TREINO ABC</Text>
+               <Text className="text-forge-text-secondary text-[11px]">⏱ 45 min   🔥 320 kcal</Text>
              </View>
-             <TouchableOpacity style={styles.playButton}>
+             <TouchableOpacity className="w-10 h-10 rounded-xl bg-forge-accent justify-center items-center">
                <Play size={20} color="#1A1C23" fill="#1A1C23" />
              </TouchableOpacity>
            </View>
         </View>
 
-        <View style={styles.sessionCard}>
+        <View className="h-[120px] rounded-2xl overflow-hidden mb-4 bg-forge-surface-hover">
            <Image
              source={{ uri: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=1000' }}
-             style={styles.sessionImage}
+             className="w-full h-full absolute opacity-40"
            />
-           <View style={[styles.sessionOverlay, {backgroundColor: 'rgba(26,28,35,0.7)'}]}>
+           <View className="flex-1 p-4 flex-row justify-between items-end" style={{ backgroundColor: 'rgba(26,28,35,0.7)' }}>
              <View>
-               <Text style={[styles.sessionCategory, {color: '#FFA07A'}]}>CARDIO INTENSITY</Text>
-               <Text style={styles.sessionTitle}>TREINO ABC 2</Text>
-               <Text style={styles.sessionSub}>⏱ 60 min   🔥 510 kcal</Text>
+               <Text className="text-forge-orange text-[10px] font-bold tracking-wide mb-1">CARDIO INTENSITY</Text>
+               <Text className="text-white text-xl font-black mb-1">TREINO ABC 2</Text>
+               <Text className="text-forge-text-secondary text-[11px]">⏱ 60 min   🔥 510 kcal</Text>
              </View>
-             <TouchableOpacity style={styles.plusButton}>
+             <TouchableOpacity className="w-10 h-10 rounded-xl bg-forge-border-light justify-center items-center">
                <Plus size={20} color="#FFF" />
              </TouchableOpacity>
            </View>
         </View>
 
-        <View style={styles.activityCard}>
-          <View style={styles.activityHeader}>
-            <Text style={styles.activityTitle}>REGISTRO DE ATIVIDADE</Text>
-            <Text style={styles.activityDots}>...</Text>
+        <View className="bg-forge-surface rounded-2xl p-4 mb-4 mt-4">
+          <View className="flex-row justify-between">
+            <Text className="text-white text-[11px] font-bold tracking-wide">REGISTRO DE ATIVIDADE</Text>
+            <Text className="text-forge-muted font-bold">...</Text>
           </View>
           
-          <View style={styles.chartContainer}>
-             <View style={[styles.bar, {height: 60, backgroundColor: '#A0C4FF'}]} />
-             <View style={[styles.bar, {height: 35, backgroundColor: '#4ADE80'}]} />
-             <View style={[styles.bar, {height: 70, backgroundColor: '#FFA07A'}]} />
+          <View className="flex-row justify-around items-end h-[90px] mt-4 px-5">
+             <View className="w-8 rounded-t" style={{ height: 60, backgroundColor: '#A0C4FF' }} />
+             <View className="w-8 rounded-t" style={{ height: 35, backgroundColor: '#4ADE80' }} />
+             <View className="w-8 rounded-t" style={{ height: 70, backgroundColor: '#FFA07A' }} />
           </View>
         </View>
 
-        <View style={styles.statsRow}>
-           <View style={styles.statCard}>
-             <Text style={styles.statTitle}>PESO</Text>
-             <View style={{flexDirection: 'row', alignItems: 'baseline', marginTop: 12}}>
-               <Text style={styles.statValue}>84.2</Text>
-               <Text style={styles.statUnit}> KG</Text>
+        <View className="flex-row justify-between mb-6">
+           <View className="w-[48%] bg-forge-surface rounded-2xl p-4">
+             <Text className="text-forge-muted text-[11px] font-bold">PESO</Text>
+             <View className="flex-row items-baseline mt-3">
+               <Text className="text-white text-[26px] font-bold">84.2</Text>
+               <Text className="text-forge-muted text-sm font-bold"> KG</Text>
              </View>
-             <Text style={styles.statDesc}>📉 -0.5kg esta semana</Text>
+             <Text className="text-forge-green text-[10px] font-bold mt-3">📉 -0.5kg esta semana</Text>
            </View>
 
-           <View style={styles.statCard}>
-             <Text style={styles.statTitle}>IMC</Text>
-             <Text style={[styles.statValue, {marginTop: 12}]}>23.8</Text>
-             <View style={styles.imcBarWrap}>
-                <View style={styles.imcBarFill} />
+           <View className="w-[48%] bg-forge-surface rounded-2xl p-4">
+             <Text className="text-forge-muted text-[11px] font-bold">IMC</Text>
+             <Text className="text-white text-[26px] font-bold mt-3">23.8</Text>
+             <View className="w-full h-1 bg-forge-border-light rounded-sm mt-4 mb-2">
+                <View className="w-[40%] h-1 bg-forge-accent rounded-sm" />
              </View>
-             <Text style={styles.imcDesc}>Faixa Saudável</Text>
+             <Text className="text-forge-text-secondary text-[10px]">Faixa Saudável</Text>
            </View>
         </View>
 
-        <Text style={styles.sectionTitle}>LEMBRETES</Text>
-        <View style={styles.remindersCard}>
-           <View style={styles.reminderItem}>
+        <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-4">LEMBRETES</Text>
+        <View className="bg-forge-surface rounded-2xl p-4">
+           <View className="flex-row items-center py-3">
              <Droplet size={18} color="#A0C4FF" />
-             <View style={styles.reminderContent}>
-                <Text style={styles.reminderName}>Meta de Água</Text>
-                <Text style={styles.reminderTime}>Próximo: 15:30</Text>
+             <View className="flex-1 ml-4">
+                <Text className="text-white text-[13px] font-semibold mb-1">Meta de Água</Text>
+                <Text className="text-forge-muted text-[11px]">Próximo: 15:30</Text>
              </View>
-             <Text style={styles.reminderValue}>2.1 / 3.0L</Text>
+             <Text className="text-white text-[13px] font-bold">2.1 / 3.0L</Text>
            </View>
-           <View style={styles.reminderItem}>
+           <View className="flex-row items-center py-3">
              <Utensils size={18} color="#FFA07A" />
-             <View style={styles.reminderContent}>
-                <Text style={styles.reminderName}>Suplementação</Text>
-                <Text style={styles.reminderTime}>Pós-treino</Text>
+             <View className="flex-1 ml-4">
+                <Text className="text-white text-[13px] font-semibold mb-1">Suplementação</Text>
+                <Text className="text-forge-muted text-[11px]">Pós-treino</Text>
              </View>
-             <View style={styles.checkCircle}>
-               <Text style={{color: '#1A1C23', fontSize: 10, fontWeight: 'bold'}}>✓</Text>
+             <View className="w-5 h-5 rounded-full bg-forge-green justify-center items-center">
+               <Text className="text-forge-bg text-[10px] font-bold">✓</Text>
              </View>
            </View>
         </View>
-        <View style={{height: 100}} />
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#16181C',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 30,
-  },
-  headerTitle: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  avatarPlaceholder: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#2A2C35',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  calendarSection: {
-    marginBottom: 24,
-  },
-  monthText: {
-    color: '#E0E0E0',
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 1,
-  },
-  progressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 6,
-    marginBottom: 16,
-  },
-  progressText: {
-    color: '#FFA07A',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  progressBarBg: {
-    width: 60,
-    height: 4,
-    backgroundColor: '#2A2C35',
-    borderRadius: 2,
-  },
-  progressBarFill: {
-    width: 24,
-    height: 4,
-    backgroundColor: '#4ADE80',
-    borderRadius: 2,
-  },
-  daysRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  dayCard: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: '#1A1C23',
-    alignItems: 'center',
-  },
-  dayCardActive: {
-    backgroundColor: '#A0C4FF',
-  },
-  dayName: {
-    color: '#888',
-    fontSize: 11,
-    marginBottom: 4,
-    fontWeight: '600',
-  },
-  dayNumber: {
-    color: '#CCC',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  dayTextActive: {
-    color: '#16181C',
-  },
-  sectionTitle: {
-    color: '#888',
-    fontSize: 11,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    marginBottom: 16,
-  },
-  sessionCard: {
-    height: 120,
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: 16,
-    backgroundColor: '#22242A',
-  },
-  sessionImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-    opacity: 0.4,
-  },
-  sessionOverlay: {
-    flex: 1,
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    backgroundColor: 'rgba(26,28,35,0.4)',
-  },
-  sessionCategory: {
-    color: '#A0C4FF',
-    fontSize: 10,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  sessionTitle: {
-    color: '#FFF',
-    fontSize: 20,
-    fontWeight: '900',
-    marginBottom: 4,
-  },
-  sessionSub: {
-    color: '#CCC',
-    fontSize: 11,
-  },
-  playButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#A0C4FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  plusButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#353945',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  activityCard: {
-    backgroundColor: '#1C1E26',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    marginTop: 16,
-  },
-  activityHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  activityTitle: {
-    color: '#FFF',
-    fontSize: 11,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  activityDots: {
-    color: '#888',
-    fontWeight: 'bold',
-  },
-  chartContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    height: 90,
-    marginTop: 16,
-    paddingHorizontal: 20,
-  },
-  bar: {
-    width: 32,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  statCard: {
-    width: '48%',
-    backgroundColor: '#1C1E26',
-    borderRadius: 16,
-    padding: 16,
-  },
-  statTitle: {
-    color: '#888',
-    fontSize: 11,
-    fontWeight: 'bold',
-  },
-  statValue: {
-    color: '#FFF',
-    fontSize: 26,
-    fontWeight: 'bold',
-  },
-  statUnit: {
-    color: '#888',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  statDesc: {
-    color: '#4ADE80',
-    fontSize: 10,
-    fontWeight: 'bold',
-    marginTop: 12,
-  },
-  imcBarWrap: {
-    width: '100%',
-    height: 4,
-    backgroundColor: '#353945',
-    borderRadius: 2,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  imcBarFill: {
-    width: '40%',
-    height: 4,
-    backgroundColor: '#A0C4FF',
-    borderRadius: 2,
-  },
-  imcDesc: {
-    color: '#CCC',
-    fontSize: 10,
-  },
-  remindersCard: {
-    backgroundColor: '#1C1E26',
-    borderRadius: 16,
-    padding: 16,
-  },
-  reminderItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  reminderContent: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  reminderName: {
-    color: '#FFF',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  reminderTime: {
-    color: '#888',
-    fontSize: 11,
-  },
-  reminderValue: {
-    color: '#FFF',
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  checkCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#4ADE80',
-    justifyContent: 'center',
-    alignItems: 'center',
-  }
-});

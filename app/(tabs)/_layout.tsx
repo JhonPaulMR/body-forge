@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, TouchableOpacity, Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Home, Dumbbell, Clock, BarChart3, BicepsFlexed } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,8 +17,11 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   };
 
   return (
-    <View style={[styles.tabBarContainer, { paddingBottom: insets.bottom > 0 ? insets.bottom : 12 }]}>
-      <View style={styles.tabBarInner}>
+    <View
+      className="absolute bottom-0 left-0 right-0 bg-forge-surface-alt rounded-t-3xl pt-3 px-3 border-t border-forge-border"
+      style={{ paddingBottom: insets.bottom > 0 ? insets.bottom : 12, elevation: 10 }}
+    >
+      <View className="flex-row justify-around items-center">
         {state.routes.map((route, index) => {
           if (route.name === 'two') return null;
           const { options } = descriptors[route.key];
@@ -42,10 +45,10 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               key={route.key}
               onPress={onPress}
               activeOpacity={0.7}
-              style={[styles.tabItem, isFocused && styles.tabItemActive]}
+              className={`items-center justify-center py-2 px-4 rounded-2xl ${isFocused ? 'bg-forge-accent-bg' : ''}`}
             >
               {icons[route.name]?.(color)}
-              <Text style={[styles.tabLabel, { color }]}>{label}</Text>
+              <Text className="text-[10px] font-semibold mt-1" style={{ color }}>{label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -70,47 +73,4 @@ export default function TabLayout() {
   );
 }
 
-const TAB_BAR_HEIGHT = 72;
-
-const styles = StyleSheet.create({
-  tabBarContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#1A1D24',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 12,
-    paddingHorizontal: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#2A2D35',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  tabBarInner: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  tabItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-  },
-  tabItemActive: {
-    backgroundColor: '#252B3B',
-  },
-  tabLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-});
-
-export { TAB_BAR_HEIGHT };
+export const TAB_BAR_HEIGHT = 72;

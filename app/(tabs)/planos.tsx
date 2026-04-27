@@ -1,8 +1,17 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Menu, ChevronRight, Dumbbell, Zap } from 'lucide-react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { Menu, ChevronRight, Dumbbell, Zap, Plus } from 'lucide-react-native';
+import { db } from '@/database/schema';
+
+interface UserRoutine {
+  id: string;
+  name: string;
+  description: string | null;
+  day_count: number;
+  exercise_count: number;
+}
 
 const featuredPlan = {
   title: 'Hipertrofia Elite',
@@ -38,366 +47,176 @@ const basePlans = [
   },
 ];
 
-const userPlans = [
-  { id: 'uplan_1', name: 'Cutting Verão 2024', sub: 'Criado há 2 semanas • 4 treinos ativos', freq: '5x' },
-  { id: 'uplan_2', name: 'Manutenção Off-Season', sub: 'Arquivado em Jan/2024', freq: '4x' },
-];
-
 export default function PlanosScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const [userRoutines, setUserRoutines] = useState<UserRoutine[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadUserRoutines();
+    }, [])
+  );
+
+  const loadUserRoutines = () => {
+    try {
+      const result = db.getAllSync<UserRoutine>(
+        `SELECT r.id, r.name, r.description,
+                (SELECT COUNT(*) FROM routine_days WHERE routine_id = r.id) as day_count,
+                (SELECT COUNT(*) FROM routine_exercises re
+                 JOIN routine_days rd ON re.routine_day_id = rd.id
+                 WHERE rd.routine_id = r.id) as exercise_count
+         FROM routines r
+         WHERE r.user_id = 'user_1' AND r.is_builtin = 0
+         ORDER BY r.id DESC`
+      );
+      setUserRoutines(result);
+    } catch (error) {
+      console.error('Error loading routines:', error);
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
 
-        <View style={styles.header}>
+        <View className="flex-row items-center justify-between mb-6">
           <TouchableOpacity>
             <Menu size={24} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>BODY FORGE</Text>
-          <View style={styles.avatarPlaceholder}>
-            <View style={{ width: 32, height: 32, backgroundColor: '#333', borderRadius: 16, overflow: 'hidden' }}>
-              <View style={{ flex: 1, backgroundColor: '#FAD6B1', marginTop: 8, marginHorizontal: 6, borderTopLeftRadius: 10, borderTopRightRadius: 10 }} />
+          <Text className="text-white text-lg font-black tracking-wide">BODY FORGE</Text>
+          <View className="w-9 h-9 rounded-full bg-forge-border justify-center items-center">
+            <View className="w-8 h-8 bg-forge-avatar rounded-2xl overflow-hidden">
+              <View className="flex-1 bg-forge-skin mt-2 mx-1.5 rounded-t-[10px]" />
             </View>
           </View>
         </View>
 
-        <Text style={styles.sectionLabel}>EXPLORAR PROGRAMAS</Text>
-        <Text style={styles.pageTitle}>Planos</Text>
+        <Text className="text-forge-accent text-[11px] font-bold tracking-widest mb-1">EXPLORAR PROGRAMAS</Text>
+        <Text className="text-white text-[32px] font-black mb-6">Planos</Text>
 
-        <Text style={styles.sectionTitle}>EM DESTAQUE</Text>
-        <View style={styles.featuredCard}>
+        <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-3">EM DESTAQUE</Text>
+        <View className="h-[180px] rounded-[20px] overflow-hidden mb-6 bg-forge-surface-hover">
           <Image
             source={{ uri: featuredPlan.image }}
-            style={styles.featuredImage}
+            className="w-full h-full absolute opacity-35"
           />
-          <View style={styles.featuredOverlay}>
-            <View style={styles.featuredContent}>
-              <Text style={styles.featuredTitle}>{featuredPlan.title}</Text>
-              <Text style={styles.featuredSub}>
+          <View className="flex-1 p-5 justify-end flex-row items-end">
+            <View className="flex-1">
+              <Text className="text-white text-[26px] font-black mb-1.5">{featuredPlan.title}</Text>
+              <Text className="text-forge-text-secondary text-xs font-semibold">
                 {featuredPlan.duration} • {featuredPlan.frequency}
               </Text>
             </View>
-            <TouchableOpacity style={styles.startButton}>
-              <Text style={styles.startButtonText}>COMEÇAR</Text>
+            <TouchableOpacity className="bg-forge-accent px-5 py-2.5 rounded-3xl">
+              <Text className="text-forge-bg text-xs font-extrabold tracking-tight">COMEÇAR</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>PROGRAMAS BASE</Text>
+        <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-3">PROGRAMAS BASE</Text>
         {basePlans.map((plan) => (
-          <TouchableOpacity key={plan.id} style={styles.basePlanCard} activeOpacity={0.7}>
-            <View style={styles.basePlanHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.basePlanName}>{plan.name}</Text>
-                <Text style={styles.basePlanFocus}>{plan.focus}</Text>
+          <TouchableOpacity key={plan.id} className="bg-forge-surface rounded-2xl p-4 mb-3" activeOpacity={0.7}>
+            <View className="flex-row items-start mb-3">
+              <View className="flex-1">
+                <Text className="text-white text-base font-extrabold mb-1">{plan.name}</Text>
+                <Text className="text-forge-muted text-[10px] font-bold tracking-wide">{plan.focus}</Text>
               </View>
               <Zap size={20} color="#A0C4FF" />
             </View>
 
-            <View style={styles.muscleBarRow}>
+            <View className="flex-row gap-3 mb-2">
               {plan.muscles.map((m, i) => (
-                <View key={i} style={styles.muscleTag}>
-                  <View style={[styles.muscleDot, { backgroundColor: m.color }]} />
-                  <Text style={styles.muscleTagText}>{m.name}</Text>
-                  <Text style={styles.muscleTagPct}>{m.pct}%</Text>
+                <View key={i} className="flex-row items-center gap-1">
+                  <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: m.color }} />
+                  <Text className="text-forge-text-secondary text-[9px] font-bold tracking-tight">{m.name}</Text>
+                  <Text className="text-forge-muted text-[9px] font-semibold">{m.pct}%</Text>
                 </View>
               ))}
             </View>
-            <View style={styles.muscleBarContainer}>
+            <View className="flex-row h-1.5 rounded overflow-hidden mb-3 gap-0.5">
               {plan.muscles.map((m, i) => (
                 <View
                   key={i}
-                  style={[
-                    styles.muscleBarSegment,
-                    { flex: m.pct, backgroundColor: m.color },
-                    i === 0 && { borderTopLeftRadius: 4, borderBottomLeftRadius: 4 },
-                    i === plan.muscles.length - 1 && { borderTopRightRadius: 4, borderBottomRightRadius: 4 },
-                  ]}
+                  style={{
+                    flex: m.pct,
+                    backgroundColor: m.color,
+                    height: 6,
+                    ...(i === 0 && { borderTopLeftRadius: 4, borderBottomLeftRadius: 4 }),
+                    ...(i === plan.muscles.length - 1 && { borderTopRightRadius: 4, borderBottomRightRadius: 4 }),
+                  }}
                 />
               ))}
             </View>
 
-            <View style={styles.basePlanFooter}>
-              <Text style={styles.basePlanMeta}>{plan.duration}</Text>
-              <Text style={styles.basePlanMeta}>📅 {plan.frequency}</Text>
+            <View className="flex-row justify-between">
+              <Text className="text-forge-muted text-[11px] font-semibold">{plan.duration}</Text>
+              <Text className="text-forge-muted text-[11px] font-semibold">📅 {plan.frequency}</Text>
             </View>
           </TouchableOpacity>
         ))}
 
-        <View style={styles.sectionRow}>
-          <Text style={styles.sectionTitle}>MEUS PLANOS</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAllText}>Ver todos</Text>
-          </TouchableOpacity>
+        {/* User Plans - from DB */}
+        <View className="flex-row justify-between items-center mt-2">
+          <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-3">MEUS PLANOS</Text>
+          {userRoutines.length > 0 && (
+            <TouchableOpacity>
+              <Text className="text-forge-accent text-xs font-semibold mb-3">Ver todos</Text>
+            </TouchableOpacity>
+          )}
         </View>
-        {userPlans.map((plan) => (
-          <TouchableOpacity key={plan.id} style={styles.userPlanCard} activeOpacity={0.7}>
-            <View style={styles.userPlanDot} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.userPlanName}>{plan.name}</Text>
-              <Text style={styles.userPlanSub}>{plan.sub}</Text>
-            </View>
-            <View style={styles.userPlanFreq}>
-              <Text style={styles.freqLabel}>FREQ</Text>
-              <Text style={styles.freqValue}>{plan.freq}</Text>
-            </View>
-            <ChevronRight size={18} color="#5F6368" />
-          </TouchableOpacity>
-        ))}
 
-        <Text style={styles.sectionTitle}>EXERCÍCIOS</Text>
+        {userRoutines.length > 0 ? (
+          userRoutines.map((routine) => (
+            <TouchableOpacity
+              key={routine.id}
+              className="flex-row items-center bg-forge-surface rounded-2xl p-4 mb-2.5 gap-3"
+              activeOpacity={0.7}
+              onPress={() => router.push(`/planner/details?routineId=${routine.id}` as any)}
+            >
+              <View className="w-10 h-10 rounded-xl bg-forge-accent-bg justify-center items-center">
+                <Dumbbell size={18} color="#A0C4FF" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-white text-sm font-bold mb-0.5">{routine.name}</Text>
+                <Text className="text-forge-muted text-[10px] font-medium">
+                  {routine.day_count} dia{routine.day_count !== 1 ? 's' : ''} • {routine.exercise_count} exercício{routine.exercise_count !== 1 ? 's' : ''}
+                </Text>
+              </View>
+              <ChevronRight size={18} color="#5F6368" />
+            </TouchableOpacity>
+          ))
+        ) : (
+          <View className="items-center py-8 bg-forge-surface rounded-2xl mb-3">
+            <View className="w-14 h-14 rounded-2xl bg-forge-bg border border-dashed border-forge-border-light justify-center items-center mb-3">
+              <Dumbbell size={22} color="#5F6368" />
+            </View>
+            <Text className="text-forge-muted text-[13px] font-semibold mb-1">Nenhum plano criado</Text>
+            <Text className="text-forge-muted-dark text-[11px]">Toque em + para criar seu primeiro plano</Text>
+          </View>
+        )}
+
+        <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-3 mt-2">EXERCÍCIOS</Text>
         <TouchableOpacity
-          style={styles.exercisesButton}
+          className="flex-row items-center justify-center bg-forge-surface rounded-2xl p-[18px] gap-3 border border-forge-border"
           activeOpacity={0.7}
           onPress={() => router.push('/exercises' as any)}
         >
           <Dumbbell size={20} color="#A0C4FF" />
-          <Text style={styles.exercisesButtonText}>VER TODOS OS EXERCÍCIOS</Text>
+          <Text className="text-white text-sm font-bold tracking-wide">VER TODOS OS EXERCÍCIOS</Text>
         </TouchableOpacity>
-
-        <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* Build Plan Button */}
+      <TouchableOpacity
+        className="absolute right-5 flex-row items-center bg-forge-accent rounded-full px-5 py-3.5 gap-2"
+        style={{ elevation: 8, shadowColor: '#A0C4FF', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, bottom: Math.max(90, insets.bottom + 75) }}
+        activeOpacity={0.8}
+        onPress={() => router.push('/planner' as any)}
+      >
+        <Plus size={20} color="#1A1D24" />
+        <Text className="text-forge-bg text-sm font-extrabold tracking-tight">Construir Plano</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#16181C',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  headerTitle: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  avatarPlaceholder: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#2A2C35',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sectionLabel: {
-    color: '#A0C4FF',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-    marginBottom: 4,
-  },
-  pageTitle: {
-    color: '#FFF',
-    fontSize: 32,
-    fontWeight: '900',
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    color: '#888',
-    fontSize: 11,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  sectionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  seeAllText: {
-    color: '#A0C4FF',
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-
-  featuredCard: {
-    height: 180,
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginBottom: 24,
-    backgroundColor: '#22242A',
-  },
-  featuredImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-    opacity: 0.35,
-  },
-  featuredOverlay: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'flex-end',
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
-  featuredContent: {
-    flex: 1,
-  },
-  featuredTitle: {
-    color: '#FFF',
-    fontSize: 26,
-    fontWeight: '900',
-    marginBottom: 6,
-  },
-  featuredSub: {
-    color: '#CCC',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  startButton: {
-    backgroundColor: '#A0C4FF',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 24,
-  },
-  startButtonText: {
-    color: '#16181C',
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-
-  basePlanCard: {
-    backgroundColor: '#1C1E26',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-  },
-  basePlanHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  basePlanName: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '800',
-    marginBottom: 4,
-  },
-  basePlanFocus: {
-    color: '#888',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  muscleBarRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 8,
-  },
-  muscleTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  muscleDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  muscleTagText: {
-    color: '#CCC',
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  muscleTagPct: {
-    color: '#888',
-    fontSize: 9,
-    fontWeight: '600',
-  },
-  muscleBarContainer: {
-    flexDirection: 'row',
-    height: 6,
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: 12,
-    gap: 2,
-  },
-  muscleBarSegment: {
-    height: 6,
-  },
-  basePlanFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  basePlanMeta: {
-    color: '#888',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-
-  userPlanCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1C1E26',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 10,
-    gap: 12,
-  },
-  userPlanDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#A0C4FF',
-  },
-  userPlanName: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 2,
-  },
-  userPlanSub: {
-    color: '#888',
-    fontSize: 10,
-    fontWeight: '500',
-  },
-  userPlanFreq: {
-    alignItems: 'center',
-    marginRight: 4,
-  },
-  freqLabel: {
-    color: '#5F6368',
-    fontSize: 8,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  freqValue: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: '800',
-  },
-
-  exercisesButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#1C1E26',
-    borderRadius: 16,
-    padding: 18,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: '#2A2D35',
-  },
-  exercisesButtonText: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-});

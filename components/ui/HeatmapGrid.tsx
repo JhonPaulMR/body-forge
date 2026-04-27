@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 
 interface HeatmapGridProps {
   /** Array de valores de 0 a 1 representando intensidade (28-42 dias) */
@@ -38,9 +38,9 @@ export function HeatmapGrid({
 
   return (
     <View>
-      <View style={styles.grid}>
+      <View className="items-center">
         {Array.from({ length: rows }).map((_, row) => (
-          <View key={row} style={styles.row}>
+          <View key={row} className="flex-row">
             {Array.from({ length: columns }).map((_, col) => {
               const index = row * columns + col;
               const value = index < data.length ? data[index] : -1;
@@ -48,76 +48,35 @@ export function HeatmapGrid({
               return (
                 <View
                   key={col}
-                  style={[
-                    styles.cell,
-                    {
-                      width: cellSize,
-                      height: cellSize,
-                      margin: cellGap / 2,
-                      backgroundColor: getColor(value),
-                      borderRadius: 4,
-                    },
-                  ]}
+                  style={{
+                    width: cellSize,
+                    height: cellSize,
+                    margin: cellGap / 2,
+                    backgroundColor: getColor(value),
+                    borderRadius: 4,
+                  }}
                 />
               );
             })}
           </View>
         ))}
       </View>
-      <View style={styles.footer}>
+      <View className="flex-row justify-between items-center mt-3">
         {frequencyLabel && (
-          <Text style={styles.frequencyText}>{frequencyLabel}</Text>
+          <Text className="text-forge-accent text-[11px] font-bold tracking-tight">{frequencyLabel}</Text>
         )}
-        <View style={styles.legend}>
-          <Text style={styles.legendLabel}>MENOS</Text>
+        <View className="flex-row items-center gap-[3px]">
+          <Text className="text-forge-muted-dark text-[8px] font-semibold tracking-tight mx-1">MENOS</Text>
           {INTENSITY_COLORS.map((color, i) => (
             <View
               key={i}
-              style={[styles.legendCell, { backgroundColor: color }]}
+              className="w-3 h-3 rounded-sm"
+              style={{ backgroundColor: color }}
             />
           ))}
-          <Text style={styles.legendLabel}>MAIS</Text>
+          <Text className="text-forge-muted-dark text-[8px] font-semibold tracking-tight mx-1">MAIS</Text>
         </View>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  grid: {
-    alignItems: 'center',
-  },
-  row: {
-    flexDirection: 'row',
-  },
-  cell: {},
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  frequencyText: {
-    color: '#A0C4FF',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  legend: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-  },
-  legendLabel: {
-    color: '#5F6368',
-    fontSize: 8,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginHorizontal: 4,
-  },
-  legendCell: {
-    width: 12,
-    height: 12,
-    borderRadius: 2,
-  },
-});

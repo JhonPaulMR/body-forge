@@ -63,15 +63,16 @@ O desenvolvimento está estruturado em 6 Sprints semanais, focando inicialmente 
   * Implementação da conexão SQLite e execução das *migrations* das 10 tabelas criadas.
   * Criação do *Seed* de dados com exercícios básicos no catálogo.
 
-* [ ] **Sprint 2 (Semana 2): Biblioteca e Métricas Corporais**
+* [x] **Sprint 2 (Semana 2): Biblioteca e Métricas Corporais**
   * Tela de "Listagem de Exercícios" com pesquisa e filtros (Músculo/Equipamento).
   * Tela de "Corpo" para registrar inserções na tabela `body_metrics`.
   * Criação do componente visual de Gráfico de Linha simples para evolução do peso.
 
-* [ ] **Sprint 3 (Semana 3): O Construtor de Planos (Planner)**
+* [x] **Sprint 3 (Semana 3): O Construtor de Planos (Planner)**
   * Interface "Configuração do Plano" (Nome e setup inicial na tabela `routines`).
   * Interface "Editor de Dias" permitindo criar abas (Dia 1, Dia 2) na tabela `routine_days`.
   * Lógica para buscar exercícios no catálogo e atrelá-los a um dia (`routine_exercises`).
+  * Funcionalidades Adicionais para criação de planos (Definição de Tempo, Numero de Séries, Numero de Repetições, Ordem de Execução, Superset e Dropsets).
 
 * [ ] **Sprint 4 (Semana 4): O Treino Ativo (Logger) - O Coração do App**
   * Desenvolvimento da tela "Treino Ativo" renderizando os exercícios do dia escolhido.
@@ -87,3 +88,24 @@ O desenvolvimento está estruturado em 6 Sprints semanais, focando inicialmente 
   * Implementação da tela "Treino Concluído" exibindo ganho de XP e Troféus.
   * Refinamento visual aplicando os detalhes da UI "Titanium Steel" (Ajuste de cores e *haptics* de vibração do Expo).
   * Atualização da documentação (este README) e build final (APK) para entrega do Checkpoint.
+
+---
+
+## Atualizações desde o último checkpoint
+
+Abaixo estão listados os recursos e conceitos dos módulos da disciplina aplicados até o momento no projeto:
+
+### 03 | Boas práticas para a criação de componentes reutilizáveis
+A estrutura do app (pastas `components/ui` e `components/planner`) foi desenhada seguindo fielmente as práticas deste módulo:
+* **Isolamento de componentes que se repetem:** Componentes de interface base foram isolados na pasta `ui`, como o `Button.tsx` e `Typography.tsx`, evitando repetição de código nas telas.
+* **Uso de nomenclaturas minimalistas:** Adoção de nomes descritivos mas diretos em seu contexto, como `Card`, `Container` e `DayCard`.
+* **Parametrização de componentes:** O componente `Button.tsx` foi parametrizado para aceitar variantes (ex: primário, outline) e repassar atributos nativos através do *props spreading* (`...props`).
+* **Componentes que recebem filhos (children):** Uso intenso do padrão *Composition* em `Card.tsx` e `Container.tsx`, servindo como blocos construtores (*wrappers*) que encapsulam outras estruturas mantendo o layout global.
+* **Uso de mocks de dados:** Mocks locais foram utilizados para popular as interfaces e validar o layout antes da integração com o banco, como visto nos arrays `basePlans` e `featuredPlan` na tela de Planos (`app/(tabs)/planos.tsx`).
+* **Componentes que disparam eventos para o pai:** Implementado em componentes complexos, como o `CoverImagePickerModal.tsx`, que realiza a busca e paginação de imagens (via **Unsplash API**) e emite a URL selecionada de volta para a tela através do *callback* `onSelectCover`.
+
+### 06 | Roteamento Avançado com Expo Router
+* **Navegação avançada e por abas (Tabs) com layouts aninhados:** Todo o roteamento é construído utilizando o padrão "file-based routing" do Expo Router. A estrutura garante a barra de navegação principal configurada no `app/(tabs)/_layout.tsx`, enquanto permite o fluxo de páginas e modais empilhados fora das abas (ex: telas dentro de `app/planner/...` e `app/exercises/...`).
+
+### 07 | Estilização de componentes com NativeWind
+* **Convertendo a estilização tradicional para Tailwind CSS:** O projeto utiliza o NativeWind para toda a camada visual, substituindo o tradicional `StyleSheet` pelo uso ágil de classes utilitárias diretamente nos componentes. A paleta do design system do app ("Titanium Steel") foi registrada no arquivo global `tailwind.config.js`, permitindo o uso imediato de cores customizadas em qualquer parte do código (ex: `bg-forge-bg`, `text-forge-accent`).

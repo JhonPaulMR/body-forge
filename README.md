@@ -27,6 +27,8 @@ O aplicativo funciona inteiramente offline, garantindo que a instabilidade de re
 As interfaces foram projetadas seguindo o padrão "Titanium Steel", focado em usabilidade com apenas uma mão e baixo cansaço visual (Dark Mode profundo com detalhes em *Electric Blue* e *Teal*).
 
 * **Ferramenta de Prototipação:** Figma / Stitch AI
+* **Vídeo mostrando as telas desenvolvidas da aplicação:**
+https://youtube.com/shorts/gYK6iC9IbmU?feature=share
 * **Link para o protótipo interativo / visualização:** https://www.figma.com/design/VDWwfS6tJiX8SiTT5LjpKw/Body-Forge?node-id=3-3&t=qXuT2sVVZwhwavma-1
 
 ---

@@ -10,6 +10,9 @@ export const INVIDIOUS_INSTANCES = [
 // Default instance to use
 export const INVIDIOUS_API_URL = INVIDIOUS_INSTANCES[0];
 
+// Cobalt instance URL for YouTube downloads (self-hosted)
+export const COBALT_API_URL = process.env.EXPO_PUBLIC_COBALT_API_URL || '';
+
 // Video quality presets
 export const VIDEO_QUALITY = {
   sd: '480',

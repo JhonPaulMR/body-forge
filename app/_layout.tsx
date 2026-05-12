@@ -1,17 +1,17 @@
-import "../global.css";
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
+import * as Notifications from 'expo-notifications';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
+import "../global.css";
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { initDatabase } from '@/database/schema';
 import { seedDatabase } from '@/database/seed';
-import * as Notifications from 'expo-notifications';
 
 // Configure notification handler for foreground notifications
 Notifications.setNotificationHandler({

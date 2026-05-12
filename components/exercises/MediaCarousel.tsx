@@ -1,8 +1,22 @@
-import React, { useRef, useState, useCallback } from 'react';
-import { View, Text, FlatList, Dimensions, Image as RNImage, TouchableOpacity } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
-import { MoreVertical, Play, Camera } from 'lucide-react-native';
 import { ExerciseMedia } from '@/services/exerciseMediaService';
+import { Camera, MoreVertical, Play } from 'lucide-react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { Dimensions, FlatList, Image as RNImage, Text, TouchableOpacity, View } from 'react-native';
+
+let Video: any = null;
+let ResizeMode: any = { CONTAIN: 'contain', COVER: 'cover', STRETCH: 'stretch' };
+try {
+  const ExpoAV = require('expo-av');
+  Video = ExpoAV.Video;
+  ResizeMode = ExpoAV.ResizeMode;
+} catch (e) {
+  console.warn('expo-av not available in Expo Go', e);
+  Video = (props: any) => (
+    <View style={[props.style, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }]}>
+      <Text style={{ color: '#fff' }}>Vídeo offline (Requer Build Nativa)</Text>
+    </View>
+  );
+}
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CAROUSEL_HEIGHT = 280;
@@ -18,7 +32,7 @@ interface MediaCarouselProps {
   heroImageUri: string | null;
   exerciseMedia: ExerciseMedia[];
   fallbackImage?: any;
-  onMenuPress: () => void;
+  onMenuPress: (item: CarouselItem) => void;
 }
 
 export function MediaCarousel({ heroImageUri, exerciseMedia, fallbackImage, onMenuPress }: MediaCarouselProps) {
@@ -113,7 +127,12 @@ export function MediaCarousel({ heroImageUri, exerciseMedia, fallbackImage, onMe
       {/* Overlay: Menu button */}
       <TouchableOpacity
         className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/50 justify-center items-center"
-        onPress={onMenuPress}
+        onPress={() => {
+          const item = items[activeIndex] || items[0];
+          if (item) {
+            onMenuPress(item);
+          }
+        }}
       >
         <MoreVertical size={18} color="#FFF" />
       </TouchableOpacity>
@@ -137,14 +156,14 @@ export function MediaCarousel({ heroImageUri, exerciseMedia, fallbackImage, onMe
 
 // ─── Video Slide ──────────────────────────────────────────────────
 function VideoSlide({ uri }: { uri: string }) {
-  const videoRef = useRef<Video>(null);
+  const videoRef = useRef<any>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const togglePlay = async () => {
     if (!videoRef.current) return;
-    if (isPlaying) {
+    if (isPlaying && videoRef.current.pauseAsync) {
       await videoRef.current.pauseAsync();
-    } else {
+    } else if (!isPlaying && videoRef.current.playAsync) {
       await videoRef.current.playAsync();
     }
     setIsPlaying(!isPlaying);
@@ -164,7 +183,7 @@ function VideoSlide({ uri }: { uri: string }) {
         isLooping
         shouldPlay={false}
         useNativeControls={false}
-        onPlaybackStatusUpdate={(status) => {
+        onPlaybackStatusUpdate={(status: any) => {
           if (status.isLoaded) {
             setIsPlaying(status.isPlaying);
           }

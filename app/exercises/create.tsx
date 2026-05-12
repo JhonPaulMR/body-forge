@@ -1,19 +1,19 @@
+import MuscleSelectionModal, { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
+import { db } from '@/database/schema';
+import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
+import { Camera, ChevronDown, Plus, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Alert,
+    Alert,
+    Image,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { X, Camera, Plus, ChevronDown } from 'lucide-react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { db } from '@/database/schema';
-import MuscleSelectionModal, { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
 
 const CATEGORIES = [
   'Peso e reps',
@@ -39,7 +39,7 @@ export default function CreateExerciseScreen() {
 
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,

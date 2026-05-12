@@ -1,34 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, FileText, ExternalLink, ChevronRight } from 'lucide-react-native';
-import { db } from '@/database/schema';
-import Body from 'react-native-body-highlighter';
-import { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
-import { muscleImages, muscleStringMap } from '@/constants/muscleImages';
-import { MuscleCard } from '@/components/exercises/MuscleCard';
 import { MediaCarousel } from '@/components/exercises/MediaCarousel';
 import { MediaOptionsMenu } from '@/components/exercises/MediaOptionsMenu';
+import { MuscleCard } from '@/components/exercises/MuscleCard';
+import { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
 import { YouTubeDownloadModal } from '@/components/exercises/YouTubeDownloadModal';
-import { ExerciseMedia, getMediaForExercise } from '@/services/exerciseMediaService';
-
-interface Exercise {
-  id: string;
-  name: string;
-  muscle_group: string;
-  equipment: string;
-  instructions: string | null;
-  image_uri: string | null;
-  is_custom: number;
-}
+import { muscleImages, muscleStringMap } from '@/constants/muscleImages';
+import { addImageMedia, deleteMedia, ExerciseMedia, getMediaForExercise, replaceMedia } from '@/services/exerciseMediaService';
+import { Exercise, getExerciseById } from '@/services/exerciseService';
+import * as ImagePicker from 'expo-image-picker';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ArrowLeft, ChevronRight, ExternalLink, FileText } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  Alert,
+  Dimensions,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface SetRecord {
   weight: number;
@@ -77,7 +67,7 @@ export default function ExerciseDetailScreen() {
   const [exerciseMedia, setExerciseMedia] = useState<ExerciseMedia[]>([]);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isYoutubeModalVisible, setIsYoutubeModalVisible] = useState(false);
-  const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<ExerciseMedia | null>(null);
 
   const loadMedia = () => {
     if (id) {
@@ -86,15 +76,57 @@ export default function ExerciseDetailScreen() {
     }
   };
 
+  const requestImagePermission = async (): Promise<boolean> => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permissão necessária', 'Permita o acesso à galeria para adicionar imagens.');
+      return false;
+    }
+    return true;
+  };
+
+  const pickImage = async (): Promise<string | null> => {
+    const hasPermission = await requestImagePermission();
+    if (!hasPermission) return null;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.9,
+      allowsEditing: false,
+    });
+
+    if (result.canceled || !result.assets?.[0]?.uri) return null;
+    return result.assets[0].uri;
+  };
+
+  const handleAddImage = async () => {
+    if (!exercise) return;
+    const uri = await pickImage();
+    if (!uri) return;
+    await addImageMedia(exercise.id, uri);
+    loadMedia();
+  };
+
+  const handleReplaceImage = async () => {
+    if (!selectedMedia || selectedMedia.media_type !== 'image') return;
+    const uri = await pickImage();
+    if (!uri) return;
+    await replaceMedia(selectedMedia.id, uri);
+    loadMedia();
+  };
+
+  const handleDeleteMedia = async () => {
+    if (!selectedMedia) return;
+    await deleteMedia(selectedMedia.id);
+    setSelectedMedia(null);
+    loadMedia();
+  };
+
   useEffect(() => {
     if (id) {
-      try {
-        const result = db.getFirstSync<Exercise>('SELECT * FROM exercises WHERE id = ?', [id]);
-        setExercise(result);
-        loadMedia();
-      } catch (error) {
-        console.error('Error loading exercise:', error);
-      }
+      const result = getExerciseById(id as string);
+      setExercise(result);
+      loadMedia();
     }
   }, [id]);
 
@@ -149,9 +181,13 @@ export default function ExerciseDetailScreen() {
           <MediaCarousel
             heroImageUri={heroImage}
             exerciseMedia={exerciseMedia}
-            onMenuPress={() => {
-              const currentMediaId = exerciseMedia[0]?.id || null; // Simplified logic or just null
-              setSelectedMediaId(currentMediaId);
+            onMenuPress={(item) => {
+              if (item.type === 'hero') {
+                setSelectedMedia(null);
+              } else {
+                const current = exerciseMedia.find(media => media.id === item.mediaId) || null;
+                setSelectedMedia(current);
+              }
               setIsMenuVisible(true);
             }}
           />
@@ -295,17 +331,21 @@ export default function ExerciseDetailScreen() {
         onClose={() => setIsMenuVisible(false)}
         onAddImage={() => {
           setIsMenuVisible(false);
-          // logic to add image
+          handleAddImage();
         }}
         onAddVideo={() => {
           setIsMenuVisible(false);
           setIsYoutubeModalVisible(true);
         }}
-        canReplace={false}
-        canDelete={!!selectedMediaId}
+        canReplace={selectedMedia?.media_type === 'image'}
+        onReplaceImage={() => {
+          setIsMenuVisible(false);
+          handleReplaceImage();
+        }}
+        canDelete={!!selectedMedia}
         onDelete={() => {
           setIsMenuVisible(false);
-          // logic to delete
+          handleDeleteMedia();
         }}
       />
       

@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Modal, Pressable, Alert } from 'react-native';
-import { Trash2, X } from 'lucide-react-native';
 import { Feather } from '@expo/vector-icons';
+import { Trash2, X } from 'lucide-react-native';
+import React from 'react';
+import { Alert, Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 
 interface MediaOptionsMenuProps {
   visible: boolean;

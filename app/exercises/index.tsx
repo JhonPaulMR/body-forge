@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,11 @@ import {
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Search, ChevronDown, Plus } from 'lucide-react-native';
 import { db } from '@/database/schema';
+import { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
+import { muscleImages } from '@/constants/muscleImages';
 
 interface Exercise {
   id: string;
@@ -24,16 +26,6 @@ interface Exercise {
   is_custom: number;
 }
 
-const muscleImages: Record<string, string> = {
-  'Peito': 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=400',
-  'Costas': 'https://images.unsplash.com/photo-1603287681836-b174ce5074c2?q=80&w=400',
-  'Pernas': 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=400',
-  'Ombros': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=400',
-  'Bíceps': 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=400',
-  'Tríceps': 'https://images.unsplash.com/photo-1530822847156-5df684ec5ee1?q=80&w=400',
-  'Abdômen': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400',
-};
-
 export default function ExercisesListScreen() {
   const router = useRouter();
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -43,9 +35,11 @@ export default function ExercisesListScreen() {
   const [showMuscleModal, setShowMuscleModal] = useState(false);
   const [showEquipmentModal, setShowEquipmentModal] = useState(false);
 
-  useEffect(() => {
-    loadExercises();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadExercises();
+    }, [])
+  );
 
   const loadExercises = () => {
     try {
@@ -113,7 +107,21 @@ export default function ExercisesListScreen() {
   );
 
   const renderExerciseItem = ({ item }: { item: Exercise }) => {
-    const imageUri = item.image_uri || muscleImages[item.muscle_group] || muscleImages['Peito'];
+    let primaryDisplay = item.muscle_group || '';
+
+    if (item.muscle_group && typeof item.muscle_group === 'string' && item.muscle_group.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(item.muscle_group);
+        if (parsed.primaryString) {
+          primaryDisplay = parsed.primaryString;
+        }
+      } catch(e) {
+        console.error("Failed to parse muscle_group JSON:", e);
+      }
+    }
+
+    const imageUri = item.image_uri || muscleImages[primaryDisplay] || muscleImages['Peito'];
+    
     return (
       <TouchableOpacity
         className="flex-row items-center bg-forge-surface rounded-2xl mb-2.5 overflow-hidden"
@@ -123,7 +131,9 @@ export default function ExercisesListScreen() {
         <Image source={{ uri: imageUri }} className="w-[70px] h-[70px] bg-forge-border" />
         <View className="flex-1 px-4 py-3.5">
           <Text className="text-white text-[15px] font-bold mb-1">{item.name}</Text>
-          <Text className="text-forge-muted-dark text-[10px] font-bold tracking-wide">{item.muscle_group?.toUpperCase()}</Text>
+          <Text className="text-forge-accent text-[10px] font-bold tracking-wide">
+            {primaryDisplay?.toUpperCase()}
+          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -186,9 +196,10 @@ export default function ExercisesListScreen() {
       />
 
       <TouchableOpacity
-        className="absolute bottom-6 right-6 w-14 h-14 rounded-2xl bg-forge-accent justify-center items-center"
+        className="absolute bottom-24 right-6 w-14 h-14 rounded-2xl bg-forge-accent justify-center items-center"
         style={{ elevation: 8, shadowColor: '#A0C4FF', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 }}
         activeOpacity={0.8}
+        onPress={() => router.push('/exercises/create')}
       >
         <Plus size={24} color="#FFF" />
       </TouchableOpacity>

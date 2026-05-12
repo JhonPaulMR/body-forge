@@ -11,6 +11,17 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import { initDatabase } from '@/database/schema';
 import { seedDatabase } from '@/database/seed';
+import * as Notifications from 'expo-notifications';
+
+// Configure notification handler for foreground notifications
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export { ErrorBoundary } from 'expo-router';
 

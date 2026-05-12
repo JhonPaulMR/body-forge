@@ -12,6 +12,7 @@ export const initDatabase = () => {
           name TEXT NOT NULL,
           is_premium INTEGER DEFAULT 0,
           xp_points INTEGER DEFAULT 0,
+          height_cm REAL,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -116,9 +117,28 @@ export const initDatabase = () => {
     // Migration: add set_configs column for per-set data (warmup, dropSet, untilFailure, etc.)
     try {
       db.runSync('ALTER TABLE routine_exercises ADD COLUMN set_configs TEXT');
-    } catch (_) {
-      // Column already exists — safe to ignore
-    }
+    } catch (_) {}
+
+    // Migration: add height_cm column to users table
+    try {
+      db.runSync('ALTER TABLE users ADD COLUMN height_cm REAL');
+    } catch (_) {}
+
+    // Migration: create exercise_media table for carousel images/videos
+    try {
+      db.execSync(`
+        CREATE TABLE IF NOT EXISTS exercise_media (
+          id TEXT PRIMARY KEY,
+          exercise_id TEXT NOT NULL,
+          media_type TEXT NOT NULL,
+          uri TEXT NOT NULL,
+          source_url TEXT,
+          order_index INTEGER DEFAULT 0,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY(exercise_id) REFERENCES exercises(id)
+        );
+      `);
+    } catch (_) {}
 
     console.log('Database and tables initialized successfully');
   } catch (error) {

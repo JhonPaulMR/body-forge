@@ -16,7 +16,7 @@ const variantClasses: Record<string, string> = {
 
 export function Typography({ variant = 'body', className: extraClassName, style, ...props }: TypographyProps) {
   const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? 'light'];
+  const theme = Colors[colorScheme];
 
   return (
     <Text

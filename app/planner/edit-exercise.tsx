@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { ArrowLeft, Plus, MoreVertical, Trash2, Link } from 'lucide-react-native';
+import { ArrowLeft, Plus, MoreVertical, Trash2, Link, Zap } from 'lucide-react-native';
 import { db } from '@/database/schema';
 
 interface SetConfig {
@@ -237,13 +237,15 @@ export default function EditExerciseScreen() {
                   {(config.warmup || config.untilFailure) && (
                     <View className="flex-row gap-2 mt-1.5 flex-wrap">
                       {config.warmup && (
-                        <View className="bg-orange-500/20 px-2 py-0.5 rounded-md">
-                          <Text className="text-orange-400 text-[8px] font-bold">🔥 WARMUP</Text>
+                        <View className="bg-orange-500/20 px-2 py-0.5 rounded-md flex-row items-center gap-1">
+                          <Zap size={8} color="#FB923C" />
+                          <Text className="text-orange-400 text-[8px] font-bold">WARMUP</Text>
                         </View>
                       )}
                       {config.untilFailure && (
-                        <View className="bg-red-500/20 px-2 py-0.5 rounded-md">
-                          <Text className="text-red-400 text-[8px] font-bold">⚡ FAILURE</Text>
+                        <View className="bg-red-500/20 px-2 py-0.5 rounded-md flex-row items-center gap-1">
+                          <Zap size={8} color="#F87171" />
+                          <Text className="text-red-400 text-[8px] font-bold">FAILURE</Text>
                         </View>
                       )}
                     </View>

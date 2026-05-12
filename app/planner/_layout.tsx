@@ -8,6 +8,7 @@ export default function PlannerLayout() {
       <Stack.Screen name="edit-exercise" />
       <Stack.Screen name="edit-set" options={{ presentation: 'modal' }} />
       <Stack.Screen name="exercise-picker" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="day-details" />
     </Stack>
   );
 }

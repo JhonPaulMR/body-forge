@@ -11,6 +11,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, FileText, ExternalLink, ChevronRight } from 'lucide-react-native';
 import { db } from '@/database/schema';
+import Body from 'react-native-body-highlighter';
+import { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
+import { muscleImages, muscleStringMap } from '@/constants/muscleImages';
+import { MuscleCard } from '@/components/exercises/MuscleCard';
+import { MediaCarousel } from '@/components/exercises/MediaCarousel';
+import { MediaOptionsMenu } from '@/components/exercises/MediaOptionsMenu';
+import { YouTubeDownloadModal } from '@/components/exercises/YouTubeDownloadModal';
+import { ExerciseMedia, getMediaForExercise } from '@/services/exerciseMediaService';
 
 interface Exercise {
   id: string;
@@ -36,26 +44,6 @@ interface SessionHistory {
   sets: SetRecord[];
   isPersonalRecord: boolean;
 }
-
-const muscleImages: Record<string, string> = {
-  'Peito': 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=600',
-  'Costas': 'https://images.unsplash.com/photo-1603287681836-b174ce5074c2?q=80&w=600',
-  'Pernas': 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=600',
-  'Ombros': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=600',
-  'Bíceps': 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=600',
-  'Tríceps': 'https://images.unsplash.com/photo-1530822847156-5df684ec5ee1?q=80&w=600',
-  'Abdômen': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=600',
-};
-
-const muscleDetailImages: Record<string, string> = {
-  'Peito': 'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?q=80&w=300',
-  'Costas': 'https://images.unsplash.com/photo-1603287681836-b174ce5074c2?q=80&w=300',
-  'Pernas': 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=300',
-  'Ombros': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=300',
-  'Bíceps': 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=300',
-  'Tríceps': 'https://images.unsplash.com/photo-1530822847156-5df684ec5ee1?q=80&w=300',
-  'Abdômen': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=300',
-};
 
 const mockHistory: SessionHistory[] = [
   {
@@ -85,23 +73,30 @@ export default function ExerciseDetailScreen() {
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [activeTab, setActiveTab] = useState<'resumo' | 'historico'>('resumo');
 
-  useEffect(() => {
-    if (id) {
-      loadExercise(id);
-    }
-  }, [id]);
+  // Media states
+  const [exerciseMedia, setExerciseMedia] = useState<ExerciseMedia[]>([]);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isYoutubeModalVisible, setIsYoutubeModalVisible] = useState(false);
+  const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null);
 
-  const loadExercise = (exerciseId: string) => {
-    try {
-      const result = db.getFirstSync<Exercise>(
-        'SELECT * FROM exercises WHERE id = ?',
-        [exerciseId]
-      );
-      setExercise(result);
-    } catch (error) {
-      console.error('Error loading exercise:', error);
+  const loadMedia = () => {
+    if (id) {
+      const media = getMediaForExercise(id as string);
+      setExerciseMedia(media);
     }
   };
+
+  useEffect(() => {
+    if (id) {
+      try {
+        const result = db.getFirstSync<Exercise>('SELECT * FROM exercises WHERE id = ?', [id]);
+        setExercise(result);
+        loadMedia();
+      } catch (error) {
+        console.error('Error loading exercise:', error);
+      }
+    }
+  }, [id]);
 
   if (!exercise) {
     return (
@@ -112,25 +107,64 @@ export default function ExerciseDetailScreen() {
   }
 
   const heroImage = exercise.image_uri || muscleImages[exercise.muscle_group] || muscleImages['Peito'];
-  const muscleDetailImage = muscleDetailImages[exercise.muscle_group] || muscleDetailImages['Peito'];
-
   const exerciseType = exercise.equipment === 'Peso Corporal' ? 'CALISTENIA' : 'FORÇA';
+
+  let parsedMuscleData: { primary: string[], secondary: string[], primaryString: string } | null = null;
+  try { parsedMuscleData = JSON.parse(exercise.muscle_group); } catch (e) {}
+
+  const primaryIds = parsedMuscleData ? parsedMuscleData.primary : [];
+  const secondaryIds = parsedMuscleData ? parsedMuscleData.secondary : [];
+  const primaryDisplayString = parsedMuscleData ? parsedMuscleData.primaryString : exercise.muscle_group;
+
+  // Build body highlighter data
+  const bodyData: any[] = [];
+  let mainSide: 'front' | 'back' = 'front';
+  
+  if (parsedMuscleData) {
+    primaryIds.forEach(mId => {
+      const muscle = getMuscleById(mId);
+      if (muscle && muscle.slug) {
+        bodyData.push({ slug: muscle.slug, intensity: 1 });
+        mainSide = muscle.side;
+      }
+    });
+    secondaryIds.forEach(mId => {
+      const muscle = getMuscleById(mId);
+      if (muscle && muscle.slug) {
+        bodyData.push({ slug: muscle.slug, intensity: 2 });
+      }
+    });
+  } else {
+    const mapped = muscleStringMap[exercise.muscle_group];
+    if (mapped) {
+      bodyData.push({ slug: mapped.slug, intensity: 1 });
+      mainSide = mapped.side;
+    }
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View className="bg-forge-surface-hover" style={{ width: SCREEN_WIDTH, height: 220 }}>
-          <Image source={{ uri: heroImage }} className="w-full h-full opacity-50" />
-          <View className="absolute inset-0" style={{ backgroundColor: 'rgba(22,24,28,0.3)' }} />
+        <View className="relative">
+          <MediaCarousel
+            heroImageUri={heroImage}
+            exerciseMedia={exerciseMedia}
+            onMenuPress={() => {
+              const currentMediaId = exerciseMedia[0]?.id || null; // Simplified logic or just null
+              setSelectedMediaId(currentMediaId);
+              setIsMenuVisible(true);
+            }}
+          />
           <TouchableOpacity
             className="absolute top-3 left-4 w-10 h-10 rounded-xl justify-center items-center"
-            style={{ backgroundColor: 'rgba(28,30,38,0.8)' }}
+            style={{ backgroundColor: 'rgba(28,30,38,0.8)', zIndex: 10 }}
             onPress={() => router.back()}
           >
             <ArrowLeft size={22} color="#FFF" />
           </TouchableOpacity>
         </View>
 
+        {/* Tabs */}
         <View className="flex-row px-5 border-b border-forge-border mb-5">
           <TouchableOpacity
             className={`py-4 mr-6 ${activeTab === 'resumo' ? 'border-b-2 border-white' : ''}`}
@@ -167,16 +201,20 @@ export default function ExerciseDetailScreen() {
                 {exercise.instructions || 'Nenhuma instrução disponível para este exercício.'}
               </Text>
 
-              <View className="bg-forge-surface rounded-2xl p-4 mb-3">
-                <Text className="text-forge-muted text-[10px] font-bold tracking-wide mb-3">MÚSCULOS PRIMÁRIOS</Text>
-                <View className="flex-row items-center gap-4">
-                  <Image source={{ uri: muscleDetailImage }} className="w-[60px] h-[60px] rounded-xl bg-forge-border" />
-                  <View>
-                    <Text className="text-white text-lg font-extrabold mb-0.5">{exercise.muscle_group}</Text>
-                    <Text className="text-forge-muted-dark text-[11px] font-semibold">Grupo principal</Text>
-                  </View>
-                </View>
-              </View>
+              {/* Músculos Primários */}
+              <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-3 mt-2">MÚSCULOS PRIMÁRIOS</Text>
+              {primaryIds.length > 0 
+                ? primaryIds.map((muscleId: string) => <MuscleCard key={muscleId} muscleId={muscleId} stringFallback={null} type="primary" />)
+                : <MuscleCard muscleId={null} stringFallback={exercise.muscle_group} type="primary" />
+              }
+
+              {/* Músculos Secundários */}
+              {secondaryIds.length > 0 && (
+                <>
+                  <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-3 mt-2">MÚSCULOS SECUNDÁRIOS</Text>
+                  {secondaryIds.map((muscleId: string) => <MuscleCard key={muscleId} muscleId={muscleId} stringFallback={null} type="secondary" />)}
+                </>
+              )}
 
               <View className="bg-forge-surface rounded-2xl p-4 mb-4">
                 <Text className="text-forge-muted text-[10px] font-bold tracking-wide mb-2">VOLUME SEMANAL</Text>
@@ -250,6 +288,36 @@ export default function ExerciseDetailScreen() {
           <View className="h-10" />
         </View>
       </ScrollView>
+
+      {/* Modals */}
+      <MediaOptionsMenu
+        visible={isMenuVisible}
+        onClose={() => setIsMenuVisible(false)}
+        onAddImage={() => {
+          setIsMenuVisible(false);
+          // logic to add image
+        }}
+        onAddVideo={() => {
+          setIsMenuVisible(false);
+          setIsYoutubeModalVisible(true);
+        }}
+        canReplace={false}
+        canDelete={!!selectedMediaId}
+        onDelete={() => {
+          setIsMenuVisible(false);
+          // logic to delete
+        }}
+      />
+      
+      <YouTubeDownloadModal
+        visible={isYoutubeModalVisible}
+        exerciseId={exercise.id}
+        onClose={() => setIsYoutubeModalVisible(false)}
+        onDownloadComplete={() => {
+          setIsYoutubeModalVisible(false);
+          loadMedia();
+        }}
+      />
     </SafeAreaView>
   );
 }

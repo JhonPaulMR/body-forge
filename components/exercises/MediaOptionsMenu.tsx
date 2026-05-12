@@ -1,0 +1,120 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, Modal, Pressable, Alert } from 'react-native';
+import { Trash2, X } from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
+
+interface MediaOptionsMenuProps {
+  visible: boolean;
+  onClose: () => void;
+  onAddImage: () => void;
+  onAddVideo: () => void;
+  onReplaceImage?: () => void;
+  onDelete?: () => void;
+  canReplace: boolean;
+  canDelete: boolean;
+}
+
+export function MediaOptionsMenu({
+  visible,
+  onClose,
+  onAddImage,
+  onAddVideo,
+  onReplaceImage,
+  onDelete,
+  canReplace,
+  canDelete,
+}: MediaOptionsMenuProps) {
+  const handleDelete = () => {
+    Alert.alert(
+      'Apagar mídia',
+      'Tem certeza que deseja apagar esta mídia?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Apagar',
+          style: 'destructive',
+          onPress: () => {
+            onDelete?.();
+            onClose();
+          },
+        },
+      ]
+    );
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="fade">
+      <Pressable className="flex-1 bg-black/60 justify-end" onPress={onClose}>
+        <Pressable className="bg-forge-surface rounded-t-3xl px-5 pt-5 pb-10">
+          {/* Header */}
+          <View className="flex-row items-center justify-between mb-5">
+            <Text className="text-white text-base font-extrabold tracking-wide">GERENCIAR MÍDIA</Text>
+            <TouchableOpacity
+              onPress={onClose}
+              className="w-8 h-8 rounded-full bg-forge-border justify-center items-center"
+            >
+              <X size={16} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Options */}
+          <TouchableOpacity
+            className="flex-row items-center py-4 border-b border-forge-border"
+            onPress={() => { onAddImage(); onClose(); }}
+          >
+            <View className="w-10 h-10 rounded-xl bg-forge-accent/15 justify-center items-center mr-4">
+              <Feather name="plus-circle" size={18} color="#A0C4FF" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-white text-sm font-bold">Adicionar Imagem</Text>
+              <Text className="text-forge-muted text-[11px]">Da galeria do dispositivo</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="flex-row items-center py-4 border-b border-forge-border"
+            onPress={() => { onAddVideo(); onClose(); }}
+          >
+            <View className="w-10 h-10 rounded-xl bg-purple-500/15 justify-center items-center mr-4">
+              <Feather name="youtube" size={18} color="#A78BFA" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-white text-sm font-bold">Adicionar Vídeo</Text>
+              <Text className="text-forge-muted text-[11px]">Link do YouTube (máx 2 min)</Text>
+            </View>
+          </TouchableOpacity>
+
+          {canReplace && (
+            <TouchableOpacity
+              className="flex-row items-center py-4 border-b border-forge-border"
+              onPress={() => { onReplaceImage?.(); onClose(); }}
+            >
+              <View className="w-10 h-10 rounded-xl bg-forge-green/15 justify-center items-center mr-4">
+                <Feather name="refresh-cw" size={18} color="#4ADE80" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-white text-sm font-bold">Trocar Mídia</Text>
+                <Text className="text-forge-muted text-[11px]">Substituir a mídia atual</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {canDelete && (
+            <TouchableOpacity
+              className="flex-row items-center py-4"
+              onPress={handleDelete}
+            >
+              <View className="w-10 h-10 rounded-xl bg-red-500/15 justify-center items-center mr-4">
+                <Trash2 size={18} color="#EF4444" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-red-400 text-sm font-bold">Apagar Mídia</Text>
+                <Text className="text-forge-muted text-[11px]">Remover a mídia selecionada</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}

@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { db } from '@/database/schema';
 import { useFocusEffect } from 'expo-router';
+import { parseMuscleGroup } from '@/services/muscleGroupUtils';
 
 export interface Routine {
   id: string;
@@ -56,42 +57,54 @@ export function useHomeData() {
   const loadHomeData = async () => {
     if (weekDays.length === 0) return;
     try {
-      // Routines
-      const userRoutines = db.getAllSync<Routine>(
-        'SELECT id, name, cover_image_uri FROM routines WHERE user_id = ? LIMIT 3',
-        ['user_1']
-      );
-      // Calc estimativas de rotina pseudo-dinamicas para a home baseadas na contagem (simples)
-      const mappedRoutines = userRoutines.map(r => {
-        const exs = db.getAllSync<{ target_sets: number, rest_time_seconds: number, superset_id: string }>(
-          `SELECT re.target_sets, re.rest_time_seconds, re.superset_id FROM routine_exercises re 
-           JOIN routine_days rd ON re.routine_day_id = rd.id
-           WHERE rd.routine_id = ?`,
-          [r.id]
+      // 1. Load active IDs from AsyncStorage
+      const activeIdsStr = await AsyncStorage.getItem('active_routine_ids');
+      const activeIds: string[] = activeIdsStr ? JSON.parse(activeIdsStr) : [];
+      
+      let mappedRoutines: Routine[] = [];
+      
+      if (activeIds.length > 0) {
+        // 2. Query only the active routines
+        const placeholders = activeIds.map(() => '?').join(',');
+        const activeRoutines = db.getAllSync<any>(
+          `SELECT id, name, cover_image_uri FROM routines WHERE id IN (${placeholders})`,
+          activeIds
         );
-        const daysCount = db.getFirstSync<{ c: number }>('SELECT count(*) as c FROM routine_days WHERE routine_id = ?', [r.id])?.c || 1;
 
-        let totalMinutes = 0;
-        exs.forEach(ex => {
-          let isSpecialSet = !!ex.superset_id;
-          const restMinutes = (ex.rest_time_seconds || 0) / 60;
-          if (isSpecialSet) {
-            totalMinutes += restMinutes;
-          } else {
-            totalMinutes += ((ex.target_sets || 0) * restMinutes);
-          }
-          totalMinutes += (ex.target_sets || 0); // 1 min per set
+        // 3. Map estimations
+        mappedRoutines = activeRoutines.map(r => {
+          const exs = db.getAllSync<{ target_sets: number, rest_time_seconds: number, superset_id: string }>(
+            `SELECT re.target_sets, re.rest_time_seconds, re.superset_id FROM routine_exercises re 
+             JOIN routine_days rd ON re.routine_day_id = rd.id
+             WHERE rd.routine_id = ?`,
+            [r.id]
+          );
+          const daysCount = db.getFirstSync<{ c: number }>('SELECT count(*) as c FROM routine_days WHERE routine_id = ?', [r.id])?.c || 1;
+
+          let totalMinutes = 0;
+          exs.forEach(ex => {
+            let isSpecialSet = !!ex.superset_id;
+            const restMinutes = (ex.rest_time_seconds || 0) / 60;
+            if (isSpecialSet) {
+              totalMinutes += restMinutes;
+            } else {
+              totalMinutes += ((ex.target_sets || 0) * restMinutes);
+            }
+            totalMinutes += (ex.target_sets || 0); // 1 min per set
+          });
+          
+          const avgTime = daysCount > 0 ? totalMinutes / daysCount : 0;
+          
+          return {
+            ...r,
+            est_time: Math.ceil(avgTime),
+            est_kcal: Math.ceil(avgTime * 7.5),
+            subtitle: 'PROGRAMA ATIVO',
+          };
         });
-        
-        const avgTime = daysCount > 0 ? totalMinutes / daysCount : 0;
-        
-        return {
-          ...r,
-          est_time: Math.ceil(avgTime),
-          est_kcal: Math.ceil(avgTime * 7.5),
-          subtitle: 'PROGRAMA',
-        };
-      });
+      }
+
+      setRoutines(mappedRoutines);
 
       // Body Metrics
       const metrics = db.getAllSync<{ weight_kg: number }>(
@@ -157,8 +170,10 @@ export function useHomeData() {
         const muscleCounts: Record<string, number> = {};
 
         sesExs.forEach(se => {
-          if (se.muscle_group) {
-            muscleCounts[se.muscle_group] = (muscleCounts[se.muscle_group] || 0) + 1;
+          const muscleData = parseMuscleGroup(se.muscle_group);
+          const muscle = muscleData.primaryString;
+          if (muscle) {
+            muscleCounts[muscle] = (muscleCounts[muscle] || 0) + 1;
           }
           const sets = db.getAllSync<{ weight: number, reps: number, rpe: number }>(
             'SELECT weight, reps, rpe FROM sets WHERE session_exercise_id = ? AND is_completed = 1',
@@ -191,15 +206,6 @@ export function useHomeData() {
       
       const statsArr = weekDays.map(d => statsMap[d.toISOString().split('T')[0]]);
       setWeeklyStats(statsArr);
-
-      // Load active routines
-      const activeIdsStr = await AsyncStorage.getItem('active_routine_ids');
-      if (activeIdsStr) {
-        const activeIds: string[] = JSON.parse(activeIdsStr);
-        setRoutines(mappedRoutines.filter(r => activeIds.includes(r.id)));
-      } else {
-        setRoutines([]); // No active plans
-      }
 
     } catch (e) {
       console.error('Home Data Load Error', e);

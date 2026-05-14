@@ -39,10 +39,11 @@ export default function CreateExerciseScreen() {
 
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
-      aspect: [1, 1],
+      aspect: [16, 9],
       quality: 0.8,
+      videoMaxDuration: 60,
     });
 
     if (!result.canceled) {

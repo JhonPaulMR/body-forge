@@ -3,7 +3,7 @@ import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useHomeData } from '@/hooks/useHomeData';
-import { useWaterTracker } from '@/hooks/useWaterTracker';
+import useWaterTracker from '@/hooks/useWaterTracker';
 
 import { HomeHeader } from '@/components/home/HomeHeader';
 import { ActivePlans } from '@/components/home/ActivePlans';
@@ -18,33 +18,30 @@ export default function HomeScreen() {
   return (
     <View className="flex-1 bg-forge-bg">
       <SafeAreaView className="flex-1" edges={['top']}>
-        <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
-          
-          <HomeHeader 
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 120 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <HomeHeader
             currentMonthStr={homeData.currentMonthStr}
             completedDays={homeData.completedDays}
             weekDays={homeData.weekDays}
           />
 
-          <ActivePlans 
-            routines={homeData.routines} 
-          />
+          <ActivePlans routines={homeData.routines} />
 
-          <ActivityLog 
+          <ActivityLog
             completedDays={homeData.completedDays}
             weeklyStats={homeData.weeklyStats}
           />
 
-          <BodyMetrics 
+          <BodyMetrics
             currentWeight={homeData.currentWeight}
             weightDiff={homeData.weightDiff}
             imc={homeData.imc}
           />
 
-          <WaterTracker 
-            {...waterData}
-          />
-
+          <WaterTracker {...waterData} />
         </ScrollView>
       </SafeAreaView>
     </View>

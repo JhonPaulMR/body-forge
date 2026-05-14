@@ -11,6 +11,8 @@ interface WaterTrackerProps {
   waterGoalInput: string;
   setWaterGoalInput: (val: string) => void;
   saveWaterGoal: () => void;
+  /** null = ainda a verificar; false = módulo indisponível (ex.: Expo Go Android); true = alertas ao bater a meta podem funcionar */
+  localNotificationsAvailable?: boolean | null;
 }
 
 export function WaterTracker({
@@ -22,6 +24,7 @@ export function WaterTracker({
   waterGoalInput,
   setWaterGoalInput,
   saveWaterGoal,
+  localNotificationsAvailable,
 }: WaterTrackerProps) {
   return (
     <>
@@ -52,6 +55,7 @@ export function WaterTracker({
          <View className="w-full h-1.5 bg-forge-border mt-3 rounded-full overflow-hidden">
            <View className="h-full" style={{ width: `${Math.min((waterIntake/waterGoal)*100, 100)}%`, backgroundColor: waterIntake >= waterGoal ? '#4ADE80' : '#A0C4FF' }} />
          </View>
+         {/* Notificação indisponível removida a pedido do usuário */}
       </View>
 
       {/* Modal de Configuração */}

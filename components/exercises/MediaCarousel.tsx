@@ -7,8 +7,8 @@ let Video: any = null;
 let ResizeMode: any = { CONTAIN: 'contain', COVER: 'cover', STRETCH: 'stretch' };
 try {
   const ExpoAV = require('expo-av');
-  Video = ExpoAV.Video;
-  ResizeMode = ExpoAV.ResizeMode;
+  Video = ExpoAV?.Video;
+  ResizeMode = ExpoAV?.ResizeMode || ResizeMode;
 } catch (e) {
   console.warn('expo-av not available in Expo Go', e);
   Video = (props: any) => (
@@ -179,7 +179,7 @@ function VideoSlide({ uri }: { uri: string }) {
         ref={videoRef}
         source={{ uri }}
         style={{ width: '100%', height: '100%' }}
-        resizeMode={ResizeMode.CONTAIN}
+        resizeMode={ResizeMode.COVER}
         isLooping
         shouldPlay={false}
         useNativeControls={false}

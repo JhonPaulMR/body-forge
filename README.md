@@ -8,6 +8,13 @@ O **Body Forge** é um aplicativo móvel projetado para substituir anotações d
 
 O aplicativo funciona inteiramente offline, garantindo que a instabilidade de rede em academias não afete o usuário. O app suporta desde divisões simples até programas complexos de periodização, incluindo registro de percepção de esforço (RPE), métricas corporais e um sistema de gamificação para consistência.
 
+### Expo Go vs development build (notificações, expo-av)
+
+Alguns módulos nativos **não estão disponíveis ou estão limitados no Expo Go**, em especial no Android com SDK recente:
+
+- **`expo-notifications`:** notificações locais (ex.: meta de água) exigem que o módulo carregue; no Expo Go Android isso pode falhar. Use **`npx expo run:android`** / **`npx expo run:ios`** ou um **development build** (EAS) para testar alertas como no ambiente de produção.
+- **`expo-av`:** reprodução de vídeo/áudio com o módulo nativo pode mostrar *Cannot find native module 'ExponentAV'* no Expo Go; o mesmo comando `expo run:*` instala o binário com os nativos corretos.
+
 ### Funcionalidades Básicas (Prioritárias)
 - [ ] **Catálogo de Exercícios:** Base de dados local categorizada por grupo muscular e equipamento, com suporte a exercícios customizados.
 - [ ] **Construtor de Planos (Workout Planner):** Criação de rotinas estruturadas divididas por dias (ex: Dia 1 - Push, Dia 2 - Pull), com suporte a Supersets e Trisets.

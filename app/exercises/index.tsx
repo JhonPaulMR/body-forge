@@ -15,6 +15,7 @@ import { ArrowLeft, Search, ChevronDown, Plus } from 'lucide-react-native';
 import { db } from '@/database/schema';
 import { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
 import { muscleImages } from '@/constants/muscleImages';
+import { parseMuscleGroup } from '@/services/muscleGroupUtils';
 
 interface Exercise {
   id: string;
@@ -107,18 +108,8 @@ export default function ExercisesListScreen() {
   );
 
   const renderExerciseItem = ({ item }: { item: Exercise }) => {
-    let primaryDisplay = item.muscle_group || '';
-
-    if (item.muscle_group && typeof item.muscle_group === 'string' && item.muscle_group.trim().startsWith('{')) {
-      try {
-        const parsed = JSON.parse(item.muscle_group);
-        if (parsed.primaryString) {
-          primaryDisplay = parsed.primaryString;
-        }
-      } catch(e) {
-        console.error("Failed to parse muscle_group JSON:", e);
-      }
-    }
+    const muscleData = parseMuscleGroup(item.muscle_group);
+    const primaryDisplay = muscleData.primaryString;
 
     const imageUri = item.image_uri || muscleImages[primaryDisplay] || muscleImages['Peito'];
     

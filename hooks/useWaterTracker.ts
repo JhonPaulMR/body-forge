@@ -1,52 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Notifications from 'expo-notifications';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
+import { scheduleImmediateLocalNotification, areLocalNotificationsAvailable } from '@/services/notificationService';
 
-const requestNotificationPermissions = async (): Promise<boolean> => {
-  if (Platform.OS === 'android') {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== 'granted') {
-      console.warn('Permissão para notificações foi negada.');
-      return false;
-    }
-  }
-  return true;
-};
-
-export function useWaterTracker() {
+export default function useWaterTracker() {
   const [waterIntake, setWaterIntake] = useState(0);
   const [waterGoal, setWaterGoal] = useState(3.0);
   const [showWaterModal, setShowWaterModal] = useState(false);
   const [waterGoalInput, setWaterGoalInput] = useState('');
-
-  // Request notification permissions on mount
-  useEffect(() => {
-    (async () => {
-      try {
-        if (Notifications.setNotificationChannelAsync) {
-          await Notifications.setNotificationChannelAsync('water-goal', {
-            name: 'Meta de agua',
-            importance: Notifications.AndroidImportance?.HIGH ?? 4,
-            sound: 'default',
-            vibrationPattern: [0, 250, 250, 250],
-            lightColor: '#A0C4FF',
-          });
-        }
-        await requestNotificationPermissions();
-      } catch (e) {
-        console.warn(e);
-      }
-    })();
-  }, []);
+  const [localNotificationsAvailable, setLocalNotificationsAvailable] = useState<boolean | null>(null);
 
   const loadWaterData = async () => {
     try {
@@ -64,6 +27,10 @@ export function useWaterTracker() {
       } else {
         if (intakeStr) setWaterIntake(parseFloat(intakeStr));
       }
+
+      // Verifica disponibilidade de notificações
+      const available = await areLocalNotificationsAvailable();
+      setLocalNotificationsAvailable(available);
     } catch (e) {
       console.error(e);
     }
@@ -75,32 +42,18 @@ export function useWaterTracker() {
     }, [])
   );
 
-  const sendWaterGoalNotification = async () => {
-    try {
-      const allowed = await requestNotificationPermissions();
-      if (!allowed) return;
-
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'Parabéns! 💧',
-          body: 'Você atingiu sua meta diária de água!',
-          sound: true,
-          channelId: 'water-goal',
-        } as any,
-        trigger: null, // fires immediately
-      });
-    } catch (e) {
-      console.warn(e);
-    }
-  };
-
   const updateWater = async (amount: number) => {
+    const prevVal = waterIntake;
     const newVal = Math.max(0, waterIntake + amount);
-    if (newVal >= waterGoal && waterIntake < waterGoal && amount > 0) {
-      sendWaterGoalNotification();
-    }
     setWaterIntake(newVal);
     await AsyncStorage.setItem('water_intake', newVal.toString());
+
+    if (amount > 0 && prevVal < waterGoal && newVal >= waterGoal) {
+      await scheduleImmediateLocalNotification({
+        title: 'Meta de água atingida! 💧',
+        body: `Parabéns! Você alcançou sua meta diária de ${waterGoal}L de água.`,
+      });
+    }
   };
 
   const saveWaterGoal = async () => {
@@ -120,6 +73,7 @@ export function useWaterTracker() {
     waterGoalInput,
     setWaterGoalInput,
     updateWater,
-    saveWaterGoal
+    saveWaterGoal,
+    localNotificationsAvailable
   };
 }

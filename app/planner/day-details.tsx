@@ -12,6 +12,7 @@ import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Play, Activity, Clock, Zap } from 'lucide-react-native';
 import { db } from '@/database/schema';
 import { muscleImages } from '@/constants/muscleImages';
+import { parseMuscleGroup } from '@/services/muscleGroupUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -163,9 +164,10 @@ export default function DayDetailsScreen() {
     const muscleVolume: Record<string, number> = {};
 
     exs.forEach(ex => {
-      if (!ex.muscle_group) return;
+      const muscleData = parseMuscleGroup(ex.muscle_group);
+      const muscle = muscleData.primaryString;
+      if (!muscle) return;
       
-      const muscle = ex.muscle_group.trim();
       const muscleLower = muscle.toLowerCase();
       
       if (upperMuscles.includes(muscleLower)) hasUpper = true;
@@ -272,7 +274,9 @@ export default function DayDetailsScreen() {
             </View>
           ) : (
             exercises.map((ex, index) => {
-              const imgUri = ex.image_uri || muscleImages[ex.muscle_group] || muscleImages['Peito'] || coverImage;
+              const muscleData = parseMuscleGroup(ex.muscle_group);
+              const primaryDisplay = muscleData.primaryString;
+              const imgUri = ex.image_uri || muscleImages[primaryDisplay] || muscleImages['Peito'] || coverImage;
               return (
                 <View 
                   key={ex.id + index} 

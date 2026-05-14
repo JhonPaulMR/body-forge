@@ -73,10 +73,10 @@ export function useRoutineDetails(routineId: string) {
       
       if (isActivePlan) {
         setIsActivePlan(false);
-        router.push('/(tabs)/planos' as any);
+        router.replace('/planos' as any);
       } else {
         setIsActivePlan(true);
-        router.push('/(tabs)' as any);
+        router.replace('/home' as any);
       }
     } catch (error) {
       console.error('Error toggling active status:', error);
@@ -154,11 +154,22 @@ export function useRoutineDetails(routineId: string) {
           [day.id]
         );
 
+        // Map original superset_id to new ones for this day
+        const supersetMap = new Map<string, string>();
+
         for (const ex of exercises) {
+          let newSupersetId = null;
+          if (ex.superset_id) {
+            if (!supersetMap.has(ex.superset_id)) {
+              supersetMap.set(ex.superset_id, 'ss_dup_' + Date.now() + Math.random().toString(36).substr(2, 5));
+            }
+            newSupersetId = supersetMap.get(ex.superset_id);
+          }
+
           db.runSync(
             `INSERT INTO routine_exercises (id, routine_day_id, exercise_id, order_index, superset_id, target_sets, target_reps, rest_time_seconds, set_configs)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            ['re_dup_' + Date.now() + Math.random().toString(36).substr(2, 5), newDayId, ex.exercise_id, ex.order_index, null, ex.target_sets, ex.target_reps, ex.rest_time_seconds, ex.set_configs]
+            ['re_dup_' + Date.now() + Math.random().toString(36).substr(2, 5), newDayId, ex.exercise_id, ex.order_index, newSupersetId, ex.target_sets, ex.target_reps, ex.rest_time_seconds, ex.set_configs]
           );
         }
       }
@@ -182,7 +193,7 @@ export function useRoutineDetails(routineId: string) {
           `, [routineId]);
           db.runSync('DELETE FROM routine_days WHERE routine_id = ?', [routineId]);
           db.runSync('DELETE FROM routines WHERE id = ?', [routineId]);
-          router.replace('/(tabs)/planos' as any);
+          router.replace('/planos' as any);
         } catch (e) { console.error(e); }
       }}
     ]);

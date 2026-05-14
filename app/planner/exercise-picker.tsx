@@ -14,6 +14,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { X, Search, ChevronDown, Check } from 'lucide-react-native';
 import { db } from '@/database/schema';
 import { muscleImages } from '@/constants/muscleImages';
+import { parseMuscleGroup } from '@/services/muscleGroupUtils';
 
 interface Exercise {
   id: string;
@@ -183,7 +184,9 @@ export default function ExercisePickerScreen() {
   const renderExerciseItem = ({ item }: { item: Exercise }) => {
     const isSelected = selectedIds.has(item.id);
     const isAlreadyAdded = alreadyAddedIds.has(item.id);
-    const imgUri = item.image_uri || muscleImages[item.muscle_group] || muscleImages['Peito'];
+    const muscleData = parseMuscleGroup(item.muscle_group);
+    const primaryDisplay = muscleData.primaryString;
+    const imgUri = item.image_uri || muscleImages[primaryDisplay] || muscleImages['Peito'];
 
     return (
       <TouchableOpacity
@@ -196,7 +199,7 @@ export default function ExercisePickerScreen() {
         <View className="flex-1 mx-3">
           <Text className="text-white text-[14px] font-bold mb-0.5">{item.name}</Text>
           <Text className="text-forge-muted-dark text-[10px] font-bold tracking-wide">
-            {item.muscle_group?.toUpperCase()}
+            {primaryDisplay?.toUpperCase()}
           </Text>
         </View>
         <View

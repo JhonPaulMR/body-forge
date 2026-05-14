@@ -2,13 +2,12 @@ import { MediaCarousel } from '@/components/exercises/MediaCarousel';
 import { MediaOptionsMenu } from '@/components/exercises/MediaOptionsMenu';
 import { MuscleCard } from '@/components/exercises/MuscleCard';
 import { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
-import { YouTubeDownloadModal } from '@/components/exercises/YouTubeDownloadModal';
 import { muscleImages, muscleStringMap } from '@/constants/muscleImages';
-import { addImageMedia, deleteMedia, ExerciseMedia, getMediaForExercise, replaceMedia } from '@/services/exerciseMediaService';
+import { addMedia, deleteMedia, ExerciseMedia, getMediaForExercise, replaceMedia } from '@/services/exerciseMediaService';
 import { Exercise, getExerciseById } from '@/services/exerciseService';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, ChevronRight, ExternalLink, FileText } from 'lucide-react-native';
+import { ArrowLeft, ChevronRight, FileText } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -66,7 +65,6 @@ export default function ExerciseDetailScreen() {
   // Media states
   const [exerciseMedia, setExerciseMedia] = useState<ExerciseMedia[]>([]);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [isYoutubeModalVisible, setIsYoutubeModalVisible] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<ExerciseMedia | null>(null);
 
   const loadMedia = () => {
@@ -76,42 +74,56 @@ export default function ExerciseDetailScreen() {
     }
   };
 
-  const requestImagePermission = async (): Promise<boolean> => {
+  const requestMediaPermission = async (): Promise<boolean> => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permissão necessária', 'Permita o acesso à galeria para adicionar imagens.');
+      Alert.alert('Permissão necessária', 'Permita o acesso à galeria para adicionar mídia.');
       return false;
     }
     return true;
   };
 
-  const pickImage = async (): Promise<string | null> => {
-    const hasPermission = await requestImagePermission();
+  const pickMedia = async (
+    mode: 'all' | 'image' | 'video'
+  ): Promise<{ uri: string; type: 'image' | 'video'; fileName?: string | null } | null> => {
+    const hasPermission = await requestMediaPermission();
     if (!hasPermission) return null;
 
+    const mediaTypes =
+      mode === 'image'
+        ? ImagePicker.MediaTypeOptions.Images
+        : mode === 'video'
+        ? ImagePicker.MediaTypeOptions.Videos
+        : ImagePicker.MediaTypeOptions.All;
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.9,
-      allowsEditing: false,
+      mediaTypes,
+      quality: mode === 'image' ? 0.9 : 1,
+      allowsEditing: true,
+      aspect: [16, 9],
+      videoMaxDuration: 60,
     });
 
-    if (result.canceled || !result.assets?.[0]?.uri) return null;
-    return result.assets[0].uri;
+    const asset = result.canceled ? null : result.assets?.[0];
+    if (!asset?.uri || !asset.type) return null;
+    if (asset.type !== 'image' && asset.type !== 'video') return null;
+
+    return { uri: asset.uri, type: asset.type, fileName: asset.fileName };
   };
 
-  const handleAddImage = async () => {
+  const handleAddMedia = async () => {
     if (!exercise) return;
-    const uri = await pickImage();
-    if (!uri) return;
-    await addImageMedia(exercise.id, uri);
+    const media = await pickMedia('all');
+    if (!media) return;
+    await addMedia(exercise.id, media);
     loadMedia();
   };
 
-  const handleReplaceImage = async () => {
-    if (!selectedMedia || selectedMedia.media_type !== 'image') return;
-    const uri = await pickImage();
-    if (!uri) return;
-    await replaceMedia(selectedMedia.id, uri);
+  const handleReplaceMedia = async () => {
+    if (!selectedMedia) return;
+    const media = await pickMedia(selectedMedia.media_type);
+    if (!media) return;
+    await replaceMedia(selectedMedia.id, media.uri, media.fileName);
     loadMedia();
   };
 
@@ -269,11 +281,6 @@ export default function ExerciseDetailScreen() {
                 <ChevronRight size={18} color="#5F6368" style={{ marginLeft: 'auto' }} />
               </TouchableOpacity>
 
-              <TouchableOpacity className="flex-row items-center py-4 gap-3 border-b border-forge-border">
-                <ExternalLink size={18} color="#A0C4FF" />
-                <Text className="text-white text-sm font-semibold">Visualizar no YouTube</Text>
-                <ExternalLink size={14} color="#5F6368" style={{ marginLeft: 'auto' }} />
-              </TouchableOpacity>
             </>
           ) : (
             <>
@@ -329,33 +336,19 @@ export default function ExerciseDetailScreen() {
       <MediaOptionsMenu
         visible={isMenuVisible}
         onClose={() => setIsMenuVisible(false)}
-        onAddImage={() => {
+        onAddMedia={() => {
           setIsMenuVisible(false);
-          handleAddImage();
+          handleAddMedia();
         }}
-        onAddVideo={() => {
+        canReplace={!!selectedMedia}
+        onReplaceMedia={() => {
           setIsMenuVisible(false);
-          setIsYoutubeModalVisible(true);
-        }}
-        canReplace={selectedMedia?.media_type === 'image'}
-        onReplaceImage={() => {
-          setIsMenuVisible(false);
-          handleReplaceImage();
+          handleReplaceMedia();
         }}
         canDelete={!!selectedMedia}
         onDelete={() => {
           setIsMenuVisible(false);
           handleDeleteMedia();
-        }}
-      />
-      
-      <YouTubeDownloadModal
-        visible={isYoutubeModalVisible}
-        exerciseId={exercise.id}
-        onClose={() => setIsYoutubeModalVisible(false)}
-        onDownloadComplete={() => {
-          setIsYoutubeModalVisible(false);
-          loadMedia();
         }}
       />
     </SafeAreaView>

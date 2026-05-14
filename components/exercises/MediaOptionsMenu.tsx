@@ -6,9 +6,8 @@ import { Alert, Modal, Pressable, Text, TouchableOpacity, View } from 'react-nat
 interface MediaOptionsMenuProps {
   visible: boolean;
   onClose: () => void;
-  onAddImage: () => void;
-  onAddVideo: () => void;
-  onReplaceImage?: () => void;
+  onAddMedia: () => void;
+  onReplaceMedia?: () => void;
   onDelete?: () => void;
   canReplace: boolean;
   canDelete: boolean;
@@ -17,9 +16,8 @@ interface MediaOptionsMenuProps {
 export function MediaOptionsMenu({
   visible,
   onClose,
-  onAddImage,
-  onAddVideo,
-  onReplaceImage,
+  onAddMedia,
+  onReplaceMedia,
   onDelete,
   canReplace,
   canDelete,
@@ -60,34 +58,21 @@ export function MediaOptionsMenu({
           {/* Options */}
           <TouchableOpacity
             className="flex-row items-center py-4 border-b border-forge-border"
-            onPress={() => { onAddImage(); onClose(); }}
+            onPress={() => { onAddMedia(); onClose(); }}
           >
             <View className="w-10 h-10 rounded-xl bg-forge-accent/15 justify-center items-center mr-4">
               <Feather name="plus-circle" size={18} color="#A0C4FF" />
             </View>
             <View className="flex-1">
-              <Text className="text-white text-sm font-bold">Adicionar Imagem</Text>
-              <Text className="text-forge-muted text-[11px]">Da galeria do dispositivo</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className="flex-row items-center py-4 border-b border-forge-border"
-            onPress={() => { onAddVideo(); onClose(); }}
-          >
-            <View className="w-10 h-10 rounded-xl bg-purple-500/15 justify-center items-center mr-4">
-              <Feather name="youtube" size={18} color="#A78BFA" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-white text-sm font-bold">Adicionar Vídeo</Text>
-              <Text className="text-forge-muted text-[11px]">Link do YouTube (máx 2 min)</Text>
+              <Text className="text-white text-sm font-bold">Adicionar Mídia</Text>
+              <Text className="text-forge-muted text-[11px]">Imagem ou vídeo do dispositivo</Text>
             </View>
           </TouchableOpacity>
 
           {canReplace && (
             <TouchableOpacity
               className="flex-row items-center py-4 border-b border-forge-border"
-              onPress={() => { onReplaceImage?.(); onClose(); }}
+              onPress={() => { onReplaceMedia?.(); onClose(); }}
             >
               <View className="w-10 h-10 rounded-xl bg-forge-green/15 justify-center items-center mr-4">
                 <Feather name="refresh-cw" size={18} color="#4ADE80" />

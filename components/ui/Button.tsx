@@ -11,7 +11,7 @@ interface ButtonProps extends TouchableOpacityProps {
 
 export function Button({ title, variant = 'primary', className: extraClassName, style, ...props }: ButtonProps) {
   const colorScheme = useColorScheme();
-  const tint = Colors[colorScheme ?? 'light'].tint;
+  const tint = Colors[colorScheme].tint;
 
   const baseClass = 'py-3 px-6 rounded-lg items-center justify-center my-2';
 
@@ -44,7 +44,7 @@ export function Button({ title, variant = 'primary', className: extraClassName, 
   const getTextColor = () => {
     if (variant === 'primary') return '#FFFFFF';
     if (variant === 'outline') return tint;
-    return Colors[colorScheme ?? 'light'].text;
+    return Colors[colorScheme].text;
   };
 
   return (

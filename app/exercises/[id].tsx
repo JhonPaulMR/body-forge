@@ -1,26 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import { MediaCarousel } from '@/components/exercises/MediaCarousel';
+import { MediaOptionsMenu } from '@/components/exercises/MediaOptionsMenu';
+import { MuscleCard } from '@/components/exercises/MuscleCard';
+import { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
+import { muscleImages, muscleStringMap } from '@/constants/muscleImages';
+import { addMedia, deleteMedia, ExerciseMedia, getMediaForExercise, replaceMedia } from '@/services/exerciseMediaService';
+import { Exercise, getExerciseById } from '@/services/exerciseService';
+import * as ImagePicker from 'expo-image-picker';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ArrowLeft, ChevronRight, FileText } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  Image,
-  TouchableOpacity,
+  Alert,
   Dimensions,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, FileText, ExternalLink, ChevronRight } from 'lucide-react-native';
-import { db } from '@/database/schema';
-
-interface Exercise {
-  id: string;
-  name: string;
-  muscle_group: string;
-  equipment: string;
-  instructions: string | null;
-  image_uri: string | null;
-  is_custom: number;
-}
 
 interface SetRecord {
   weight: number;
@@ -36,26 +33,6 @@ interface SessionHistory {
   sets: SetRecord[];
   isPersonalRecord: boolean;
 }
-
-const muscleImages: Record<string, string> = {
-  'Peito': 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=600',
-  'Costas': 'https://images.unsplash.com/photo-1603287681836-b174ce5074c2?q=80&w=600',
-  'Pernas': 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=600',
-  'Ombros': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=600',
-  'Bíceps': 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=600',
-  'Tríceps': 'https://images.unsplash.com/photo-1530822847156-5df684ec5ee1?q=80&w=600',
-  'Abdômen': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=600',
-};
-
-const muscleDetailImages: Record<string, string> = {
-  'Peito': 'https://images.unsplash.com/photo-1579758629938-03607ccdbaba?q=80&w=300',
-  'Costas': 'https://images.unsplash.com/photo-1603287681836-b174ce5074c2?q=80&w=300',
-  'Pernas': 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=300',
-  'Ombros': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=300',
-  'Bíceps': 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=300',
-  'Tríceps': 'https://images.unsplash.com/photo-1530822847156-5df684ec5ee1?q=80&w=300',
-  'Abdômen': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=300',
-};
 
 const mockHistory: SessionHistory[] = [
   {
@@ -85,23 +62,85 @@ export default function ExerciseDetailScreen() {
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [activeTab, setActiveTab] = useState<'resumo' | 'historico'>('resumo');
 
-  useEffect(() => {
-    if (id) {
-      loadExercise(id);
-    }
-  }, [id]);
+  // Media states
+  const [exerciseMedia, setExerciseMedia] = useState<ExerciseMedia[]>([]);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<ExerciseMedia | null>(null);
 
-  const loadExercise = (exerciseId: string) => {
-    try {
-      const result = db.getFirstSync<Exercise>(
-        'SELECT * FROM exercises WHERE id = ?',
-        [exerciseId]
-      );
-      setExercise(result);
-    } catch (error) {
-      console.error('Error loading exercise:', error);
+  const loadMedia = () => {
+    if (id) {
+      const media = getMediaForExercise(id as string);
+      setExerciseMedia(media);
     }
   };
+
+  const requestMediaPermission = async (): Promise<boolean> => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permissão necessária', 'Permita o acesso à galeria para adicionar mídia.');
+      return false;
+    }
+    return true;
+  };
+
+  const pickMedia = async (
+    mode: 'all' | 'image' | 'video'
+  ): Promise<{ uri: string; type: 'image' | 'video'; fileName?: string | null } | null> => {
+    const hasPermission = await requestMediaPermission();
+    if (!hasPermission) return null;
+
+    const mediaTypes =
+      mode === 'image'
+        ? ImagePicker.MediaTypeOptions.Images
+        : mode === 'video'
+        ? ImagePicker.MediaTypeOptions.Videos
+        : ImagePicker.MediaTypeOptions.All;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes,
+      quality: mode === 'image' ? 0.9 : 1,
+      allowsEditing: true,
+      aspect: [16, 9],
+      videoMaxDuration: 60,
+    });
+
+    const asset = result.canceled ? null : result.assets?.[0];
+    if (!asset?.uri || !asset.type) return null;
+    if (asset.type !== 'image' && asset.type !== 'video') return null;
+
+    return { uri: asset.uri, type: asset.type, fileName: asset.fileName };
+  };
+
+  const handleAddMedia = async () => {
+    if (!exercise) return;
+    const media = await pickMedia('all');
+    if (!media) return;
+    await addMedia(exercise.id, media);
+    loadMedia();
+  };
+
+  const handleReplaceMedia = async () => {
+    if (!selectedMedia) return;
+    const media = await pickMedia(selectedMedia.media_type);
+    if (!media) return;
+    await replaceMedia(selectedMedia.id, media.uri, media.fileName);
+    loadMedia();
+  };
+
+  const handleDeleteMedia = async () => {
+    if (!selectedMedia) return;
+    await deleteMedia(selectedMedia.id);
+    setSelectedMedia(null);
+    loadMedia();
+  };
+
+  useEffect(() => {
+    if (id) {
+      const result = getExerciseById(id as string);
+      setExercise(result);
+      loadMedia();
+    }
+  }, [id]);
 
   if (!exercise) {
     return (
@@ -112,25 +151,68 @@ export default function ExerciseDetailScreen() {
   }
 
   const heroImage = exercise.image_uri || muscleImages[exercise.muscle_group] || muscleImages['Peito'];
-  const muscleDetailImage = muscleDetailImages[exercise.muscle_group] || muscleDetailImages['Peito'];
-
   const exerciseType = exercise.equipment === 'Peso Corporal' ? 'CALISTENIA' : 'FORÇA';
+
+  let parsedMuscleData: { primary: string[], secondary: string[], primaryString: string } | null = null;
+  try { parsedMuscleData = JSON.parse(exercise.muscle_group); } catch (e) {}
+
+  const primaryIds = parsedMuscleData ? parsedMuscleData.primary : [];
+  const secondaryIds = parsedMuscleData ? parsedMuscleData.secondary : [];
+  const primaryDisplayString = parsedMuscleData ? parsedMuscleData.primaryString : exercise.muscle_group;
+
+  // Build body highlighter data
+  const bodyData: any[] = [];
+  let mainSide: 'front' | 'back' = 'front';
+  
+  if (parsedMuscleData) {
+    primaryIds.forEach(mId => {
+      const muscle = getMuscleById(mId);
+      if (muscle && muscle.slug) {
+        bodyData.push({ slug: muscle.slug, intensity: 1 });
+        mainSide = muscle.side;
+      }
+    });
+    secondaryIds.forEach(mId => {
+      const muscle = getMuscleById(mId);
+      if (muscle && muscle.slug) {
+        bodyData.push({ slug: muscle.slug, intensity: 2 });
+      }
+    });
+  } else {
+    const mapped = muscleStringMap[exercise.muscle_group];
+    if (mapped) {
+      bodyData.push({ slug: mapped.slug, intensity: 1 });
+      mainSide = mapped.side;
+    }
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View className="bg-forge-surface-hover" style={{ width: SCREEN_WIDTH, height: 220 }}>
-          <Image source={{ uri: heroImage }} className="w-full h-full opacity-50" />
-          <View className="absolute inset-0" style={{ backgroundColor: 'rgba(22,24,28,0.3)' }} />
+        <View className="relative">
+          <MediaCarousel
+            heroImageUri={heroImage}
+            exerciseMedia={exerciseMedia}
+            onMenuPress={(item) => {
+              if (item.type === 'hero') {
+                setSelectedMedia(null);
+              } else {
+                const current = exerciseMedia.find(media => media.id === item.mediaId) || null;
+                setSelectedMedia(current);
+              }
+              setIsMenuVisible(true);
+            }}
+          />
           <TouchableOpacity
             className="absolute top-3 left-4 w-10 h-10 rounded-xl justify-center items-center"
-            style={{ backgroundColor: 'rgba(28,30,38,0.8)' }}
+            style={{ backgroundColor: 'rgba(28,30,38,0.8)', zIndex: 10 }}
             onPress={() => router.back()}
           >
             <ArrowLeft size={22} color="#FFF" />
           </TouchableOpacity>
         </View>
 
+        {/* Tabs */}
         <View className="flex-row px-5 border-b border-forge-border mb-5">
           <TouchableOpacity
             className={`py-4 mr-6 ${activeTab === 'resumo' ? 'border-b-2 border-white' : ''}`}
@@ -167,16 +249,20 @@ export default function ExerciseDetailScreen() {
                 {exercise.instructions || 'Nenhuma instrução disponível para este exercício.'}
               </Text>
 
-              <View className="bg-forge-surface rounded-2xl p-4 mb-3">
-                <Text className="text-forge-muted text-[10px] font-bold tracking-wide mb-3">MÚSCULOS PRIMÁRIOS</Text>
-                <View className="flex-row items-center gap-4">
-                  <Image source={{ uri: muscleDetailImage }} className="w-[60px] h-[60px] rounded-xl bg-forge-border" />
-                  <View>
-                    <Text className="text-white text-lg font-extrabold mb-0.5">{exercise.muscle_group}</Text>
-                    <Text className="text-forge-muted-dark text-[11px] font-semibold">Grupo principal</Text>
-                  </View>
-                </View>
-              </View>
+              {/* Músculos Primários */}
+              <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-3 mt-2">MÚSCULOS PRIMÁRIOS</Text>
+              {primaryIds.length > 0 
+                ? primaryIds.map((muscleId: string) => <MuscleCard key={muscleId} muscleId={muscleId} stringFallback={null} type="primary" />)
+                : <MuscleCard muscleId={null} stringFallback={exercise.muscle_group} type="primary" />
+              }
+
+              {/* Músculos Secundários */}
+              {secondaryIds.length > 0 && (
+                <>
+                  <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-3 mt-2">MÚSCULOS SECUNDÁRIOS</Text>
+                  {secondaryIds.map((muscleId: string) => <MuscleCard key={muscleId} muscleId={muscleId} stringFallback={null} type="secondary" />)}
+                </>
+              )}
 
               <View className="bg-forge-surface rounded-2xl p-4 mb-4">
                 <Text className="text-forge-muted text-[10px] font-bold tracking-wide mb-2">VOLUME SEMANAL</Text>
@@ -195,11 +281,6 @@ export default function ExerciseDetailScreen() {
                 <ChevronRight size={18} color="#5F6368" style={{ marginLeft: 'auto' }} />
               </TouchableOpacity>
 
-              <TouchableOpacity className="flex-row items-center py-4 gap-3 border-b border-forge-border">
-                <ExternalLink size={18} color="#A0C4FF" />
-                <Text className="text-white text-sm font-semibold">Visualizar no YouTube</Text>
-                <ExternalLink size={14} color="#5F6368" style={{ marginLeft: 'auto' }} />
-              </TouchableOpacity>
             </>
           ) : (
             <>
@@ -250,6 +331,26 @@ export default function ExerciseDetailScreen() {
           <View className="h-10" />
         </View>
       </ScrollView>
+
+      {/* Modals */}
+      <MediaOptionsMenu
+        visible={isMenuVisible}
+        onClose={() => setIsMenuVisible(false)}
+        onAddMedia={() => {
+          setIsMenuVisible(false);
+          handleAddMedia();
+        }}
+        canReplace={!!selectedMedia}
+        onReplaceMedia={() => {
+          setIsMenuVisible(false);
+          handleReplaceMedia();
+        }}
+        canDelete={!!selectedMedia}
+        onDelete={() => {
+          setIsMenuVisible(false);
+          handleDeleteMedia();
+        }}
+      />
     </SafeAreaView>
   );
 }

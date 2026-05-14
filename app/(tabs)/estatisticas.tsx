@@ -1,31 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Modal,
-  Pressable,
-  Alert,
-  Dimensions,
-} from 'react-native';
+import React from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Menu, TrendingUp, Scale, Activity } from 'lucide-react-native';
-import { db } from '@/database/schema';
+import { Menu, TrendingUp, Activity } from 'lucide-react-native';
+
+import { useStatsData } from '@/hooks/useStatsData';
+import { CurrentWeight } from '@/components/stats/CurrentWeight';
+import { WeightEvolutionChart } from '@/components/stats/WeightEvolutionChart';
+import { StatsHistory } from '@/components/stats/StatsHistory';
+import { MetricsRegistrationModal } from '@/components/stats/MetricsRegistrationModal';
+
 import { BarChart } from '@/components/ui/BarChart';
 import { DonutChart } from '@/components/ui/DonutChart';
 import { LineChart } from '@/components/ui/LineChart';
 import { HeatmapGrid } from '@/components/ui/HeatmapGrid';
 
-interface BodyMetric {
-  id: string;
-  date: string;
-  weight_kg: number;
-  body_fat_percentage: number | null;
-  notes: string | null;
-}
-
+// Constants and Mocks that could be moved later
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CHART_WIDTH = SCREEN_WIDTH - 80;
 
@@ -46,25 +35,15 @@ const muscleGroupData = [
 ];
 
 const rm1Data = [
-  { label: 'S1', value: 275 },
-  { label: 'S2', value: 280 },
-  { label: 'S3', value: 285 },
-  { label: 'S4', value: 290 },
-  { label: 'S5', value: 295 },
-  { label: 'S6', value: 300 },
-  { label: 'S7', value: 305 },
-  { label: 'S8', value: 310 },
+  { label: 'S1', value: 275 }, { label: 'S2', value: 280 }, { label: 'S3', value: 285 },
+  { label: 'S4', value: 290 }, { label: 'S5', value: 295 }, { label: 'S6', value: 300 },
+  { label: 'S7', value: 305 }, { label: 'S8', value: 310 },
 ];
 
 const rm1BenchData = [
-  { label: 'S1', value: 185 },
-  { label: 'S2', value: 188 },
-  { label: 'S3', value: 190 },
-  { label: 'S4', value: 192 },
-  { label: 'S5', value: 195 },
-  { label: 'S6', value: 196 },
-  { label: 'S7', value: 198 },
-  { label: 'S8', value: 200 },
+  { label: 'S1', value: 185 }, { label: 'S2', value: 188 }, { label: 'S3', value: 190 },
+  { label: 'S4', value: 192 }, { label: 'S5', value: 195 }, { label: 'S6', value: 196 },
+  { label: 'S7', value: 198 }, { label: 'S8', value: 200 },
 ];
 
 const heatmapData = [
@@ -103,67 +82,7 @@ const mockActivities = [
 ];
 
 export default function EstatisticasScreen() {
-  const [periodFilter, setPeriodFilter] = useState<'7' | '30'>('30');
-  const [bodyMetrics, setBodyMetrics] = useState<BodyMetric[]>([]);
-  const [showAddMetricModal, setShowAddMetricModal] = useState(false);
-  const [newWeight, setNewWeight] = useState('');
-  const [newBf, setNewBf] = useState('');
-  const [newNotes, setNewNotes] = useState('');
-
-  useEffect(() => {
-    loadBodyMetrics();
-  }, []);
-
-  const loadBodyMetrics = useCallback(() => {
-    try {
-      const result = db.getAllSync<BodyMetric>(
-        'SELECT * FROM body_metrics WHERE user_id = ? ORDER BY date DESC',
-        ['user_1']
-      );
-      setBodyMetrics(result);
-    } catch (error) {
-      console.error('Error loading body metrics:', error);
-    }
-  }, []);
-
-  const handleAddMetric = () => {
-    const weight = parseFloat(newWeight);
-    if (isNaN(weight) || weight <= 0) {
-      Alert.alert('Erro', 'Insira um peso válido.');
-      return;
-    }
-
-    const bf = newBf ? parseFloat(newBf) : null;
-    const id = 'bm_' + Date.now();
-    const today = new Date().toISOString().split('T')[0];
-
-    try {
-      db.runSync(
-        'INSERT INTO body_metrics (id, user_id, date, weight_kg, body_fat_percentage, notes) VALUES (?, ?, ?, ?, ?, ?)',
-        [id, 'user_1', today, weight, bf, newNotes || null]
-      );
-      setNewWeight('');
-      setNewBf('');
-      setNewNotes('');
-      setShowAddMetricModal(false);
-      loadBodyMetrics();
-    } catch (error) {
-      console.error('Error inserting body metric:', error);
-      Alert.alert('Erro', 'Não foi possível salvar a métrica.');
-    }
-  };
-
-  const weightChartData = [...bodyMetrics]
-    .reverse()
-    .slice(-8)
-    .map((m) => ({
-      label: new Date(m.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', ''),
-      value: m.weight_kg,
-    }));
-
-  const latestWeight = bodyMetrics.length > 0 ? bodyMetrics[0].weight_kg : null;
-  const previousWeight = bodyMetrics.length > 1 ? bodyMetrics[1].weight_kg : null;
-  const weightDiff = latestWeight && previousWeight ? latestWeight - previousWeight : null;
+  const statsData = useStatsData();
 
   return (
     <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
@@ -186,23 +105,24 @@ export default function EstatisticasScreen() {
 
         <View className="flex-row gap-2 mb-5">
           <TouchableOpacity
-            className={`px-4 py-2 rounded-[20px] border ${periodFilter === '7' ? 'bg-forge-accent-bg border-forge-accent' : 'border-forge-border'}`}
-            onPress={() => setPeriodFilter('7')}
+            className={`px-4 py-2 rounded-[20px] border ${statsData.periodFilter === '7' ? 'bg-forge-accent-bg border-forge-accent' : 'border-forge-border'}`}
+            onPress={() => statsData.setPeriodFilter('7')}
           >
-            <Text className={`text-[11px] font-bold tracking-tight ${periodFilter === '7' ? 'text-forge-accent' : 'text-forge-muted-dark'}`}>
+            <Text className={`text-[11px] font-bold tracking-tight ${statsData.periodFilter === '7' ? 'text-forge-accent' : 'text-forge-muted-dark'}`}>
               7 DIAS
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className={`px-4 py-2 rounded-[20px] border ${periodFilter === '30' ? 'bg-forge-accent-bg border-forge-accent' : 'border-forge-border'}`}
-            onPress={() => setPeriodFilter('30')}
+            className={`px-4 py-2 rounded-[20px] border ${statsData.periodFilter === '30' ? 'bg-forge-accent-bg border-forge-accent' : 'border-forge-border'}`}
+            onPress={() => statsData.setPeriodFilter('30')}
           >
-            <Text className={`text-[11px] font-bold tracking-tight ${periodFilter === '30' ? 'text-forge-accent' : 'text-forge-muted-dark'}`}>
+            <Text className={`text-[11px] font-bold tracking-tight ${statsData.periodFilter === '30' ? 'text-forge-accent' : 'text-forge-muted-dark'}`}>
               30 DIAS
             </Text>
           </TouchableOpacity>
         </View>
 
+        {/* Existing Charts (Hardcoded placeholders) */}
         <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
           <View className="flex-row justify-between items-center mb-2">
             <Text className="text-forge-muted text-[11px] font-bold tracking-wide">VOLUME SEMANAL</Text>
@@ -326,132 +246,25 @@ export default function EstatisticasScreen() {
 
         <Text className="text-forge-muted text-xs font-bold tracking-wide mt-2 mb-3">CORPO</Text>
 
-        <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
-          <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-forge-muted text-[11px] font-bold tracking-wide">PESO ATUAL</Text>
-            <Scale size={18} color="#A0C4FF" />
-          </View>
-          {latestWeight ? (
-            <>
-              <View className="flex-row items-baseline">
-                <Text className="text-forge-green text-[36px] font-black">{latestWeight.toFixed(1)}</Text>
-                <Text className="text-forge-muted text-sm font-semibold"> kg</Text>
-              </View>
-              {weightDiff !== null && (
-                <Text
-                  className="text-[11px] font-bold mt-1.5"
-                  style={{ color: weightDiff <= 0 ? '#4ADE80' : '#FFA07A' }}
-                >
-                  {weightDiff > 0 ? '+' : ''}{weightDiff.toFixed(1)} kg desde a última medição
-                </Text>
-              )}
-            </>
-          ) : (
-            <Text className="text-forge-muted-dark text-[13px] mt-2">Nenhuma medição registrada</Text>
-          )}
-        </View>
+        <CurrentWeight 
+          latestWeight={statsData.latestWeight} 
+          weightDiff={statsData.weightDiff} 
+        />
 
-        {weightChartData.length > 1 && (
-          <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
-            <Text className="text-forge-muted text-[11px] font-bold tracking-wide">EVOLUÇÃO DO PESO</Text>
-            <View className="items-center mt-3">
-              <LineChart
-                data={weightChartData}
-                width={CHART_WIDTH}
-                height={160}
-                lineColor="#A0C4FF"
-                dotColor="#A0C4FF"
-              />
-            </View>
-          </View>
-        )}
+        <WeightEvolutionChart 
+          weightChartData={statsData.weightChartData} 
+        />
 
-        <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
-          <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-forge-muted text-[11px] font-bold tracking-wide">HISTÓRICO DE MEDIÇÕES</Text>
-            <TouchableOpacity
-              className="bg-forge-accent-bg px-3.5 py-2 rounded-xl"
-              onPress={() => setShowAddMetricModal(true)}
-            >
-              <Text className="text-forge-accent text-[10px] font-extrabold tracking-tight">+ REGISTRAR</Text>
-            </TouchableOpacity>
-          </View>
-          {bodyMetrics.slice(0, 5).map((m, i) => (
-            <View
-              key={m.id}
-              className={`flex-row justify-between items-center py-3.5 ${i < Math.min(bodyMetrics.length, 5) - 1 ? 'border-b border-forge-border' : ''}`}
-            >
-              <View>
-                <Text className="text-forge-text-secondary text-[13px] font-semibold mb-0.5">
-                  {new Date(m.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
-                </Text>
-                {m.notes && <Text className="text-forge-muted-dark text-[11px]">{m.notes}</Text>}
-              </View>
-              <View className="items-end">
-                <Text className="text-white text-base font-extrabold">{m.weight_kg.toFixed(1)} kg</Text>
-                {m.body_fat_percentage && (
-                  <Text className="text-forge-muted text-[11px] font-semibold mt-0.5">{m.body_fat_percentage.toFixed(1)}% BF</Text>
-                )}
-              </View>
-            </View>
-          ))}
-          {bodyMetrics.length === 0 && (
-            <Text className="text-forge-muted-dark text-[13px] mt-2">Nenhuma medição registrada ainda.</Text>
-          )}
-        </View>
+        <StatsHistory 
+          bodyMetrics={statsData.bodyMetrics} 
+          setShowAddMetricModal={statsData.setShowAddMetricModal} 
+        />
 
         <View className="h-[100px]" />
       </ScrollView>
 
-      <Modal visible={showAddMetricModal} transparent animationType="slide">
-        <Pressable className="flex-1 bg-black/60 justify-end" onPress={() => setShowAddMetricModal(false)}>
-          <Pressable className="bg-forge-surface rounded-t-3xl p-6 pb-10">
-            <Text className="text-white text-xl font-extrabold mb-5">Registrar Medição</Text>
+      <MetricsRegistrationModal {...statsData} />
 
-            <Text className="text-forge-muted text-[11px] font-bold tracking-tight mb-1.5 mt-3">Peso (kg) *</Text>
-            <TextInput
-              className="bg-forge-accent-bg rounded-xl p-3.5 text-white text-sm font-semibold border border-forge-border"
-              placeholder="Ex: 84.5"
-              placeholderTextColor="#5F6368"
-              keyboardType="decimal-pad"
-              value={newWeight}
-              onChangeText={setNewWeight}
-            />
-
-            <Text className="text-forge-muted text-[11px] font-bold tracking-tight mb-1.5 mt-3">% Gordura Corporal</Text>
-            <TextInput
-              className="bg-forge-accent-bg rounded-xl p-3.5 text-white text-sm font-semibold border border-forge-border"
-              placeholder="Ex: 15.0"
-              placeholderTextColor="#5F6368"
-              keyboardType="decimal-pad"
-              value={newBf}
-              onChangeText={setNewBf}
-            />
-
-            <Text className="text-forge-muted text-[11px] font-bold tracking-tight mb-1.5 mt-3">Notas</Text>
-            <TextInput
-              className="bg-forge-accent-bg rounded-xl p-3.5 text-white text-sm font-semibold border border-forge-border h-[60px]"
-              style={{ textAlignVertical: 'top' }}
-              placeholder="Observações opcionais..."
-              placeholderTextColor="#5F6368"
-              multiline
-              value={newNotes}
-              onChangeText={setNewNotes}
-            />
-
-            <TouchableOpacity className="bg-forge-accent rounded-2xl p-4 items-center mt-6" onPress={handleAddMetric}>
-              <Text className="text-forge-bg text-sm font-extrabold tracking-wide">REGISTRAR</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="p-4 items-center mt-2"
-              onPress={() => setShowAddMetricModal(false)}
-            >
-              <Text className="text-forge-muted text-[13px] font-bold">CANCELAR</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
     </SafeAreaView>
   );
 }

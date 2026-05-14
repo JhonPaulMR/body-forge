@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Image, Modal, Alert } from 'react-native';
 import { X } from 'lucide-react-native';
+import { muscleImages } from '@/constants/muscleImages';
 
 interface DayExercise {
   id: string;
@@ -14,16 +15,6 @@ interface DayExercise {
   muscle_group: string;
   image_uri: string | null;
 }
-
-const muscleImages: Record<string, string> = {
-  'Peito': 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=200',
-  'Costas': 'https://images.unsplash.com/photo-1603287681836-b174ce5074c2?q=80&w=200',
-  'Pernas': 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=200',
-  'Ombros': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=200',
-  'Bíceps': 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=200',
-  'Tríceps': 'https://images.unsplash.com/photo-1530822847156-5df684ec5ee1?q=80&w=200',
-  'Abdômen': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=200',
-};
 
 interface Props {
   visible: boolean;

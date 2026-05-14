@@ -9,7 +9,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   const icons: Record<string, (color: string) => React.ReactNode> = {
-    index: (color) => <Home size={20} color={color} />,
+    home: (color) => <Home size={20} color={color} />,
     planos: (color) => <Dumbbell size={20} color={color} />,
     treino: (color) => <BicepsFlexed size={20} color={color} />,
     historico: (color) => <Clock size={20} color={color} />,
@@ -60,10 +60,11 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 export default function TabLayout() {
   return (
     <Tabs
+      initialRouteName="home"
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Início' }} />
+      <Tabs.Screen name="home" options={{ title: 'Home' }} />
       <Tabs.Screen name="planos" options={{ title: 'Planos' }} />
       <Tabs.Screen name="treino" options={{ title: 'Treino' }} />
       <Tabs.Screen name="historico" options={{ title: 'Histórico' }} />

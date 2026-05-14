@@ -6,19 +6,12 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
-  FlatList,
-  Modal,
-  Pressable,
   Image,
-  ScrollView,
-  ActivityIndicator,
 } from 'react-native';
 import { FlatList as GHFlatList } from 'react-native-gesture-handler';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { X, Plus, Dumbbell, Camera } from 'lucide-react-native';
-import DraggableFlatList from 'react-native-draggable-flatlist';
-import { db } from '@/database/schema';
 
 // Imported components
 import CoverImagePickerModal from '@/components/planner/CoverImagePickerModal';
@@ -26,36 +19,29 @@ import CreateSupersetModal from '@/components/planner/CreateSupersetModal';
 import { ExerciseMenu, SupersetMenu, DayMenu } from '@/components/planner/PlannerActionMenus';
 import DayCard from '@/components/planner/DayCard';
 
+// Service
+import {
+  RoutineDay,
+  DayExercise,
+  RenderItem,
+  loadRoutineData,
+  saveRoutine,
+  loadDaysAndExercises,
+  addDay,
+  duplicateDay as duplicateDayService,
+  deleteDay as deleteDayService,
+  duplicateExercise as duplicateExerciseService,
+  deleteExercise as deleteExerciseService,
+  removeFromSuperset as removeFromSupersetService,
+  createSuperset,
+  dissolveSuperset,
+  deleteSupersetExercises,
+  reorderExercises,
+} from '@/services/plannerService';
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 40;
 const CARD_MARGIN = 10;
-
-interface RoutineDay {
-  id: string;
-  day_name: string;
-  order_index: number;
-}
-
-interface DayExercise {
-  id: string;
-  exercise_id: string;
-  order_index: number;
-  superset_id: string | null;
-  target_sets: number;
-  target_reps: string;
-  rest_time_seconds: number;
-  name: string;
-  muscle_group: string;
-  image_uri: string | null;
-}
-
-interface RenderItem {
-  type: 'exercise' | 'superset';
-  key: string;
-  exercise?: DayExercise;
-  supersetId?: string;
-  exercises?: DayExercise[];
-}
 
 export default function PlannerScreen() {
   const router = useRouter();
@@ -75,91 +61,60 @@ export default function PlannerScreen() {
   const [supersetPopup, setSupersetPopup] = useState<{ dayId: string } | null>(null);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
 
-  // Lock horizontal scroll while dragging exercises
   const [isDragging, setIsDragging] = useState(false);
   const [cardAreaHeight, setCardAreaHeight] = useState(400);
 
   const scrollRef = useRef<GHFlatList>(null);
   const insets = useSafeAreaInsets();
 
+  // ---- Data Loading ----
+
   useEffect(() => {
-    if (routineId) loadRoutine(routineId);
-  }, [routineId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (savedRoutineId) loadDaysAndExercises(savedRoutineId);
-    }, [savedRoutineId])
-  );
-
-  const loadRoutine = (id: string) => {
-    try {
-      const routine = db.getFirstSync<{ name: string; description: string | null; cover_image_uri: string | null }>(
-        'SELECT name, description, cover_image_uri FROM routines WHERE id = ?', [id]
-      );
+    if (routineId) {
+      const routine = loadRoutineData(routineId);
       if (routine) {
         setPlanName(routine.name);
         setDescription(routine.description || '');
         setCoverImageUri(routine.cover_image_uri);
       }
-      loadDaysAndExercises(id);
-    } catch (error) { console.error('Error loading routine:', error); }
-  };
-  const loadDaysAndExercises = (rId: string) => {
-    try {
-      const daysResult = db.getAllSync<RoutineDay>(
-        'SELECT * FROM routine_days WHERE routine_id = ? ORDER BY order_index', [rId]
-      );
-      setDays(daysResult);
-      const exMap: Record<string, DayExercise[]> = {};
-      for (const day of daysResult) {
-        exMap[day.id] = db.getAllSync<DayExercise>(
-          `SELECT re.id, re.exercise_id, re.order_index, re.superset_id,
-                  re.target_sets, re.target_reps, re.rest_time_seconds,
-                  e.name, e.muscle_group, e.image_uri
-           FROM routine_exercises re JOIN exercises e ON re.exercise_id = e.id
-           WHERE re.routine_day_id = ? ORDER BY re.order_index`,
-          [day.id]
-        );
-      }
-      setDayExercises(exMap);
-    } catch (error) { console.error('Error loading days:', error); }
+      refreshDays(routineId);
+    }
+  }, [routineId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (savedRoutineId) refreshDays(savedRoutineId);
+    }, [savedRoutineId])
+  );
+
+  const refreshDays = (rId: string) => {
+    const { days: d, exerciseMap } = loadDaysAndExercises(rId);
+    setDays(d);
+    setDayExercises(exerciseMap);
   };
 
+  // ---- Ensure Routine Saved ----
+
   const ensureRoutineSaved = (): string | null => {
-    if (!planName.trim()) { Alert.alert('Erro', 'Insira um nome para o plano.'); return null; }
-    try {
-      if (savedRoutineId) {
-        db.runSync('UPDATE routines SET name = ?, description = ?, cover_image_uri = ? WHERE id = ?',
-          [planName.trim(), description.trim() || null, coverImageUri, savedRoutineId]);
-        return savedRoutineId;
-      }
-      const id = 'routine_' + Date.now();
-      db.runSync('INSERT INTO routines (id, user_id, name, description, cover_image_uri, is_builtin) VALUES (?, ?, ?, ?, ?, 0)',
-        [id, 'user_1', planName.trim(), description.trim() || null, coverImageUri]);
-      setSavedRoutineId(id);
-      return id;
-    } catch (error) { console.error(error); return null; }
+    const id = saveRoutine(savedRoutineId, planName, description, coverImageUri);
+    if (id && !savedRoutineId) setSavedRoutineId(id);
+    return id;
   };
 
   const handleSave = () => {
     if (!planName.trim()) { Alert.alert('Erro', 'Insira um nome para o plano.'); return; }
-    ensureRoutineSaved(); router.back();
+    ensureRoutineSaved();
+    router.back();
   };
+
+  // ---- Day Actions ----
 
   const handleAddDay = () => {
     const id = ensureRoutineSaved();
     if (!id) return;
-    try {
-      const maxIdx = db.getFirstSync<{ max_idx: number }>(
-        'SELECT COALESCE(MAX(order_index), 0) as max_idx FROM routine_days WHERE routine_id = ?', [id]
-      );
-      const dayId = 'rd_' + Date.now();
-      db.runSync('INSERT INTO routine_days (id, routine_id, day_name, order_index) VALUES (?, ?, ?, ?)',
-        [dayId, id, `Dia ${(maxIdx?.max_idx || 0) + 1}`, (maxIdx?.max_idx || 0) + 1]);
-      loadDaysAndExercises(id);
-      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 200);
-    } catch (error) { console.error(error); }
+    addDay(id);
+    refreshDays(id);
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 200);
   };
 
   const handleAddExercises = (dayId: string) => {
@@ -168,122 +123,78 @@ export default function PlannerScreen() {
     router.push(`/planner/exercise-picker?dayId=${dayId}&routineId=${id}` as any);
   };
 
-  // ---- Drag end handler ----
-  const handleDragEnd = (data: RenderItem[], dayId: string) => {
-    try {
-      let orderIdx = 1;
-      for (const item of data) {
-        if (item.type === 'superset' && item.exercises) {
-          for (const ex of item.exercises) {
-            db.runSync('UPDATE routine_exercises SET order_index = ? WHERE id = ?', [orderIdx, ex.id]);
-            orderIdx++;
-          }
-        } else if (item.exercise) {
-          db.runSync('UPDATE routine_exercises SET order_index = ? WHERE id = ?', [orderIdx, item.exercise.id]);
-          orderIdx++;
-        }
-      }
-      if (savedRoutineId) loadDaysAndExercises(savedRoutineId);
-    } catch (e) { console.error('Error reordering:', e); }
+  const handleDuplicateDay = (day: RoutineDay) => {
+    if (!savedRoutineId) return;
+    duplicateDayService(day, savedRoutineId, dayExercises[day.id] || []);
+    refreshDays(savedRoutineId);
+    setMenuDay(null);
+  };
+
+  const handleDeleteDay = (dayId: string) => {
+    Alert.alert('Excluir dia', 'Deseja excluir este dia e todos os seus exercícios?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Excluir', style: 'destructive', onPress: () => {
+        deleteDayService(dayId);
+        if (savedRoutineId) refreshDays(savedRoutineId);
+        setActiveDayIndex(Math.max(0, activeDayIndex - 1));
+        setMenuDay(null);
+      }},
+    ]);
   };
 
   // ---- Exercise Actions ----
-  const duplicateExercise = (ex: DayExercise, dayId: string) => {
-    try {
-      const maxIdx = db.getFirstSync<{ max_idx: number }>(
-        'SELECT COALESCE(MAX(order_index), 0) as max_idx FROM routine_exercises WHERE routine_day_id = ?', [dayId]
-      );
-      db.runSync(
-        `INSERT INTO routine_exercises (id, routine_day_id, exercise_id, order_index, superset_id, target_sets, target_reps, rest_time_seconds) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['re_dup_' + Date.now(), dayId, ex.exercise_id, (maxIdx?.max_idx || 0) + 1, null, ex.target_sets, ex.target_reps, ex.rest_time_seconds]
-      );
-      if (savedRoutineId) loadDaysAndExercises(savedRoutineId);
-    } catch (e) { console.error(e); }
+
+  const handleDuplicateExercise = (ex: DayExercise, dayId: string) => {
+    duplicateExerciseService(ex, dayId);
+    if (savedRoutineId) refreshDays(savedRoutineId);
     setMenuExercise(null);
   };
 
-  const deleteExercise = (reId: string) => {
-    try { db.runSync('DELETE FROM routine_exercises WHERE id = ?', [reId]); if (savedRoutineId) loadDaysAndExercises(savedRoutineId); } catch (e) { console.error(e); }
+  const handleDeleteExercise = (reId: string) => {
+    deleteExerciseService(reId);
+    if (savedRoutineId) refreshDays(savedRoutineId);
     setMenuExercise(null);
   };
 
-  const removeFromSuperset = (ex: DayExercise) => {
-    try { db.runSync('UPDATE routine_exercises SET superset_id = NULL WHERE id = ?', [ex.id]); if (savedRoutineId) loadDaysAndExercises(savedRoutineId); } catch (e) { console.error(e); }
+  const handleRemoveFromSuperset = (ex: DayExercise) => {
+    removeFromSupersetService(ex.id);
+    if (savedRoutineId) refreshDays(savedRoutineId);
     setMenuExercise(null);
   };
 
-  // ---- Superset ----
+  // ---- Superset Actions ----
+
   const openSupersetPopup = (dayId: string) => { setSupersetPopup({ dayId }); setMenuExercise(null); };
 
   const saveSupersetFromPopup = (selections: string[]) => {
-    if (!supersetPopup || selections.length < 2) { return; }
-    try {
-      const ssId = 'ss_' + Date.now();
-      const dayId = supersetPopup.dayId;
-      const exercises = dayExercises[dayId] || [];
-      const ssReIds = new Set<string>();
-      for (const exId of selections) {
-        const re = exercises.find((e) => e.id === exId);
-        if (re) { ssReIds.add(re.id); db.runSync('UPDATE routine_exercises SET superset_id = ? WHERE id = ?', [ssId, re.id]); }
-      }
-      const ssExs = selections.map((exId) => exercises.find((e) => e.id === exId)).filter(Boolean) as DayExercise[];
-      const reordered: DayExercise[] = [];
-      let inserted = false;
-      for (const e of exercises) {
-        if (ssReIds.has(e.id)) { if (!inserted) { reordered.push(...ssExs); inserted = true; } } else { reordered.push(e); }
-      }
-      let orderIdx = 1;
-      for (const e of reordered) { db.runSync('UPDATE routine_exercises SET order_index = ? WHERE id = ?', [orderIdx, e.id]); orderIdx++; }
-      if (savedRoutineId) loadDaysAndExercises(savedRoutineId);
-    } catch (e) { console.error(e); }
+    if (!supersetPopup || selections.length < 2) return;
+    createSuperset(supersetPopup.dayId, selections, dayExercises[supersetPopup.dayId] || []);
+    if (savedRoutineId) refreshDays(savedRoutineId);
     setSupersetPopup(null);
   };
 
-  const dissolveSuperset = (supersetId: string) => {
-    try { db.runSync('UPDATE routine_exercises SET superset_id = NULL WHERE superset_id = ?', [supersetId]); if (savedRoutineId) loadDaysAndExercises(savedRoutineId); } catch (e) { console.error(e); }
+  const handleDissolveSuperset = (supersetId: string) => {
+    dissolveSuperset(supersetId);
+    if (savedRoutineId) refreshDays(savedRoutineId);
     setMenuSuperset(null);
   };
 
-  const deleteSuperset = (supersetId: string) => {
+  const handleDeleteSuperset = (supersetId: string) => {
     Alert.alert('Excluir superset', 'Deseja excluir todos os exercícios deste superset?', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Excluir', style: 'destructive', onPress: () => {
-        try { db.runSync('DELETE FROM routine_exercises WHERE superset_id = ?', [supersetId]); if (savedRoutineId) loadDaysAndExercises(savedRoutineId); } catch (e) { console.error(e); }
+        deleteSupersetExercises(supersetId);
+        if (savedRoutineId) refreshDays(savedRoutineId);
         setMenuSuperset(null);
       }},
     ]);
   };
 
-  // ---- Day Actions ----
-  const duplicateDay = (day: RoutineDay) => {
-    if (!savedRoutineId) return;
-    try {
-      const maxIdx = db.getFirstSync<{ max_idx: number }>('SELECT COALESCE(MAX(order_index), 0) as max_idx FROM routine_days WHERE routine_id = ?', [savedRoutineId]);
-      const newDayId = 'rd_dup_' + Date.now();
-      db.runSync('INSERT INTO routine_days (id, routine_id, day_name, order_index) VALUES (?, ?, ?, ?)',
-        [newDayId, savedRoutineId, day.day_name + ' (cópia)', (maxIdx?.max_idx || 0) + 1]);
-      for (const ex of (dayExercises[day.id] || [])) {
-        db.runSync(`INSERT INTO routine_exercises (id, routine_day_id, exercise_id, order_index, superset_id, target_sets, target_reps, rest_time_seconds) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          ['re_dup_' + Date.now() + '_' + ex.order_index, newDayId, ex.exercise_id, ex.order_index, null, ex.target_sets, ex.target_reps, ex.rest_time_seconds]);
-      }
-      loadDaysAndExercises(savedRoutineId);
-    } catch (e) { console.error(e); }
-    setMenuDay(null);
-  };
+  // ---- Drag & Scroll ----
 
-  const deleteDay = (dayId: string) => {
-    Alert.alert('Excluir dia', 'Deseja excluir este dia e todos os seus exercícios?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Excluir', style: 'destructive', onPress: () => {
-        try {
-          db.runSync('DELETE FROM routine_exercises WHERE routine_day_id = ?', [dayId]);
-          db.runSync('DELETE FROM routine_days WHERE id = ?', [dayId]);
-          if (savedRoutineId) loadDaysAndExercises(savedRoutineId);
-          setActiveDayIndex(Math.max(0, activeDayIndex - 1));
-        } catch (e) { console.error(e); }
-        setMenuDay(null);
-      }},
-    ]);
+  const handleDragEnd = (data: RenderItem[], dayId: string) => {
+    reorderExercises(data);
+    if (savedRoutineId) refreshDays(savedRoutineId);
   };
 
   const onScroll = (event: any) => {
@@ -374,7 +285,7 @@ export default function PlannerScreen() {
             ))}
           </View>
           <Text className="text-forge-muted-dark text-[10px] font-semibold tracking-wide text-center mt-1.5 mb-2">
-            📋 DESLIZE PARA VER OUTROS DIAS
+            DESLIZE PARA VER OUTROS DIAS
           </Text>
         </View>
       ) : (
@@ -409,24 +320,24 @@ export default function PlannerScreen() {
             handleAddExercises(menuExercise.dayId);
           }
         }}
-        onRemoveFromSuperset={() => menuExercise && removeFromSuperset(menuExercise.ex)}
+        onRemoveFromSuperset={() => menuExercise && handleRemoveFromSuperset(menuExercise.ex)}
         onCreateSuperset={() => menuExercise && openSupersetPopup(menuExercise.dayId)}
-        onDuplicate={() => menuExercise && duplicateExercise(menuExercise.ex, menuExercise.dayId)}
-        onDelete={() => menuExercise && deleteExercise(menuExercise.ex.id)}
+        onDuplicate={() => menuExercise && handleDuplicateExercise(menuExercise.ex, menuExercise.dayId)}
+        onDelete={() => menuExercise && handleDeleteExercise(menuExercise.ex.id)}
       />
 
       <SupersetMenu
         visible={!!menuSuperset}
         onClose={() => setMenuSuperset(null)}
-        onDissolve={() => menuSuperset && dissolveSuperset(menuSuperset.supersetId)}
-        onDelete={() => menuSuperset && deleteSuperset(menuSuperset.supersetId)}
+        onDissolve={() => menuSuperset && handleDissolveSuperset(menuSuperset.supersetId)}
+        onDelete={() => menuSuperset && handleDeleteSuperset(menuSuperset.supersetId)}
       />
 
       <DayMenu
         visible={!!menuDay}
         onClose={() => setMenuDay(null)}
-        onDuplicate={() => menuDay && duplicateDay(menuDay)}
-        onDelete={() => menuDay && deleteDay(menuDay.id)}
+        onDuplicate={() => menuDay && handleDuplicateDay(menuDay)}
+        onDelete={() => menuDay && handleDeleteDay(menuDay.id)}
       />
 
       <CreateSupersetModal

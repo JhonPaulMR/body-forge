@@ -10,7 +10,7 @@ interface ContainerProps extends SafeAreaViewProps {
 
 export function Container({ className: extraClassName, style, children, ...props }: ContainerProps) {
   const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? 'light'];
+  const theme = Colors[colorScheme];
 
   return (
     <SafeAreaView

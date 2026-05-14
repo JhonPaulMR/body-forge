@@ -13,6 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { X, Search, ChevronDown, Check } from 'lucide-react-native';
 import { db } from '@/database/schema';
+import { muscleImages } from '@/constants/muscleImages';
+import { parseMuscleGroup } from '@/services/muscleGroupUtils';
 
 interface Exercise {
   id: string;
@@ -21,16 +23,6 @@ interface Exercise {
   equipment: string;
   image_uri: string | null;
 }
-
-const muscleImages: Record<string, string> = {
-  'Peito': 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=200',
-  'Costas': 'https://images.unsplash.com/photo-1603287681836-b174ce5074c2?q=80&w=200',
-  'Pernas': 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=200',
-  'Ombros': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=200',
-  'Bíceps': 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=200',
-  'Tríceps': 'https://images.unsplash.com/photo-1530822847156-5df684ec5ee1?q=80&w=200',
-  'Abdômen': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=200',
-};
 
 export default function ExercisePickerScreen() {
   const router = useRouter();
@@ -192,7 +184,9 @@ export default function ExercisePickerScreen() {
   const renderExerciseItem = ({ item }: { item: Exercise }) => {
     const isSelected = selectedIds.has(item.id);
     const isAlreadyAdded = alreadyAddedIds.has(item.id);
-    const imgUri = item.image_uri || muscleImages[item.muscle_group] || muscleImages['Peito'];
+    const muscleData = parseMuscleGroup(item.muscle_group);
+    const primaryDisplay = muscleData.primaryString;
+    const imgUri = item.image_uri || muscleImages[primaryDisplay] || muscleImages['Peito'];
 
     return (
       <TouchableOpacity
@@ -205,7 +199,7 @@ export default function ExercisePickerScreen() {
         <View className="flex-1 mx-3">
           <Text className="text-white text-[14px] font-bold mb-0.5">{item.name}</Text>
           <Text className="text-forge-muted-dark text-[10px] font-bold tracking-wide">
-            {item.muscle_group?.toUpperCase()}
+            {primaryDisplay?.toUpperCase()}
           </Text>
         </View>
         <View

@@ -9,7 +9,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Play, ChevronRight, Pencil, Share2, MoreVertical, Copy, Trash2, Check, Dumbbell, Clock, Zap, BarChart3 } from 'lucide-react-native';
 
@@ -22,6 +22,7 @@ const phaseLabels = ['ACTIVE PHASE', 'STRENGTH FOCUS', 'RECOVERY HYBRID', 'HYPER
 
 export default function PlanDetailsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { routineId } = useLocalSearchParams<{ routineId: string }>();
   const [activeTab, setActiveTab] = useState<'overview' | 'statistics'>('overview');
 
@@ -118,7 +119,10 @@ export default function PlanDetailsScreen() {
       </ScrollView>
 
       {/* Start/Finish Plan Button */}
-      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-forge-bg">
+      <View 
+        className="absolute bottom-0 left-0 right-0 px-5 pt-3 bg-forge-bg"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         <TouchableOpacity 
           className={`flex-row items-center justify-center rounded-2xl py-4 gap-2 ${isActivePlan ? 'bg-forge-surface border border-forge-border' : 'bg-forge-accent'}`}
           onPress={toggleActivePlan}

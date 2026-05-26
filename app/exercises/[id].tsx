@@ -4,10 +4,11 @@ import { MuscleCard } from '@/components/exercises/MuscleCard';
 import { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
 import { muscleImages, muscleStringMap } from '@/constants/muscleImages';
 import { addMedia, deleteMedia, ExerciseMedia, getMediaForExercise, replaceMedia } from '@/services/exerciseMediaService';
-import { Exercise, getExerciseById } from '@/services/exerciseService';
+import { Exercise, getExerciseById, getExerciseStats, ExerciseStats } from '@/services/exerciseService';
+import { ExerciseNotesModal } from '@/components/exercises/ExerciseNotesModal';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, ChevronRight, FileText } from 'lucide-react-native';
+import { ArrowLeft, ChevronRight, FileText, TrendingUp, Minus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -17,50 +18,20 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-interface SetRecord {
-  weight: number;
-  reps: number;
-  rpe: number | null;
-  set_order: number;
-  is_completed: number;
-  volume: number;
-}
 
-interface SessionHistory {
-  date: string;
-  sets: SetRecord[];
-  isPersonalRecord: boolean;
-}
-
-const mockHistory: SessionHistory[] = [
-  {
-    date: 'QUARTA-FEIRA, 21 DE JANEIRO',
-    isPersonalRecord: true,
-    sets: [
-      { weight: 75, reps: 9, rpe: null, set_order: 1, is_completed: 1, volume: 675 },
-      { weight: 75, reps: 8, rpe: null, set_order: 2, is_completed: 1, volume: 600 },
-      { weight: 70, reps: 10, rpe: null, set_order: 3, is_completed: 1, volume: 700 },
-    ],
-  },
-  {
-    date: 'SEGUNDA-FEIRA, 19 DE JANEIRO',
-    isPersonalRecord: false,
-    sets: [
-      { weight: 70, reps: 12, rpe: null, set_order: 1, is_completed: 1, volume: 840 },
-      { weight: 70, reps: 10, rpe: null, set_order: 2, is_completed: 1, volume: 700 },
-    ],
-  },
-];
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function ExerciseDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const insets = useSafeAreaInsets();
   const [exercise, setExercise] = useState<Exercise | null>(null);
+  const [stats, setStats] = useState<ExerciseStats>({ weeklyVolume: 0, history: [], trendMessage: '', trendDirection: 'neutral' });
   const [activeTab, setActiveTab] = useState<'resumo' | 'historico'>('resumo');
+  const [isNotesVisible, setIsNotesVisible] = useState(false);
 
   // Media states
   const [exerciseMedia, setExerciseMedia] = useState<ExerciseMedia[]>([]);
@@ -138,6 +109,8 @@ export default function ExerciseDetailScreen() {
     if (id) {
       const result = getExerciseById(id as string);
       setExercise(result);
+      const exStats = getExerciseStats(id as string);
+      setStats(exStats);
       loadMedia();
     }
   }, [id]);
@@ -188,7 +161,10 @@ export default function ExerciseDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         <View className="relative">
           <MediaCarousel
             heroImageUri={heroImage}
@@ -267,15 +243,21 @@ export default function ExerciseDetailScreen() {
               <View className="bg-forge-surface rounded-2xl p-4 mb-4">
                 <Text className="text-forge-muted text-[10px] font-bold tracking-wide mb-2">VOLUME SEMANAL</Text>
                 <View className="flex-row items-baseline gap-1.5 mb-3">
-                  <Text className="text-white text-[36px] font-black">12</Text>
+                  <Text className="text-white text-[36px] font-black">{stats.weeklyVolume}</Text>
                   <Text className="text-forge-muted text-sm font-semibold">Séries</Text>
                 </View>
-                <View className="h-1 bg-forge-border-light rounded-sm">
-                  <View className="h-1 w-[70%] bg-forge-orange rounded-sm" />
+                <View className="h-1 bg-forge-border-light rounded-sm overflow-hidden">
+                  <View 
+                    className="h-1 bg-forge-orange rounded-sm" 
+                    style={{ width: `${Math.min((stats.weeklyVolume / 12) * 100, 100)}%` }}
+                  />
                 </View>
               </View>
 
-              <TouchableOpacity className="flex-row items-center py-4 gap-3 border-b border-forge-border">
+              <TouchableOpacity 
+                className="flex-row items-center py-4 gap-3 border-b border-forge-border"
+                onPress={() => setIsNotesVisible(true)}
+              >
                 <FileText size={18} color="#A0C4FF" />
                 <Text className="text-white text-sm font-semibold">Visualizar notas</Text>
                 <ChevronRight size={18} color="#5F6368" style={{ marginLeft: 'auto' }} />
@@ -287,42 +269,61 @@ export default function ExerciseDetailScreen() {
               <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-1">HISTÓRICO DO EXERCÍCIO</Text>
               <Text className="text-white text-2xl font-black mb-6">{exercise.name}</Text>
 
-              {mockHistory.map((session, sIdx) => (
-                <View key={sIdx} className="mb-6">
-                  <View className="flex-row justify-between items-center mb-3">
-                    <Text className="text-white text-[13px] font-extrabold tracking-tight flex-1">{session.date}</Text>
-                    {session.isPersonalRecord && (
-                      <View className="bg-forge-green-bg px-3 py-1.5 rounded-lg">
-                        <Text className="text-forge-green text-[9px] font-extrabold tracking-tight text-center">NOVO RECORDE{'\n'}PESSOAL</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  {session.sets.map((set, setIdx) => (
-                    <View key={setIdx} className="bg-forge-surface rounded-xl p-4 mb-2 flex-row items-center flex-wrap">
-                      <View className="w-8 h-8 rounded-2xl bg-forge-border-light justify-center items-center mr-4">
-                        <Text className="text-white text-sm font-extrabold">{set.set_order}</Text>
-                      </View>
-                      <View className="flex-1 flex-row items-baseline gap-2">
-                        <Text className="text-white text-[22px] font-black">{set.weight}</Text>
-                        <Text className="text-forge-muted text-[13px] font-semibold"> kg</Text>
-                        <Text className="text-forge-muted-dark text-lg font-semibold">×</Text>
-                        <Text className="text-white text-[22px] font-black">{set.reps}</Text>
-                        <Text className="text-forge-muted text-[13px] font-semibold"> reps</Text>
-                      </View>
-                      {set.volume > 0 && (
-                        <Text className="text-forge-muted-dark text-[9px] font-bold tracking-tight mt-1 w-full pl-12">VOLUME: {set.volume} KG</Text>
+              {stats.history.length === 0 ? (
+                <Text className="text-forge-muted text-center mt-8 mb-8">Nenhum histórico encontrado para este exercício.</Text>
+              ) : (
+                stats.history.map((session, sIdx) => (
+                  <View key={sIdx} className="mb-6">
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text className="text-white text-[13px] font-extrabold tracking-tight flex-1">{session.date}</Text>
+                      {!!session.isPersonalRecord && (
+                        <View className="bg-forge-green-bg px-3 py-1.5 rounded-lg">
+                          <Text className="text-forge-green text-[9px] font-extrabold tracking-tight text-center">NOVO RECORDE{'\n'}PESSOAL</Text>
+                        </View>
                       )}
                     </View>
-                  ))}
-                </View>
-              ))}
+
+                    {session.sets.map((set, setIdx) => {
+                      const volume = (set.weight || 0) * (set.reps || 0);
+                      return (
+                        <View key={setIdx} className={`bg-forge-surface rounded-xl p-4 mb-2 flex-row items-center flex-wrap ${set.is_dropset ? 'opacity-80 ml-4' : ''}`}>
+                          <View className={`w-8 h-8 rounded-2xl ${set.is_warmup ? 'bg-[#F59E0B]/20' : 'bg-forge-border-light'} justify-center items-center mr-4`}>
+                            <Text className={`text-sm font-extrabold ${set.is_warmup ? 'text-[#F59E0B]' : 'text-white'}`}>{setIdx + 1}</Text>
+                          </View>
+                          <View className="flex-1 flex-row items-baseline gap-2">
+                            <Text className="text-white text-[22px] font-black">{set.weight || 0}</Text>
+                            <Text className="text-forge-muted text-[13px] font-semibold"> kg</Text>
+                            <Text className="text-forge-muted-dark text-lg font-semibold">×</Text>
+                            <Text className="text-white text-[22px] font-black">{set.reps || 0}</Text>
+                            <Text className="text-forge-muted text-[13px] font-semibold"> reps</Text>
+                          </View>
+                          {!!set.is_to_failure && (
+                            <Text className="text-[#EF4444] font-bold text-[10px] ml-2 uppercase">Falha</Text>
+                          )}
+                          {volume > 0 && (
+                            <Text className="text-forge-muted-dark text-[9px] font-bold tracking-tight mt-1 w-full pl-12">VOLUME: {volume} KG</Text>
+                          )}
+                        </View>
+                      );
+                    })}
+                  </View>
+                ))
+              )}
 
               <View className="bg-forge-surface rounded-2xl p-5">
-                <Text className="text-forge-muted text-[10px] font-bold tracking-wide mb-2">TENDÊNCIA MENSAL</Text>
+                <View className="flex-row items-center gap-2 mb-2">
+                  <Text className="text-forge-muted text-[10px] font-bold tracking-wide">TENDÊNCIA</Text>
+                  {stats.trendDirection === 'up' && <TrendingUp size={14} color="#10B981" />}
+                  {stats.trendDirection === 'down' && (
+                    <View style={{ transform: [{ scaleY: -1 }] }}>
+                      <TrendingUp size={14} color="#EF4444" />
+                    </View>
+                  )}
+                  {stats.trendDirection === 'neutral' && <Minus size={14} color="#8A8F98" />}
+                </View>
                 <Text className="text-white text-xl font-extrabold mb-2">Progresso de Carga</Text>
                 <Text className="text-forge-text-secondary text-[13px] leading-5">
-                  Sua força no {exercise.name} aumentou 8% nas últimas 4 semanas.
+                  {stats.trendMessage}
                 </Text>
               </View>
             </>
@@ -351,6 +352,15 @@ export default function ExerciseDetailScreen() {
           handleDeleteMedia();
         }}
       />
+
+      {exercise && (
+        <ExerciseNotesModal
+          exerciseId={exercise.id}
+          exerciseName={exercise.name}
+          visible={isNotesVisible}
+          onClose={() => setIsNotesVisible(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }

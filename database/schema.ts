@@ -99,6 +99,8 @@ export const initDatabase = () => {
           rpe INTEGER,
           is_completed INTEGER DEFAULT 0,
           is_warmup INTEGER DEFAULT 0,
+          is_dropset INTEGER DEFAULT 0,
+          is_to_failure INTEGER DEFAULT 0,
           set_order INTEGER,
           FOREIGN KEY(session_exercise_id) REFERENCES session_exercises(id)
       );
@@ -119,6 +121,11 @@ export const initDatabase = () => {
       db.runSync('ALTER TABLE routine_exercises ADD COLUMN set_configs TEXT');
     } catch (_) {}
 
+    // Migration: add is_to_failure column to sets table
+    try {
+      db.runSync('ALTER TABLE sets ADD COLUMN is_to_failure INTEGER DEFAULT 0');
+    } catch (_) {}
+
     // Migration: add height_cm column to users table
     try {
       db.runSync('ALTER TABLE users ADD COLUMN height_cm REAL');
@@ -134,6 +141,24 @@ export const initDatabase = () => {
           uri TEXT NOT NULL,
           source_url TEXT,
           order_index INTEGER DEFAULT 0,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY(exercise_id) REFERENCES exercises(id)
+        );
+      `);
+    } catch (_) {}
+
+    // Migration: add is_dropset column to sets table
+    try {
+      db.runSync('ALTER TABLE sets ADD COLUMN is_dropset INTEGER DEFAULT 0');
+    } catch (_) {}
+
+    // Migration: create exercise_notes table
+    try {
+      db.execSync(`
+        CREATE TABLE IF NOT EXISTS exercise_notes (
+          id TEXT PRIMARY KEY,
+          exercise_id TEXT NOT NULL,
+          note_text TEXT NOT NULL,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY(exercise_id) REFERENCES exercises(id)
         );

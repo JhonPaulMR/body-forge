@@ -1,12 +1,30 @@
-import React from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, TouchableOpacity, Text, Animated } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Home, Dumbbell, Clock, BarChart3, BicepsFlexed } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useNavbarStore } from '@/hooks/useNavbarStore';
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const isVisible = useNavbarStore(s => s.isVisible);
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(translateY, {
+      toValue: isVisible ? 0 : 150, // Move down by 150 to hide
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [isVisible, translateY]);
+
+  const currentRouteName = state.routes[state.index].name;
+  useEffect(() => {
+    if (currentRouteName !== 'treino') {
+      useNavbarStore.getState().setVisible(true);
+    }
+  }, [currentRouteName]);
 
   const icons: Record<string, (color: string) => React.ReactNode> = {
     home: (color) => <Home size={20} color={color} />,
@@ -17,9 +35,13 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   };
 
   return (
-    <View
+    <Animated.View
       className="absolute bottom-0 left-0 right-0 bg-forge-surface-alt rounded-t-3xl pt-3 px-3 border-t border-forge-border"
-      style={{ paddingBottom: insets.bottom > 0 ? insets.bottom : 12, elevation: 10 }}
+      style={{ 
+        paddingBottom: insets.bottom > 0 ? insets.bottom : 12, 
+        elevation: 10,
+        transform: [{ translateY }]
+      }}
     >
       <View className="flex-row justify-around items-center">
         {state.routes.map((route, index) => {
@@ -53,7 +75,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           );
         })}
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

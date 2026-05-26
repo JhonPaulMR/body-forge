@@ -26,6 +26,8 @@ export default function HomeScreen() {
             currentMonthStr={homeData.currentMonthStr}
             completedDays={homeData.completedDays}
             weekDays={homeData.weekDays}
+            weeklyGoal={homeData.weeklyGoal}
+            onUpdateGoal={homeData.updateWeeklyGoal}
           />
 
           <ActivePlans routines={homeData.routines} />

@@ -7,7 +7,7 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Play, Activity, Clock, Zap } from 'lucide-react-native';
 import { db } from '@/database/schema';
@@ -45,6 +45,7 @@ interface DayExerciseInfo {
 export default function DayDetailsScreen() {
   const router = useRouter();
   const { dayId, routineId } = useLocalSearchParams<{ dayId: string; routineId: string }>();
+  const insets = useSafeAreaInsets();
 
   const [routine, setRoutine] = useState<Routine | null>(null);
   const [day, setDay] = useState<RoutineDay | null>(null);
@@ -304,13 +305,14 @@ export default function DayDetailsScreen() {
 
       </ScrollView>
 
-      {/* Start Workout Button - Fixed at bottom */}
-      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-forge-bg border-t border-forge-border/30">
+      <View 
+        className="absolute bottom-0 left-0 right-0 px-5 pt-4 bg-forge-bg border-t border-forge-border/30"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         <TouchableOpacity 
           className="flex-row items-center justify-center bg-forge-accent rounded-2xl py-4 gap-2 shadow-sm"
           onPress={() => {
-            // Em desenvolvimento: Redirecionar para tela de treino ativo
-            alert('A tela de Treino Ativo ainda não foi implementada!');
+            router.push(`/(tabs)/treino?dayId=${dayId}&routineId=${routineId}`);
           }}
         >
           <Text className="text-forge-bg text-[15px] font-extrabold tracking-wide">START WORKOUT</Text>

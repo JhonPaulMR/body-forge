@@ -60,6 +60,7 @@ function RootLayoutNav() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="exercises" options={{ headerShown: false }} />
           <Stack.Screen name="planner" options={{ headerShown: false }} />
+          <Stack.Screen name="workout" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         </Stack>
       </ThemeProvider>

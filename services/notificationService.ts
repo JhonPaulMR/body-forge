@@ -54,10 +54,10 @@ async function loadNotifications(): Promise<ExpoNotifications | null> {
     const imported = await import('expo-notifications');
     const candidate =
       imported &&
-      typeof imported === 'object' &&
-      'default' in imported &&
-      imported.default &&
-      typeof (imported as { default: unknown }).default === 'object'
+        typeof imported === 'object' &&
+        'default' in imported &&
+        imported.default &&
+        typeof (imported as { default: unknown }).default === 'object'
         ? (imported as { default: ExpoNotifications }).default
         : (imported as ExpoNotifications);
 

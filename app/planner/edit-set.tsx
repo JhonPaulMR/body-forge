@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { X, Minus, Plus, Zap } from 'lucide-react-native';
 import { db } from '@/database/schema';
-import TimePadModal from '@/components/planner/TimePadModal';
+import TimePadModal from '@/components/ui/TimePadModal';
 
 interface SetConfig {
   warmup: boolean;

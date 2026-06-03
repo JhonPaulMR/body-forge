@@ -26,6 +26,7 @@ export function useHomeData() {
   const [weekDays, setWeekDays] = useState<Date[]>([]);
   const [currentMonthStr, setCurrentMonthStr] = useState('');
   const [completedDays, setCompletedDays] = useState(0);
+  const [weeklyGoal, setWeeklyGoal] = useState(7);
 
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [weeklyStats, setWeeklyStats] = useState<ActivityStats[]>([]);
@@ -57,9 +58,14 @@ export function useHomeData() {
   const loadHomeData = async () => {
     if (weekDays.length === 0) return;
     try {
-      // 1. Load active IDs from AsyncStorage
-      const activeIdsStr = await AsyncStorage.getItem('active_routine_ids');
+      // 1. Load active IDs and weekly goal from AsyncStorage
+      const [activeIdsStr, goalStr] = await Promise.all([
+        AsyncStorage.getItem('active_routine_ids'),
+        AsyncStorage.getItem('weekly_goal')
+      ]);
       const activeIds: string[] = activeIdsStr ? JSON.parse(activeIdsStr) : [];
+      
+      setWeeklyGoal(goalStr ? parseInt(goalStr, 10) : 7);
       
       let mappedRoutines: Routine[] = [];
       
@@ -154,7 +160,7 @@ export function useHomeData() {
         compDays.add(s.dateStr);
         if (!statsMap[s.dateStr]) return;
         
-        statsMap[s.dateStr].workoutName = s.name || 'Treino Concluído';
+        statsMap[s.dateStr].workoutName = s.name || 'Treino Livre';
 
         const sesExs = db.getAllSync<{ id: string, muscle_group: string }>(
           `SELECT se.id, e.muscle_group FROM session_exercises se
@@ -212,6 +218,15 @@ export function useHomeData() {
     }
   };
 
+  const updateWeeklyGoal = async (newGoal: number) => {
+    try {
+      await AsyncStorage.setItem('weekly_goal', newGoal.toString());
+      setWeeklyGoal(newGoal);
+    } catch (e) {
+      console.error('Error saving weekly goal', e);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       loadHomeData();
@@ -227,6 +242,8 @@ export function useHomeData() {
     currentWeight,
     weightDiff,
     imc,
-    loadHomeData
+    loadHomeData,
+    weeklyGoal,
+    updateWeeklyGoal
   };
 }

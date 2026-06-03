@@ -9,7 +9,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { X, Search, ChevronDown, Check } from 'lucide-react-native';
 import { db } from '@/database/schema';
@@ -26,7 +26,8 @@ interface Exercise {
 
 export default function ExercisePickerScreen() {
   const router = useRouter();
-  const { dayId, routineId } = useLocalSearchParams<{ dayId: string; routineId: string }>();
+  const insets = useSafeAreaInsets();
+  const { dayId, routineId, mode, replaceId } = useLocalSearchParams<{ dayId: string; routineId: string; mode?: string; replaceId?: string }>();
 
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -55,6 +56,19 @@ export default function ExercisePickerScreen() {
   };
 
   const loadAlreadyAdded = () => {
+    if (mode === 'active') {
+      const { useWorkoutStore } = require('@/hooks/useWorkoutStore');
+      const activeExs = useWorkoutStore.getState().exercises;
+      const ids = new Set<string>(activeExs.map((e: any) => e.exercise_id));
+      if (replaceId) {
+        // Find the exercise_id of the one we are replacing to allow it if needed,
+        // but normally we don't care, we just want to prevent adding duplicates.
+        // Let's just disable all currently active ones.
+      }
+      setAlreadyAddedIds(ids);
+      return;
+    }
+
     if (!dayId) return;
     try {
       const result = db.getAllSync<{ exercise_id: string }>(
@@ -90,12 +104,6 @@ export default function ExercisePickerScreen() {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
-        // Also remove from superset if it was there
-        setSupersetIds((sp) => {
-          const nsp = new Set(sp);
-          nsp.delete(id);
-          return nsp;
-        });
       } else {
         next.add(id);
       }
@@ -115,7 +123,52 @@ export default function ExercisePickerScreen() {
   };
 
   const handleAddExercises = () => {
-    if (selectedIds.size === 0 || !dayId) return;
+    if (selectedIds.size === 0) return;
+
+    if (mode === 'active') {
+      const { useWorkoutStore } = require('@/hooks/useWorkoutStore');
+      const store = useWorkoutStore.getState();
+      
+      const newWorkoutExercises = Array.from(selectedIds).map(exId => {
+        const baseEx = exercises.find(e => e.id === exId);
+        return {
+          id: 'ex_' + Math.random().toString(36).substr(2, 9),
+          exercise_id: exId,
+          name: baseEx?.name || 'Unknown',
+          muscle_group: baseEx?.muscle_group || 'Peito',
+          image_uri: baseEx?.image_uri || null,
+          target_sets: 3,
+          target_reps: '8-12',
+          rest_time_seconds: 90,
+          superset_id: supersetIds.has(exId) ? ('ss_' + Date.now()) : null,
+          sets: Array.from({ length: 3 }).map((_, i) => ({
+            id: 'set_' + Math.random().toString(36).substring(2, 7),
+            weight: 0,
+            reps: 0,
+            is_completed: false,
+            is_warmup: false,
+            is_dropset: false,
+          })),
+          previous_sets: []
+        };
+      });
+
+      if (replaceId) {
+         if (newWorkoutExercises.length === 1) {
+            store.replaceExerciseInActive(replaceId, newWorkoutExercises[0]);
+         } else {
+            store.removeExercise(replaceId);
+            store.addExercisesToActive(newWorkoutExercises);
+         }
+      } else {
+         store.addExercisesToActive(newWorkoutExercises);
+      }
+      
+      router.back();
+      return;
+    }
+
+    if (!dayId) return;
 
     try {
       const maxIdx = db.getFirstSync<{ max_idx: number }>(
@@ -281,7 +334,10 @@ export default function ExercisePickerScreen() {
       />
 
       {/* Bottom Actions */}
-      <View className="absolute bottom-0 left-0 right-0 bg-forge-bg px-5 pt-3 pb-8 border-t border-forge-border">
+      <View 
+        className="absolute bottom-0 left-0 right-0 bg-forge-bg px-5 pt-3 border-t border-forge-border"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         {/* Superset Button */}
         <TouchableOpacity
           className={`flex-row items-center justify-center rounded-2xl py-3.5 mb-2.5 border ${

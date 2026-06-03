@@ -86,14 +86,18 @@ O desenvolvimento está estruturado em 6 Sprints semanais, focando inicialmente 
   * Limpeza do código e organização dos arquivos.
   * Implementação de novas funcionalidades.
   * Testes e correção de bugs.
-* [ ] **Sprint 4 (Semana 5): O Treino Ativo (Logger) - O Coração do App**
+* [x] **Sprint 4 (Semana 5): O Treino Ativo (Logger) - O Coração do App**
   * Desenvolvimento da tela "Treino Ativo" renderizando os exercícios do dia escolhido.
   * Componentes numéricos de fácil toque (Carga/Reps/RPE) e marcação de série concluída (Tabela `sets`).
   * Lógica de "Preenchimento Inteligente": Query que busca e exibe a carga da última sessão.
+  * Tela de treino inativo (quando não há treino em andamento).
+  * Modal de anotações do exercício durante e fora do treino.
+  * Tela de Resumo Pós-Treino calculando o volume total da `session`.
+  * Timer de descanso entre séries (ainda não rodando em background).
+
 
 * [ ] **Sprint 5 (Semana 6): Histórico, Cronômetro e Estatísticas**
   * Implementação do Timer de Descanso executando em background (estado global com Zustand).
-  * Tela de Resumo Pós-Treino calculando o volume total da `session`.
   * Dashboard de "Estatísticas" integrando queries de agrupamento para o gráfico rosquinha (volume por músculo).
 
 * [ ] **Sprint 6 (Semana 7): Gamificação, Polimento e Entrega**

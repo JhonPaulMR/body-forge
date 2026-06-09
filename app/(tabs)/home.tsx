@@ -1,6 +1,10 @@
 import React from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { Play } from 'lucide-react-native';
+
+import { useWorkoutStore } from '@/hooks/useWorkoutStore';
 
 import { useHomeData } from '@/hooks/useHomeData';
 import useWaterTracker from '@/hooks/useWaterTracker';
@@ -12,8 +16,10 @@ import { BodyMetrics } from '@/components/home/BodyMetrics';
 import { WaterTracker } from '@/components/home/WaterTracker';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const homeData = useHomeData();
   const waterData = useWaterTracker();
+  const isWorkoutActive = useWorkoutStore(s => s.isActive);
 
   return (
     <View className="flex-1 bg-forge-bg">
@@ -32,9 +38,25 @@ export default function HomeScreen() {
 
           <ActivePlans routines={homeData.routines} />
 
+          {isWorkoutActive && (
+            <TouchableOpacity 
+              className="bg-forge-accent rounded-2xl p-4 mb-4 flex-row items-center mt-2 shadow-sm"
+              onPress={() => router.push('/treino')}
+            >
+              <View className="w-10 h-10 rounded-full bg-forge-bg/20 items-center justify-center mr-3">
+                <Play size={20} color="#111" fill="#111" />
+              </View>
+              <View>
+                <Text className="text-forge-bg text-sm font-black tracking-wide">TREINO EM PROGRESSO</Text>
+                <Text className="text-forge-bg/80 text-[11px] font-bold mt-0.5">Toque para retomar sua sessão</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
           <ActivityLog
             completedDays={homeData.completedDays}
             weeklyStats={homeData.weeklyStats}
+            weeklyMuscleData={homeData.weeklyMuscleData}
           />
 
           <BodyMetrics

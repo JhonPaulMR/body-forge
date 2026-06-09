@@ -234,8 +234,7 @@ export default function WorkoutSummaryScreen() {
         );
 
         exercises.forEach((ex, index) => {
-          const completedSets = ex.sets.filter(s => s.is_completed);
-          if (completedSets.length === 0) return;
+          if (ex.sets.length === 0) return;
 
           const sessionExerciseId = 'se_' + Math.random().toString(36).substr(2, 9);
           db.runSync(
@@ -243,10 +242,10 @@ export default function WorkoutSummaryScreen() {
             [sessionExerciseId, sessionId, ex.exercise_id, index]
           );
 
-          completedSets.forEach((set, setIndex) => {
+          ex.sets.forEach((set, setIndex) => {
             db.runSync(
               'INSERT INTO sets (id, session_exercise_id, weight, reps, rpe, is_completed, is_warmup, set_order, is_dropset, is_to_failure) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              [set.id, sessionExerciseId, set.weight, set.reps, 0, 1, set.is_warmup ? 1 : 0, setIndex, set.is_dropset ? 1 : 0, set.is_to_failure ? 1 : 0]
+              [set.id, sessionExerciseId, set.weight, set.reps, 0, set.is_completed ? 1 : 0, set.is_warmup ? 1 : 0, setIndex, set.is_dropset ? 1 : 0, set.is_to_failure ? 1 : 0]
             );
           });
         });
@@ -303,8 +302,7 @@ export default function WorkoutSummaryScreen() {
           
           <View className="gap-4">
             {exercises.map(ex => {
-              const completedSets = ex.sets.filter(s => s.is_completed);
-              if (completedSets.length === 0) return null;
+              if (ex.sets.length === 0) return null;
 
               return (
                 <View key={ex.id} className="mb-2">

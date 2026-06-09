@@ -1,4 +1,5 @@
 import * as SQLite from 'expo-sqlite';
+import { ExerciseRepository } from './repositories/ExerciseRepository';
 
 export const db = SQLite.openDatabaseSync('bodyforge.db');
 
@@ -26,17 +27,7 @@ export const initDatabase = () => {
           FOREIGN KEY(user_id) REFERENCES users(id)
       );
 
-      CREATE TABLE IF NOT EXISTS exercises (
-          id TEXT PRIMARY KEY,
-          name TEXT NOT NULL,
-          muscle_group TEXT,
-          equipment TEXT,
-          instructions TEXT,
-          image_uri TEXT,
-          is_custom INTEGER DEFAULT 0,
-          user_id TEXT,
-          FOREIGN KEY(user_id) REFERENCES users(id)
-      );
+      ExerciseRepository.up();
 
       CREATE TABLE IF NOT EXISTS routines (
           id TEXT PRIMARY KEY,
@@ -164,6 +155,13 @@ export const initDatabase = () => {
         );
       `);
     } catch (_) {}
+
+    // Deleta apenas os exercícios pre-populados antigos da API quebrada para forçar o novo seed
+    try {
+      db.runSync('DELETE FROM exercises WHERE api_id IS NOT NULL');
+    } catch (_) {}
+
+    ExerciseRepository.seed(); // Síncrono e batch-insert seguro via transação
 
     console.log('Database and tables initialized successfully');
   } catch (error) {

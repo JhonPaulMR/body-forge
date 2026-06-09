@@ -17,9 +17,14 @@ export interface ActivityStats {
   dateStr: string;
   volume: number;
   rpe: number;
-  mainMuscle: string | null;
   workoutName: string | null;
   setsCompleted: number;
+}
+
+export interface WeeklyMuscleData {
+  label: string;
+  value: number;
+  color: string;
 }
 
 export function useHomeData() {
@@ -30,6 +35,7 @@ export function useHomeData() {
 
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [weeklyStats, setWeeklyStats] = useState<ActivityStats[]>([]);
+  const [weeklyMuscleData, setWeeklyMuscleData] = useState<WeeklyMuscleData[]>([]);
 
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
   const [weightDiff, setWeightDiff] = useState<number | null>(null);
@@ -141,8 +147,10 @@ export function useHomeData() {
       
       const statsMap: Record<string, ActivityStats> = {};
       weekDays.forEach(d => {
-        statsMap[d.toISOString().split('T')[0]] = { dateStr: d.toISOString().split('T')[0], volume: 0, rpe: 0, mainMuscle: null, workoutName: null, setsCompleted: 0 };
+        statsMap[d.toISOString().split('T')[0]] = { dateStr: d.toISOString().split('T')[0], volume: 0, rpe: 0, workoutName: null, setsCompleted: 0 };
       });
+
+      const globalMuscleSets: Record<string, number> = {};
 
       // Tonnage & RPE Query
       const sessions = db.getAllSync<{ id: string, dateStr: string, name: string }>(
@@ -177,14 +185,22 @@ export function useHomeData() {
 
         sesExs.forEach(se => {
           const muscleData = parseMuscleGroup(se.muscle_group);
-          const muscle = muscleData.primaryString;
-          if (muscle) {
-            muscleCounts[muscle] = (muscleCounts[muscle] || 0) + 1;
+          let muscle = muscleData.primaryString;
+          
+          if (muscle && (muscle.toLowerCase().includes('quad') || muscle.toLowerCase().includes('posterior'))) {
+            muscle = 'Pernas';
           }
+          
           const sets = db.getAllSync<{ weight: number, reps: number, rpe: number }>(
             'SELECT weight, reps, rpe FROM sets WHERE session_exercise_id = ? AND is_completed = 1',
             [se.id]
           );
+
+          if (muscle) {
+            muscleCounts[muscle] = (muscleCounts[muscle] || 0) + 1;
+            globalMuscleSets[muscle] = (globalMuscleSets[muscle] || 0) + sets.length;
+          }
+          
           sets.forEach(set => {
             dayVolume += (set.weight || 0) * (set.reps || 0);
             if (set.rpe) {
@@ -201,17 +217,42 @@ export function useHomeData() {
           statsMap[s.dateStr].rpe = dayRpeSum / dayRpeCount;
         }
 
-        // Main muscle
-        if (Object.keys(muscleCounts).length > 0) {
-           const main = Object.keys(muscleCounts).reduce((a, b) => muscleCounts[a] > muscleCounts[b] ? a : b);
-           statsMap[s.dateStr].mainMuscle = main;
-        }
       });
 
       setCompletedDays(compDays.size);
       
       const statsArr = weekDays.map(d => statsMap[d.toISOString().split('T')[0]]);
       setWeeklyStats(statsArr);
+
+      // Map globalMuscleSets to WeeklyMuscleData array
+      const getMuscleColor = (muscle: string | null) => {
+        if (!muscle) return '#353945';
+        const lower = muscle.toLowerCase();
+        if (lower.includes('peito')) return '#A0C4FF'; // Azul
+        if (lower.includes('costa')) return '#4ADE80'; // Verde
+        if (lower.includes('perna')) return '#FFA07A'; // Laranja pastel
+        if (lower.includes('ombro')) return '#C084FC'; // Roxo
+        if (lower.includes('bicep')) return '#F472B6'; // Rosa
+        if (lower.includes('tricep')) return '#FDE047'; // Amarelo
+        if (lower.includes('glute')) return '#F87171'; // Vermelho
+        if (lower.includes('abd')) return '#34D399'; // Esmeralda
+        if (lower.includes('panturilha') || lower.includes('calf')) return '#818CF8'; // Indigo
+        return '#9CA3AF'; // Cinza
+      };
+
+      let totalSetsOfWeek = 0;
+      Object.values(globalMuscleSets).forEach(v => totalSetsOfWeek += v);
+
+      const muscleDataArr: WeeklyMuscleData[] = Object.keys(globalMuscleSets).map(muscle => {
+        const val = globalMuscleSets[muscle];
+        return {
+          label: muscle,
+          value: totalSetsOfWeek > 0 ? Math.round((val / totalSetsOfWeek) * 100) : 0,
+          color: getMuscleColor(muscle)
+        };
+      }).sort((a, b) => b.value - a.value); // sort by percentage
+
+      setWeeklyMuscleData(muscleDataArr);
 
     } catch (e) {
       console.error('Home Data Load Error', e);
@@ -239,6 +280,7 @@ export function useHomeData() {
     completedDays,
     routines,
     weeklyStats,
+    weeklyMuscleData,
     currentWeight,
     weightDiff,
     imc,

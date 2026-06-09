@@ -2832,6 +2832,13 @@ expo-image@^55.0.10:
   dependencies:
     sf-symbols-typescript "^2.2.0"
 
+expo-image@~55.0.11:
+  version "55.0.11"
+  resolved "https://registry.yarnpkg.com/expo-image/-/expo-image-55.0.11.tgz#ffed7a38d4a94c7c83a892a51e8fbc5c5a10d3a8"
+  integrity sha512-PVIBYQJW/h1f6Zb9xnoWlgfqyOPVm2yb6eo6ZogaKbvMrhb/Q/fiERbagi4oqmR6IPljWPEpkXXQyFBUh7TjpQ==
+  dependencies:
+    sf-symbols-typescript "^2.2.0"
+
 expo-keep-awake@~55.0.8:
   version "55.0.8"
   resolved "https://registry.npmjs.org/expo-keep-awake/-/expo-keep-awake-55.0.8.tgz"

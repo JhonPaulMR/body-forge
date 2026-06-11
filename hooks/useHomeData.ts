@@ -225,34 +225,72 @@ export function useHomeData() {
       setWeeklyStats(statsArr);
 
       // Map globalMuscleSets to WeeklyMuscleData array
+      const FALLBACK_COLORS = [
+        '#FCD34D', // Amber
+        '#6EE7B7', // Light Emerald
+        '#93C5FD', // Light Blue
+        '#FCA5A5', // Light Red
+        '#C4B5FD', // Light Violet
+        '#FBCFE8', // Light Pink
+        '#86EFAC', // Light Green
+        '#67E8F9', // Light Cyan
+        '#FDBA74'  // Light Orange
+      ];
+      let fallbackIndex = 0;
+      
       const getMuscleColor = (muscle: string | null) => {
         if (!muscle) return '#353945';
         const lower = muscle.toLowerCase();
-        if (lower.includes('peito')) return '#A0C4FF'; // Azul
-        if (lower.includes('costa')) return '#4ADE80'; // Verde
-        if (lower.includes('perna')) return '#FFA07A'; // Laranja pastel
-        if (lower.includes('ombro')) return '#C084FC'; // Roxo
-        if (lower.includes('bicep')) return '#F472B6'; // Rosa
-        if (lower.includes('tricep')) return '#FDE047'; // Amarelo
-        if (lower.includes('glute')) return '#F87171'; // Vermelho
-        if (lower.includes('abd')) return '#34D399'; // Esmeralda
-        if (lower.includes('panturilha') || lower.includes('calf')) return '#818CF8'; // Indigo
-        return '#9CA3AF'; // Cinza
+        if (lower.includes('peito')) return '#3B82F6'; // Azul forte
+        if (lower.includes('costa')) return '#10B981'; // Verde Esmeralda
+        if (lower.includes('perna') || lower.includes('quad') || lower.includes('posterior')) return '#F97316'; // Laranja
+        if (lower.includes('ombro') || lower.includes('deltoide')) return '#8B5CF6'; // Violeta
+        if (lower.includes('bicep')) return '#EC4899'; // Rosa forte
+        if (lower.includes('tricep')) return '#EAB308'; // Amarelo escuro
+        if (lower.includes('glute')) return '#EF4444'; // Vermelho
+        if (lower.includes('abdom') || lower.includes('abdôm') || lower.includes('core')) return '#06B6D4'; // Ciano
+        if (lower.includes('panturilha') || lower.includes('calf')) return '#D946EF'; // Fúcsia/Magenta
+        
+        const color = FALLBACK_COLORS[fallbackIndex % FALLBACK_COLORS.length];
+        fallbackIndex++;
+        return color;
       };
 
       let totalSetsOfWeek = 0;
       Object.values(globalMuscleSets).forEach(v => totalSetsOfWeek += v);
 
-      const muscleDataArr: WeeklyMuscleData[] = Object.keys(globalMuscleSets).map(muscle => {
-        const val = globalMuscleSets[muscle];
-        return {
-          label: muscle,
-          value: totalSetsOfWeek > 0 ? Math.round((val / totalSetsOfWeek) * 100) : 0,
-          color: getMuscleColor(muscle)
-        };
-      }).sort((a, b) => b.value - a.value); // sort by percentage
+      let outrosSets = 0;
+      const filteredMuscleData: WeeklyMuscleData[] = [];
 
-      setWeeklyMuscleData(muscleDataArr);
+      Object.keys(globalMuscleSets).forEach(muscle => {
+        const val = globalMuscleSets[muscle];
+        const percent = totalSetsOfWeek > 0 ? (val / totalSetsOfWeek) * 100 : 0;
+        
+        if (percent <= 3) {
+          outrosSets += val;
+        } else {
+          filteredMuscleData.push({
+            label: muscle,
+            value: Math.round(percent),
+            color: getMuscleColor(muscle)
+          });
+        }
+      });
+
+      if (outrosSets > 0) {
+        const percentOutros = (outrosSets / totalSetsOfWeek) * 100;
+        if (Math.round(percentOutros) > 0) {
+          filteredMuscleData.push({
+            label: 'Outros',
+            value: Math.round(percentOutros),
+            color: '#9CA3AF'
+          });
+        }
+      }
+
+      filteredMuscleData.sort((a, b) => b.value - a.value);
+
+      setWeeklyMuscleData(filteredMuscleData);
 
     } catch (e) {
       console.error('Home Data Load Error', e);

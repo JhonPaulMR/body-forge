@@ -1,10 +1,10 @@
-import React, { useRef, useEffect } from 'react';
-import { View, TouchableOpacity, Text, Animated } from 'react-native';
-import { Tabs } from 'expo-router';
-import { Home, Dumbbell, Clock, BarChart3, BicepsFlexed, BookOpen } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useNavbarStore } from '@/hooks/useNavbarStore';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { Tabs } from 'expo-router';
+import { BarChart3, BicepsFlexed, Clock, Dumbbell, Home } from 'lucide-react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -32,15 +32,14 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     treino: (color) => <BicepsFlexed size={20} color={color} />,
     historico: (color) => <Clock size={20} color={color} />,
     estatisticas: (color) => <BarChart3 size={20} color={color} />,
-    catalogo: (color) => <BookOpen size={20} color={color} />,
   };
 
   return (
     <Animated.View
       className="absolute left-0 right-0 bg-forge-surface-alt rounded-t-[24px] pt-3 px-3 border-t border-forge-border"
-      style={{ 
+      style={{
         bottom: -20,
-        paddingBottom: (insets.bottom > 0 ? insets.bottom : 12) + 20, 
+        paddingBottom: (insets.bottom > 0 ? insets.bottom : 12) + 20,
         elevation: 10,
         transform: [{ translateY }]
       }}
@@ -92,7 +91,6 @@ export default function TabLayout() {
       <Tabs.Screen name="treino" options={{ title: 'Treino' }} />
       <Tabs.Screen name="historico" options={{ title: 'Histórico' }} />
       <Tabs.Screen name="estatisticas" options={{ title: 'Estatísticas' }} />
-      <Tabs.Screen name="catalogo" options={{ title: 'Catálogo' }} />
     </Tabs>
   );
 }

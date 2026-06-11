@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Menu, TrendingUp, Activity } from 'lucide-react-native';
+import { Menu } from 'lucide-react-native';
 
 import { useStatsData } from '@/hooks/useStatsData';
 import { CurrentWeight } from '@/components/stats/CurrentWeight';
@@ -11,74 +11,14 @@ import { MetricsRegistrationModal } from '@/components/stats/MetricsRegistration
 
 import { BarChart } from '@/components/ui/BarChart';
 import { DonutChart } from '@/components/ui/DonutChart';
-import { LineChart } from '@/components/ui/LineChart';
-import { HeatmapGrid } from '@/components/ui/HeatmapGrid';
 
 // Constants and Mocks that could be moved later
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CHART_WIDTH = SCREEN_WIDTH - 80;
 
-const weeklyVolumeData = [
-  { label: 'SEG', value: 6200 },
-  { label: 'TER', value: 7800 },
-  { label: 'QUA', value: 0 },
-  { label: 'QUI', value: 8400 },
-  { label: 'SEX', value: 7200 },
-  { label: 'SAB', value: 8900 },
-  { label: 'DOM', value: 0 },
-];
-
-const muscleGroupData = [
-  { value: 40, color: '#A0C4FF', label: 'Peito & Tríceps' },
-  { value: 25, color: '#4ADE80', label: 'Costas & Bíceps' },
-  { value: 20, color: '#FFA07A', label: 'Pernas' },
-];
-
-const rm1Data = [
-  { label: 'S1', value: 275 }, { label: 'S2', value: 280 }, { label: 'S3', value: 285 },
-  { label: 'S4', value: 290 }, { label: 'S5', value: 295 }, { label: 'S6', value: 300 },
-  { label: 'S7', value: 305 }, { label: 'S8', value: 310 },
-];
-
-const rm1BenchData = [
-  { label: 'S1', value: 185 }, { label: 'S2', value: 188 }, { label: 'S3', value: 190 },
-  { label: 'S4', value: 192 }, { label: 'S5', value: 195 }, { label: 'S6', value: 196 },
-  { label: 'S7', value: 198 }, { label: 'S8', value: 200 },
-];
-
-const heatmapData = [
-  0.8, 1, 0, 0.6, 1, 0, 0.3,
-  1, 0.5, 1, 0, 0.8, 1, 0.9,
-  0.6, 0, 0.7, 1, 0.5, 0, 1,
-  0.8, 1, 0.3, 0, 0.9, 1, 1,
-  1, 0.6, 0, 0, 0, 0, 0,
-];
-
-const mockActivities = [
-  {
-    type: 'strength',
-    title: 'Pernas (Hipertrofia)',
-    time: 'Hoje, 07:30',
-    details: '6 exercícios • 24 séries totais • 8,400 lbs volume',
-    tags: ['NOVO PR', 'AGACHAMENTO'],
-    color: '#4ADE80',
-  },
-  {
-    type: 'strength',
-    title: 'Peito & Ombro',
-    time: 'Ontem, 18:15',
-    details: '5 exercícios • 20 séries totais • 7,120 lbs volume',
-    tags: [],
-    color: '#888',
-  },
-  {
-    type: 'cardio',
-    title: 'HIIT Metabolic',
-    time: '22 Out, 06:00',
-    details: '25 mins • 420 kcal • Batimento Médio 145bpm',
-    tags: [],
-    color: '#FFA07A',
-  },
+const CHART_COLORS = [
+  '#3B82F6', '#10B981', '#F97316', '#8B5CF6', '#EC4899',
+  '#EAB308', '#EF4444', '#06B6D4', '#D946EF', '#84CC16'
 ];
 
 export default function EstatisticasScreen() {
@@ -120,129 +60,125 @@ export default function EstatisticasScreen() {
               30 DIAS
             </Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            className={`px-4 py-2 rounded-[20px] border ${statsData.periodFilter === '1y' ? 'bg-forge-accent-bg border-forge-accent' : 'border-forge-border'}`}
+            onPress={() => statsData.setPeriodFilter('1y')}
+          >
+            <Text className={`text-[11px] font-bold tracking-tight ${statsData.periodFilter === '1y' ? 'text-forge-accent' : 'text-forge-muted-dark'}`}>
+              1 ANO
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className={`px-4 py-2 rounded-[20px] border ${statsData.periodFilter === 'all' ? 'bg-forge-accent-bg border-forge-accent' : 'border-forge-border'}`}
+            onPress={() => statsData.setPeriodFilter('all')}
+          >
+            <Text className={`text-[11px] font-bold tracking-tight ${statsData.periodFilter === 'all' ? 'text-forge-accent' : 'text-forge-muted-dark'}`}>
+              TODOS
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Existing Charts (Hardcoded placeholders) */}
-        <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
-          <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-forge-muted text-[11px] font-bold tracking-wide">VOLUME SEMANAL</Text>
-            <TrendingUp size={18} color="#A0C4FF" />
-          </View>
-          <View className="flex-row items-baseline">
-            <Text className="text-forge-green text-[36px] font-black">42,850</Text>
-            <Text className="text-forge-muted text-sm font-semibold"> lbs</Text>
-          </View>
-          <View className="items-center mt-4">
-            <BarChart
-              data={weeklyVolumeData}
-              width={CHART_WIDTH}
-              height={120}
-              barColor="#FFA07A"
-              barBackgroundColor="#353945"
-            />
+        {/* GENERAL METRICS */}
+        <View className="mb-6">
+          <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-3">GERAL</Text>
+          <View className="flex-row flex-wrap gap-3">
+            <View className="bg-forge-surface rounded-2xl p-4 flex-1 min-w-[45%]">
+              <Text className="text-forge-muted-dark text-[10px] font-bold tracking-tight mb-1">SESSÕES DE TREINOS</Text>
+              <Text className="text-white text-2xl font-black">{statsData.overview.total_sessions}</Text>
+            </View>
+            <View className="bg-forge-surface rounded-2xl p-4 flex-1 min-w-[45%]">
+              <Text className="text-forge-muted-dark text-[10px] font-bold tracking-tight mb-1">TEMPO TOTAL</Text>
+              <Text className="text-white text-2xl font-black">
+                {Math.floor(statsData.overview.total_duration_seconds / 3600)}
+                <Text className="text-sm font-semibold text-forge-muted">h</Text>
+              </Text>
+            </View>
+            <View className="bg-forge-surface rounded-2xl p-4 flex-1 min-w-[45%]">
+              <Text className="text-forge-muted-dark text-[10px] font-bold tracking-tight mb-1">DURAÇÃO MÉDIA</Text>
+              <Text className="text-white text-2xl font-black">
+                {statsData.overview.total_sessions > 0 ? Math.floor(statsData.overview.total_duration_seconds / statsData.overview.total_sessions / 60) : 0}
+                <Text className="text-sm font-semibold text-forge-muted">min</Text>
+              </Text>
+            </View>
+            <View className="bg-forge-surface rounded-2xl p-4 flex-1 min-w-[45%]">
+              <Text className="text-forge-muted-dark text-[10px] font-bold tracking-tight mb-1">SÉRIES CONCLUÍDAS</Text>
+              <Text className="text-white text-2xl font-black">{statsData.overview.total_sets}</Text>
+            </View>
           </View>
         </View>
 
+        {/* MUSCLE FOCUS CHART */}
         <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
-          <Text className="text-forge-muted text-[11px] font-bold tracking-wide">GRUPO MUSCULAR</Text>
+          <Text className="text-forge-muted text-[11px] font-bold tracking-wide">FOCO MUSCULAR</Text>
           <View className="items-center my-4">
             <DonutChart
-              data={muscleGroupData}
-              size={150}
-              strokeWidth={18}
-              centerLabel="12"
+              data={statsData.muscleFocus.map((m, i) => ({
+                label: m.label,
+                value: m.value,
+                color: CHART_COLORS[i % CHART_COLORS.length]
+              }))}
+              size={170}
+              strokeWidth={32}
+              centerLabel={statsData.overview.total_sessions.toString()}
               centerSubLabel="SESSÕES"
+              showPercentages={true}
             />
           </View>
-          {muscleGroupData.map((g, i) => (
-            <View key={i} className="flex-row items-center py-1.5 gap-2">
-              <View className="w-2 h-2 rounded-full" style={{ backgroundColor: g.color }} />
-              <Text className="text-forge-text-secondary text-[13px] font-semibold flex-1">{g.label}</Text>
-              <Text className="text-white text-[13px] font-bold">{g.value}%</Text>
-            </View>
-          ))}
-        </View>
 
-        <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
-          <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-forge-muted text-[11px] font-bold tracking-wide">1RM ESTIMADO</Text>
-            <View className="flex-row gap-4">
-              <View className="flex-row items-center gap-1">
-                <View className="w-4 h-0.5 rounded-sm bg-forge-accent" />
-                <Text className="text-forge-muted text-[9px] font-bold tracking-tight">SQUAT</Text>
-              </View>
-              <View className="flex-row items-center gap-1">
-                <View className="w-4 h-0.5 rounded-sm bg-forge-orange" />
-                <Text className="text-forge-muted text-[9px] font-bold tracking-tight">BENCH</Text>
-              </View>
-            </View>
-          </View>
-          <View className="items-end mb-1">
-            <Text className="text-forge-muted text-[9px] font-bold tracking-tight">PRÓXIMA META</Text>
-            <Text className="text-forge-green text-2xl font-black">315 lbs</Text>
-          </View>
-          <View className="items-center">
-            <LineChart
-              data={rm1Data}
-              width={CHART_WIDTH}
-              height={120}
-              lineColor="#A0C4FF"
-              showDots={false}
-              showYLabels={false}
-              fillGradient={false}
-            />
-          </View>
-          <View className="items-center" style={{ marginTop: -120 }}>
-            <LineChart
-              data={rm1BenchData}
-              width={CHART_WIDTH}
-              height={120}
-              lineColor="#FFA07A"
-              showDots={false}
-              showYLabels={false}
-              fillGradient={false}
-              showLabels={false}
-            />
-          </View>
-        </View>
-
-        <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
-          <Text className="text-forge-muted text-[11px] font-bold tracking-wide">CONSISTÊNCIA MENSAL</Text>
-          <View className="mt-3">
-            <HeatmapGrid
-              data={heatmapData}
-              columns={7}
-              cellSize={28}
-              cellGap={5}
-              frequencyLabel="FREQUÊNCIA: 84%"
-            />
-          </View>
-        </View>
-
-        <Text className="text-forge-muted text-xs font-bold tracking-wide mt-2 mb-3">REGISTRO DE ATIVIDADE</Text>
-        {mockActivities.map((act, i) => (
-          <View key={i} className="flex-row bg-forge-surface rounded-2xl p-4 mb-2.5 gap-3">
-            <View className="w-9 h-9 rounded-full bg-forge-accent-bg justify-center items-center">
-              <Activity size={16} color={act.color} />
-            </View>
-            <View className="flex-1">
-              <View className="flex-row justify-between items-center mb-1">
-                <Text className="text-white text-sm font-bold">{act.title}</Text>
-                <Text className="text-forge-muted-dark text-[11px] font-semibold">{act.time}</Text>
-              </View>
-              <Text className="text-forge-muted text-[11px] leading-4 mb-1.5">{act.details}</Text>
-              {act.tags.length > 0 && (
-                <View className="flex-row gap-1.5">
-                  {act.tags.map((tag, ti) => (
-                    <View key={ti} className="bg-forge-green-bg px-2.5 py-1 rounded-md">
-                      <Text className="text-forge-green text-[9px] font-bold tracking-tight">{tag}</Text>
-                    </View>
-                  ))}
+          <View className="flex-row flex-wrap justify-between mt-2">
+            {statsData.muscleFocus.map((g, i) => (
+              <View key={i} className="flex-row items-center py-2 gap-2 w-[48%]">
+                <View className="w-1.5 h-4 rounded-sm" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                <View className="flex-1">
+                  <Text className="text-white text-[13px] font-semibold" numberOfLines={1}>{g.label.toUpperCase()}</Text>
+                  <Text className="text-forge-muted-dark text-[10px] font-bold">{g.value} séries</Text>
                 </View>
+              </View>
+            ))}
+            {statsData.muscleFocus.length === 0 && (
+               <Text className="text-forge-muted text-xs text-center w-full my-4">Nenhum dado registrado para o período.</Text>
+            )}
+          </View>
+
+          <View className="flex-row gap-2 mt-4 pt-4 border-t border-forge-border">
+            <TouchableOpacity
+              className={`flex-1 py-2 rounded-xl items-center ${statsData.muscleType === 'primary' ? 'bg-forge-accent' : 'bg-forge-bg'}`}
+              onPress={() => statsData.setMuscleType('primary')}
+            >
+              <Text className={`text-xs font-bold ${statsData.muscleType === 'primary' ? 'text-forge-bg' : 'text-white'}`}>Músculos primários</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className={`flex-1 py-2 rounded-xl items-center ${statsData.muscleType === 'secondary' ? 'bg-forge-accent' : 'bg-forge-bg'}`}
+              onPress={() => statsData.setMuscleType('secondary')}
+            >
+              <Text className={`text-xs font-bold ${statsData.muscleType === 'secondary' ? 'text-forge-bg' : 'text-white'}`}>Músculos secundários</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* WORKOUTS OVER TIME CHART */}
+        {statsData.periodFilter !== '7' && (
+          <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
+            <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-4">
+              TREINOS POR {statsData.periodFilter === '30' ? 'SEMANA' : 'MÊS'}
+            </Text>
+            <View className="items-center">
+              {statsData.workoutsOverTime.length > 0 ? (
+                <BarChart
+                  data={statsData.workoutsOverTime}
+                  width={CHART_WIDTH}
+                  height={160}
+                  barColor="#A0C4FF"
+                  barBackgroundColor="#2A2D35"
+                  showGridLines={true}
+                  customBarWidth={statsData.periodFilter === '30' ? 24 : 12}
+                />
+              ) : (
+                <Text className="text-forge-muted text-xs text-center my-8">Nenhum treino registrado no período.</Text>
               )}
             </View>
           </View>
-        ))}
+        )}
 
         <Text className="text-forge-muted text-xs font-bold tracking-wide mt-2 mb-3">CORPO</Text>
 

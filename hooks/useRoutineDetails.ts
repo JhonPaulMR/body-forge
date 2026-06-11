@@ -9,6 +9,7 @@ export interface Routine {
   name: string;
   description: string | null;
   cover_image_uri: string | null;
+  is_builtin: number;
 }
 
 export interface DayExerciseInfo {
@@ -86,7 +87,7 @@ export function useRoutineDetails(routineId: string) {
   const loadData = () => {
     try {
       const r = db.getFirstSync<Routine>(
-        'SELECT id, name, description, cover_image_uri FROM routines WHERE id = ?',
+        'SELECT id, name, description, cover_image_uri, is_builtin FROM routines WHERE id = ?',
         [routineId]
       );
       setRoutine(r);

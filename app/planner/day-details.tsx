@@ -10,9 +10,10 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Play, Activity, Clock, Zap } from 'lucide-react-native';
-import { db } from '@/database/schema';
+import { RoutineRepository } from '@/database/repositories/RoutineRepository';
 import { muscleImages } from '@/constants/muscleImages';
 import { parseMuscleGroup } from '@/services/muscleGroupUtils';
+import { toTitleCase } from '@/utils/stringUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -39,7 +40,7 @@ interface DayExerciseInfo {
   target_reps: string;
   rest_time_seconds: number;
   superset_id: string | null;
-  set_configs: string | null;
+  set_configs?: string | null;
 }
 
 export default function DayDetailsScreen() {
@@ -66,38 +67,16 @@ export default function DayDetailsScreen() {
   const loadData = () => {
     try {
       // 1. Fetch Routine
-      const r = db.getFirstSync<Routine>(
-        'SELECT id, name, description, cover_image_uri FROM routines WHERE id = ?',
-        [routineId]
-      );
-      setRoutine(r || null);
+      const r = RoutineRepository.getRoutine(routineId as string);
+      setRoutine(r as any || null);
 
       // 2. Fetch Day
-      const d = db.getFirstSync<RoutineDay>(
-        'SELECT id, routine_id, day_name, order_index FROM routine_days WHERE id = ?',
-        [dayId]
-      );
-      setDay(d || null);
+      const d = RoutineRepository.getRoutineDay(dayId as string);
+      setDay(d as any || null);
 
       // 3. Fetch Exercises for the Day
-      const exs = db.getAllSync<DayExerciseInfo>(
-        `SELECT 
-          re.id, 
-          e.name, 
-          e.muscle_group, 
-          e.image_uri,
-          re.target_sets, 
-          re.target_reps,
-          re.rest_time_seconds,
-          re.superset_id,
-          re.set_configs
-         FROM routine_exercises re
-         JOIN exercises e ON re.exercise_id = e.id
-         WHERE re.routine_day_id = ?
-         ORDER BY re.order_index`,
-        [dayId]
-      );
-      setExercises(exs);
+      const exs = RoutineRepository.getDayExercises(dayId as string);
+      setExercises(exs as any);
 
       // 4. Calculate Dynamics (Subtitle, Time, Calories)
       calculateDynamics(exs);
@@ -291,7 +270,7 @@ export default function DayDetailsScreen() {
                 
                 <View className="flex-1 py-1">
                   <Text className="text-white text-base font-bold mb-1.5" numberOfLines={2}>
-                    {ex.name}
+                    {toTitleCase(ex.name)}
                   </Text>
                   <Text className="text-forge-muted text-xs font-semibold">
                     {ex.target_sets} sets

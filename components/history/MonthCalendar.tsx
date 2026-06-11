@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, ChevronRight } from 'lucide-react-native';
 
 interface MonthCalendarProps {
   currentDate: Date;
@@ -51,7 +51,7 @@ export function MonthCalendar({ currentDate, onChangeMonth, markedDates }: Month
       {/* Header */}
       <View className="flex-row items-center justify-between mb-4">
         <TouchableOpacity onPress={() => onChangeMonth(-1)} className="p-2" hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <ChevronLeft size={20} color="#5F6368" />
+          <ArrowLeft size={20} color="#5F6368" />
         </TouchableOpacity>
         
         <Text className="text-white text-base font-bold">

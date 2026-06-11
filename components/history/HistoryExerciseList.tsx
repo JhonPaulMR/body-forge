@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { CheckCircle2 } from 'lucide-react-native';
-import { HistoryExercise, HistorySet } from '@/services/historyService';
+import { Check } from 'lucide-react-native';
+import { HistoryExercise, HistorySet } from '@/database/repositories/SessionRepository';
+import { toTitleCase } from '@/utils/stringUtils';
 
 interface HistoryExerciseListProps {
   exercises: HistoryExercise[];
@@ -16,7 +17,7 @@ export function HistoryExerciseList({ exercises }: HistoryExerciseListProps) {
     <View className="mt-6 w-full">
       {exercises.map((exercise) => (
         <View key={exercise.id} className="mb-6">
-          <Text className="text-white text-base font-bold mb-4">{exercise.name}</Text>
+          <Text className="text-white text-base font-bold mb-4">{toTitleCase(exercise.name)}</Text>
           
           <View className="pl-1">
             {exercise.sets.map((set, setIndex) => (
@@ -52,7 +53,7 @@ function HistorySetRow({ set, index }: { set: HistorySet; index: number }) {
             <Text className="text-forge-muted text-[10px] font-bold uppercase tracking-widest mt-0.5">Drop set</Text>
           )}
           {set.is_warmup && (
-            <Text className="text-forge-orange text-[10px] font-bold uppercase tracking-widest mt-0.5">Warm up</Text>
+            <Text className="text-forge-orange text-[10px] font-bold uppercase tracking-widest mt-0.5">Aquecimento</Text>
           )}
           {set.is_to_failure && (
             <Text className="text-forge-orange text-[10px] font-bold uppercase tracking-widest mt-0.5">Até a falha</Text>
@@ -65,7 +66,7 @@ function HistorySetRow({ set, index }: { set: HistorySet; index: number }) {
         {isCompleted ? (
           <>
             <Text className="text-forge-green text-sm font-semibold">Concluído</Text>
-            <CheckCircle2 size={16} color="#10B981" />
+            <Check size={16} color="#10B981" />
           </>
         ) : (
           <Text className="text-forge-border text-sm font-semibold">Incompleto</Text>

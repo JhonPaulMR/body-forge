@@ -15,70 +15,7 @@ export interface Exercise {
 }
 
 export class ExerciseRepository {
-  static up() {
-    db.execSync(`
-      CREATE TABLE IF NOT EXISTS exercises (
-          id TEXT PRIMARY KEY,
-          api_id TEXT UNIQUE,
-          name TEXT NOT NULL,
-          muscle_group TEXT,
-          body_part TEXT,
-          equipment TEXT,
-          target TEXT,
-          instructions TEXT,
-          image_uri TEXT,
-          gif_url TEXT,
-          is_custom INTEGER DEFAULT 0,
-          user_id TEXT,
-          FOREIGN KEY(user_id) REFERENCES users(id)
-      );
-    `);
-    
-    // Migrations to add new columns if the table already existed
-    try { db.runSync('ALTER TABLE exercises ADD COLUMN api_id TEXT UNIQUE'); } catch (_) {}
-    try { db.runSync('ALTER TABLE exercises ADD COLUMN body_part TEXT'); } catch (_) {}
-    try { db.runSync('ALTER TABLE exercises ADD COLUMN target TEXT'); } catch (_) {}
-    try { db.runSync('ALTER TABLE exercises ADD COLUMN gif_url TEXT'); } catch (_) {}
-  }
 
-  static async seed() {
-    const count = db.getFirstSync<{ c: number }>('SELECT count(*) as c FROM exercises WHERE api_id IS NOT NULL');
-    if (count && count.c > 0) return; // Already seeded
-
-    try {
-      const data = require('../../assets/data/exercises_seed.json');
-      if (!data || data.length === 0) return;
-
-      console.log('Seeding exercises...');
-      
-      db.withTransactionSync(() => {
-        // Insert in batches of 100
-        const batchSize = 100;
-        for (let i = 0; i < data.length; i += batchSize) {
-          const batch = data.slice(i, i + batchSize);
-          const placeholders = batch.map(() => '(?, ?, ?, ?, ?, ?, ?, ?)').join(',');
-          const values = batch.flatMap((ex: any) => [
-            'ex_' + ex.api_id,
-            ex.api_id,
-            ex.name,
-            ex.body_part,
-            ex.equipment,
-            ex.target,
-            ex.instructions || '',
-            ex.gif_url
-          ]);
-
-          db.runSync(`
-            INSERT OR IGNORE INTO exercises (id, api_id, name, body_part, equipment, target, instructions, gif_url)
-            VALUES ${placeholders}
-          `, values);
-        }
-      });
-      console.log('Seeding completed.');
-    } catch (e) {
-      console.log('Seed file not found or error:', e);
-    }
-  }
 
   static async getAllPaginated(limit: number, offset: number): Promise<Exercise[]> {
     return db.getAllAsync<Exercise>(
@@ -87,10 +24,49 @@ export class ExerciseRepository {
     );
   }
 
+  static getAllExercisesForPicker(): Exercise[] {
+    return db.getAllSync<Exercise>(
+      'SELECT id, name, muscle_group, equipment, image_uri, gif_url FROM exercises ORDER BY muscle_group, name'
+    );
+  }
+
+  static createCustomExercise(data: { id: string, name: string, muscleGroupData: string, category: string, instructions: string, imageUri: string | null }): void {
+    db.runSync(
+      `INSERT INTO exercises (id, name, muscle_group, equipment, instructions, image_uri, is_custom)
+       VALUES (?, ?, ?, ?, ?, ?, 1)`,
+      [data.id, data.name, data.muscleGroupData, data.category, data.instructions, data.imageUri]
+    );
+  }
+
   static async search(query: string, limit: number, offset: number): Promise<Exercise[]> {
     return db.getAllAsync<Exercise>(
       'SELECT * FROM exercises WHERE name LIKE ? OR target LIKE ? OR body_part LIKE ? ORDER BY name ASC LIMIT ? OFFSET ?',
       [`%${query}%`, `%${query}%`, `%${query}%`, limit, offset]
     );
+  }
+
+  static updateCustomExercise(id: string, data: { name: string, muscleGroupData: string, category: string, instructions: string, imageUri: string | null }): void {
+    db.runSync(
+      `UPDATE exercises SET name = ?, muscle_group = ?, equipment = ?, instructions = ?, image_uri = ? WHERE id = ? AND is_custom = 1`,
+      [data.name, data.muscleGroupData, data.category, data.instructions, data.imageUri, id]
+    );
+  }
+
+  static deleteCustomExercise(id: string): void {
+    db.withTransactionSync(() => {
+      // 1. Apagar mídia e notas
+      db.runSync('DELETE FROM exercise_media WHERE exercise_id = ?', [id]);
+      db.runSync('DELETE FROM exercise_notes WHERE exercise_id = ?', [id]);
+      
+      // 2. Apagar das rotinas (Planos)
+      db.runSync('DELETE FROM routine_exercises WHERE exercise_id = ?', [id]);
+      
+      // 3. Apagar do histórico (Hard delete em cascata para evitar constraint error)
+      db.runSync('DELETE FROM sets WHERE session_exercise_id IN (SELECT id FROM session_exercises WHERE exercise_id = ?)', [id]);
+      db.runSync('DELETE FROM session_exercises WHERE exercise_id = ?', [id]);
+      
+      // 4. Apagar o exercício
+      db.runSync('DELETE FROM exercises WHERE id = ? AND is_custom = 1', [id]);
+    });
   }
 }

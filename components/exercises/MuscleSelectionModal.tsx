@@ -38,7 +38,38 @@ export const MUSCLE_GROUPS = {
 
 export const getMuscleById = (id: string): MuscleGroupItem | undefined => {
   const allMuscles = [...MUSCLE_GROUPS.upper, ...MUSCLE_GROUPS.lower, ...MUSCLE_GROUPS.other];
-  return allMuscles.find(m => m.id === id);
+  
+  const aliasMap: Record<string, string> = {
+    'peitorais': 'chest',
+    'peito': 'chest',
+    'peitoral superior': 'chest',
+    'dorsais': 'lats',
+    'parte superior das costas': 'lats',
+    'ombros': 'shoulders',
+    'deltoides': 'shoulders',
+    'deltoides posteriores': 'shoulders',
+    'bíceps': 'biceps',
+    'tríceps': 'triceps',
+    'antebraços': 'forearms',
+    'abdômen': 'abs',
+    'abdominais': 'abs',
+    'abdômen inferior': 'abs',
+    'core': 'abs',
+    'oblíquos': 'abs',
+    'quadríceps': 'quads',
+    'isquiotibiais': 'hamstrings',
+    'glúteos': 'glutes',
+    'panturrilhas': 'calves',
+    'adutores': 'adductors',
+    'abdutores': 'abductors',
+    'lombar': 'lower_back',
+    'trapézio': 'traps',
+  };
+
+  const lookupKey = id.toLowerCase();
+  const matchedId = aliasMap[lookupKey] || lookupKey;
+
+  return allMuscles.find(m => m.id === matchedId || m.name.toLowerCase() === lookupKey);
 };
 
 interface MuscleSelectionModalProps {

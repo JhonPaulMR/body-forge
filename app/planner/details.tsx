@@ -11,14 +11,15 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Play, ChevronRight, Pencil, Share2, MoreVertical, Copy, Trash2, Check, Dumbbell, Clock, Zap, BarChart3 } from 'lucide-react-native';
+import { ArrowLeft, Play, ChevronRight, Pencil, MoreVertical, Copy, Trash2, Check, Dumbbell, Clock, Zap, BarChart3 } from 'lucide-react-native';
 
 import { useRoutineDetails, RoutineDayDetail } from '@/hooks/useRoutineDetails';
+import { usePlanStats, PlanFilterType } from '@/hooks/usePlanStats';
+import { BarChart } from '@/components/ui/BarChart';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const phaseColors = ['#4ADE80', '#A0C4FF', '#FFA07A', '#C084FC', '#F472B6'];
-const phaseLabels = ['ACTIVE PHASE', 'STRENGTH FOCUS', 'RECOVERY HYBRID', 'HYPERTROPHY', 'CONDITIONING'];
+
 
 export default function PlanDetailsScreen() {
   const router = useRouter();
@@ -46,6 +47,8 @@ export default function PlanDetailsScreen() {
     );
   }
 
+  const isBuiltin = routine.is_builtin === 1;
+
   return (
     <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -66,14 +69,13 @@ export default function PlanDetailsScreen() {
             >
               <ArrowLeft size={20} color="#FFF" />
             </TouchableOpacity>
-            <Text className="text-white text-sm font-extrabold tracking-wide">PLAN DETAILS</Text>
+            <Text className="text-white text-sm font-extrabold tracking-wide">DETALHES DO PLANO</Text>
             <View className="flex-row gap-3">
-              <TouchableOpacity onPress={() => router.push(`/planner?routineId=${routineId}` as any)}>
-                <Pencil size={18} color="#FFF" />
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <Share2 size={18} color="#FFF" />
-              </TouchableOpacity>
+              {!isBuiltin && (
+                <TouchableOpacity onPress={() => router.push(`/planner?routineId=${routineId}` as any)}>
+                  <Pencil size={18} color="#FFF" />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity onPress={() => setShowMenu(true)}>
                 <MoreVertical size={18} color="#FFF" />
               </TouchableOpacity>
@@ -82,8 +84,13 @@ export default function PlanDetailsScreen() {
 
           {/* Plan Info Overlay */}
           <View className="absolute bottom-4 left-5 right-5">
-            <Text className="text-forge-green text-[10px] font-bold tracking-widest mb-1">TITANIUM SERIES</Text>
+            <Text className="text-forge-green text-[10px] font-bold tracking-widest mb-1">
+              {isBuiltin ? 'PROGRAMA ESPECIALIZADO' : 'SÉRIE DE TREINO'}
+            </Text>
             <Text className="text-white text-[28px] font-black leading-8">{routine.name}</Text>
+            {isBuiltin && routine.description ? (
+               <Text className="text-forge-muted text-xs leading-5 mt-2" numberOfLines={3}>{routine.description}</Text>
+            ) : null}
           </View>
         </View>
 
@@ -94,7 +101,7 @@ export default function PlanDetailsScreen() {
             onPress={() => setActiveTab('overview')}
           >
             <Text className={`text-[13px] font-bold tracking-wide ${activeTab === 'overview' ? 'text-forge-accent' : 'text-forge-muted-dark'}`}>
-              OVERVIEW
+              VISÃO GERAL
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -102,7 +109,7 @@ export default function PlanDetailsScreen() {
             onPress={() => setActiveTab('statistics')}
           >
             <Text className={`text-[13px] font-bold tracking-wide ${activeTab === 'statistics' ? 'text-forge-accent' : 'text-forge-muted-dark'}`}>
-              STATISTICS
+              ESTATÍSTICAS
             </Text>
           </TouchableOpacity>
         </View>
@@ -111,7 +118,7 @@ export default function PlanDetailsScreen() {
           {activeTab === 'overview' ? (
             <OverviewTab days={days} routineId={routineId} />
           ) : (
-            <StatisticsTab />
+            <StatisticsTab routineId={routineId} />
           )}
         </View>
 
@@ -128,7 +135,7 @@ export default function PlanDetailsScreen() {
           onPress={toggleActivePlan}
         >
           <Text className={`text-sm font-extrabold tracking-wide ${isActivePlan ? 'text-forge-muted' : 'text-forge-bg'}`}>
-            {isActivePlan ? 'FINALIZAR PLANO' : 'START PLAN'}
+            {isActivePlan ? 'FINALIZAR PLANO' : 'INICIAR PLANO'}
           </Text>
           {!isActivePlan && <Play size={16} color="#1A1D24" fill="#1A1D24" />}
         </TouchableOpacity>
@@ -143,11 +150,15 @@ export default function PlanDetailsScreen() {
                 <Copy size={16} color="#A0C4FF" />
                 <Text className="text-white text-sm font-semibold">Duplicar</Text>
               </TouchableOpacity>
-              <View className="h-[1px] bg-forge-border mx-3 my-0.5" />
-              <TouchableOpacity className="flex-row items-center px-4 py-3.5 gap-3" onPress={handleDelete}>
-                <Trash2 size={16} color="#EF4444" />
-                <Text className="text-red-400 text-sm font-semibold">Excluir</Text>
-              </TouchableOpacity>
+              {!isBuiltin && (
+                <>
+                  <View className="h-[1px] bg-forge-border mx-3 my-0.5" />
+                  <TouchableOpacity className="flex-row items-center px-4 py-3.5 gap-3" onPress={handleDelete}>
+                    <Trash2 size={16} color="#EF4444" />
+                    <Text className="text-red-400 text-sm font-semibold">Excluir</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           </Pressable>
         </Modal>
@@ -165,28 +176,18 @@ function OverviewTab({ days, routineId }: { days: RoutineDayDetail[]; routineId:
     <>
       {/* Training Schedule Header */}
       <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-white text-sm font-extrabold tracking-wide">TRAINING SCHEDULE</Text>
-        <Text className="text-forge-muted text-[11px] font-semibold">{days.length} DAYS / WEEK</Text>
+        <Text className="text-white text-sm font-extrabold tracking-wide">CRONOGRAMA DE TREINOS</Text>
+        <Text className="text-forge-muted text-[11px] font-semibold">{days.length} DIAS / SEMANA</Text>
       </View>
 
       {/* Day Cards */}
-      {days.map((day, index) => {
-        const phaseColor = phaseColors[index % phaseColors.length];
-        const phaseLabel = phaseLabels[index % phaseLabels.length];
+      {days.map((day) => {
         const exerciseCount = day.exercises.length;
 
         return (
           <View key={day.id} className="bg-forge-surface rounded-[20px] p-5 mb-3 overflow-hidden">
             <View className="flex-row justify-between items-start">
               <View className="flex-1">
-                {/* Phase Tag */}
-                <View className="flex-row items-center gap-1.5 mb-2">
-                  <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: phaseColor }} />
-                  <Text className="text-[9px] font-bold tracking-widest" style={{ color: phaseColor }}>
-                    {phaseLabel}
-                  </Text>
-                </View>
-
                 {/* Day Name */}
                 <Text className="text-white text-xl font-black mb-2">{day.day_name}</Text>
 
@@ -195,7 +196,7 @@ function OverviewTab({ days, routineId }: { days: RoutineDayDetail[]; routineId:
                   <View className="flex-row items-center gap-1">
                     <Dumbbell size={11} color="#8A8F98" />
                     <Text className="text-forge-muted text-[11px] font-semibold">
-                      {exerciseCount} exercise{exerciseCount !== 1 ? 's' : ''}
+                      {exerciseCount} exercício{exerciseCount !== 1 ? 's' : ''}
                     </Text>
                   </View>
                   {exerciseCount > 0 && (
@@ -224,7 +225,7 @@ function OverviewTab({ days, routineId }: { days: RoutineDayDetail[]; routineId:
                 className="flex-row items-center justify-end mt-2 gap-1"
                 onPress={() => router.push(`/planner/day-details?dayId=${day.id}&routineId=${routineId}` as any)}
               >
-                <Text className="text-forge-accent text-[11px] font-bold tracking-tight">VIEW EXERCISES</Text>
+                <Text className="text-forge-accent text-[11px] font-bold tracking-tight">VER EXERCÍCIOS</Text>
                 <ChevronRight size={14} color="#A0C4FF" />
               </TouchableOpacity>
             )}
@@ -247,60 +248,89 @@ function OverviewTab({ days, routineId }: { days: RoutineDayDetail[]; routineId:
   );
 }
 
-function StatisticsTab() {
+function StatisticsTab({ routineId }: { routineId: string }) {
+  const { overview, activeFilter, setActiveFilter, chartData, loading } = usePlanStats(routineId);
+
+  const formatDuration = (totalSeconds: number) => {
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+  };
+
+  const avgDuration = overview.total_sessions > 0 ? Math.round(overview.total_duration_seconds / overview.total_sessions) : 0;
+  const formatAvgDuration = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
+  const filters: PlanFilterType[] = ['VOLUME', 'REPS', 'DURATION'];
+
   return (
     <>
       {/* Statistics Grid */}
       <View className="flex-row flex-wrap gap-3 mb-5">
         <View className="flex-1 min-w-[45%] bg-forge-surface rounded-2xl p-4">
-          <Text className="text-forge-muted text-[9px] font-bold tracking-widest mb-1">WORKOUT SESSIONS</Text>
-          <Text className="text-white text-[32px] font-black">0</Text>
+          <Text className="text-forge-muted text-[9px] font-bold tracking-widest mb-1">SESSÕES DE TREINO</Text>
+          <Text className="text-white text-[32px] font-black">{overview.total_sessions}</Text>
         </View>
         <View className="flex-1 min-w-[45%] bg-forge-surface rounded-2xl p-4">
-          <Text className="text-forge-muted text-[9px] font-bold tracking-widest mb-1">TOTAL TIME (HRS)</Text>
-          <Text className="text-white text-[32px] font-black">0</Text>
+          <Text className="text-forge-muted text-[9px] font-bold tracking-widest mb-1">TEMPO TOTAL</Text>
+          <Text className="text-white text-[32px] font-black">{formatDuration(overview.total_duration_seconds)}</Text>
         </View>
         <View className="flex-1 min-w-[45%] bg-forge-surface rounded-2xl p-4">
-          <Text className="text-forge-muted text-[9px] font-bold tracking-widest mb-1">AVG. DURATION</Text>
-          <Text className="text-white text-[32px] font-black">00:00</Text>
+          <Text className="text-forge-muted text-[9px] font-bold tracking-widest mb-1">DURAÇÃO MÉDIA</Text>
+          <Text className="text-white text-[32px] font-black">{formatAvgDuration(avgDuration)}</Text>
         </View>
         <View className="flex-1 min-w-[45%] bg-forge-surface rounded-2xl p-4">
-          <Text className="text-forge-muted text-[9px] font-bold tracking-widest mb-1">SETS COMPLETED</Text>
-          <Text className="text-white text-[32px] font-black">0</Text>
+          <Text className="text-forge-muted text-[9px] font-bold tracking-widest mb-1">SÉRIES CONCLUÍDAS</Text>
+          <Text className="text-white text-[32px] font-black">{overview.total_sets}</Text>
         </View>
       </View>
 
       {/* Chart Filter */}
       <View className="flex-row gap-2 mb-5">
-        {['VOLUME', 'REPS', 'DURATION'].map((filter, i) => (
+        {filters.map((filter) => (
           <TouchableOpacity
             key={filter}
-            className={`px-4 py-2 rounded-[20px] ${i === 0 ? 'bg-forge-accent-bg' : 'bg-forge-surface'}`}
+            onPress={() => setActiveFilter(filter)}
+            className={`px-4 py-2 rounded-[20px] ${activeFilter === filter ? 'bg-forge-accent-bg' : 'bg-forge-surface'}`}
           >
-            <Text className={`text-[11px] font-bold tracking-tight ${i === 0 ? 'text-forge-accent' : 'text-forge-muted-dark'}`}>
+            <Text className={`text-[11px] font-bold tracking-tight ${activeFilter === filter ? 'text-forge-accent' : 'text-forge-muted-dark'}`}>
               {filter}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Empty Chart */}
-      <View className="bg-forge-surface rounded-[20px] p-6 items-center justify-center min-h-[200px]">
-        <View className="w-12 h-12 rounded-full bg-forge-border/50 justify-center items-center mb-3">
-          <BarChart3 size={20} color="#8A8F98" />
+      {/* Chart Area */}
+      {loading ? (
+        <View className="bg-forge-surface rounded-[20px] p-6 items-center justify-center min-h-[200px]">
+          <Text className="text-forge-muted text-sm font-bold">Carregando...</Text>
         </View>
-        <Text className="text-white text-sm font-bold mb-1">No data available yet</Text>
-        <Text className="text-forge-muted text-[11px] text-center">
-          Start a workout to see your progress
-        </Text>
-
-        {/* Placeholder Axis */}
-        <View className="flex-row justify-between w-full mt-6">
-          <Text className="text-forge-muted-dark text-[9px]">JAN 1</Text>
-          <Text className="text-forge-muted-dark text-[9px]">FEB 15</Text>
-          <Text className="text-forge-muted-dark text-[9px]">APR 1</Text>
+      ) : chartData.length === 0 ? (
+        <View className="bg-forge-surface rounded-[20px] p-6 items-center justify-center min-h-[200px]">
+          <View className="w-12 h-12 rounded-full bg-forge-border/50 justify-center items-center mb-3">
+            <BarChart3 size={20} color="#8A8F98" />
+          </View>
+          <Text className="text-white text-sm font-bold mb-1">Nenhum dado disponível ainda</Text>
+          <Text className="text-forge-muted text-[11px] text-center">
+            Inicie um treino para ver seu progresso
+          </Text>
         </View>
-      </View>
+      ) : (
+        <View className="bg-forge-surface rounded-[20px] p-5 items-center">
+           <BarChart
+             data={chartData}
+             width={SCREEN_WIDTH - 80}
+             height={160}
+             barColor="#A0C4FF"
+             barBackgroundColor="#2A2D35"
+             showGridLines={true}
+             customBarWidth={chartData.length <= 5 ? 24 : undefined}
+           />
+        </View>
+      )}
     </>
   );
 }

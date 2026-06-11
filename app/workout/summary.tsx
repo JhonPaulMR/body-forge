@@ -3,8 +3,10 @@ import { View, Text, TouchableOpacity, ScrollView, Dimensions, Alert } from 'rea
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { X, Check } from 'lucide-react-native';
+import { toTitleCase } from '@/utils/stringUtils';
 import { useWorkoutStore, WorkoutExercise } from '@/hooks/useWorkoutStore';
-import { db } from '@/database/schema';
+import { SessionRepository } from '@/database/repositories/SessionRepository';
+import { RoutineRepository } from '@/database/repositories/RoutineRepository';
 import { ConfirmUpdateModal, DetectedModification } from '@/components/workout/ActiveWorkoutModals';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -26,13 +28,7 @@ export default function WorkoutSummaryScreen() {
 
   React.useEffect(() => {
     if (hasStructuralChanges && routineDayId) {
-      const origs = db.getAllSync<any>(`
-        SELECT re.*, e.name 
-        FROM routine_exercises re 
-        JOIN exercises e ON re.exercise_id = e.id 
-        WHERE re.routine_day_id = ? 
-        ORDER BY re.order_index
-      `, [routineDayId]);
+      const origs = RoutineRepository.getOriginalExercisesForSummary(routineDayId);
       
       setOriginalExercises(origs);
 
@@ -195,60 +191,11 @@ export default function WorkoutSummaryScreen() {
           }
         });
 
-        db.runSync('DELETE FROM routine_exercises WHERE routine_day_id = ?', [routineDayId]);
-        
-        finalExercises.forEach((ex, index) => {
-          const reId = 're_' + Math.random().toString(36).substr(2, 9);
-          const targetSets = ex.sets.length > 0 ? ex.sets.length : 1;
-          const setConfigs = ex.sets.map((s: any) => ({
-            warmup: s.is_warmup || false,
-            dropSet: s.is_dropset || false,
-            untilFailure: s.is_to_failure || false,
-            minReps: parseInt((ex.target_reps || '8-12').split('-')[0]) || 8,
-            maxReps: parseInt((ex.target_reps || '8-12').split('-')[1] || (ex.target_reps || '12')) || 12,
-            restTime: ex.rest_time_seconds || 90,
-          }));
-
-          db.runSync(`
-            INSERT INTO routine_exercises 
-            (id, routine_day_id, exercise_id, order_index, superset_id, target_sets, target_reps, rest_time_seconds, set_configs)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `, [
-            reId, 
-            routineDayId, 
-            ex.exercise_id, 
-            index, 
-            ex.superset_id || null, 
-            targetSets, 
-            ex.target_reps || '8-12', 
-            ex.rest_time_seconds || 90,
-            JSON.stringify(setConfigs)
-          ]);
-        });
+        RoutineRepository.updateRoutineExercises(routineDayId, finalExercises);
       }
 
       if (sessionId) {
-        db.runSync(
-          'UPDATE sessions SET end_time = ?, total_volume_kg = ? WHERE id = ?',
-          [new Date().toISOString(), stats.totalVolume, sessionId]
-        );
-
-        exercises.forEach((ex, index) => {
-          if (ex.sets.length === 0) return;
-
-          const sessionExerciseId = 'se_' + Math.random().toString(36).substr(2, 9);
-          db.runSync(
-            'INSERT INTO session_exercises (id, session_id, exercise_id, order_index) VALUES (?, ?, ?, ?)',
-            [sessionExerciseId, sessionId, ex.exercise_id, index]
-          );
-
-          ex.sets.forEach((set, setIndex) => {
-            db.runSync(
-              'INSERT INTO sets (id, session_exercise_id, weight, reps, rpe, is_completed, is_warmup, set_order, is_dropset, is_to_failure) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              [set.id, sessionExerciseId, set.weight, set.reps, 0, set.is_completed ? 1 : 0, set.is_warmup ? 1 : 0, setIndex, set.is_dropset ? 1 : 0, set.is_to_failure ? 1 : 0]
-            );
-          });
-        });
+        SessionRepository.finishSession(sessionId, new Date().toISOString(), stats.totalVolume, exercises);
       }
       
       cancelWorkout();
@@ -307,7 +254,7 @@ export default function WorkoutSummaryScreen() {
               return (
                 <View key={ex.id} className="mb-2">
                   <View className="flex-row justify-between items-end mb-2">
-                    <Text className="text-white font-bold text-base flex-1 pr-2">{ex.name}</Text>
+                    <Text className="text-white font-bold text-base flex-1 pr-2">{toTitleCase(ex.name)}</Text>
                     <Text className="text-forge-muted text-xs">{ex.sets.length} Séries</Text>
                   </View>
                   

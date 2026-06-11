@@ -4,9 +4,12 @@ export interface Exercise {
   id: string;
   name: string;
   muscle_group: string;
+  body_part?: string;
+  target?: string;
   equipment: string;
   instructions: string | null;
   image_uri: string | null;
+  gif_url?: string | null;
   is_custom: number;
 }
 

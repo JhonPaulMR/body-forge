@@ -11,7 +11,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Plus, MoreVertical, Trash2, Link, Zap } from 'lucide-react-native';
-import { db } from '@/database/schema';
+import { RoutineRepository } from '@/database/repositories/RoutineRepository';
+import { toTitleCase } from '@/utils/stringUtils';
 
 interface SetConfig {
   warmup: boolean;
@@ -55,8 +56,7 @@ function parseSetConfigs(exercise: ExerciseInfo): SetConfig[] {
 
 function saveSetConfigsToDb(reId: string, configs: SetConfig[]) {
   try {
-    db.runSync('UPDATE routine_exercises SET set_configs = ?, target_sets = ? WHERE id = ?',
-      [JSON.stringify(configs), configs.length, reId]);
+    RoutineRepository.updateSetConfigs(reId as string, JSON.stringify(configs), configs.length);
   } catch (e) {
     console.error('Error saving set configs:', e);
   }
@@ -78,14 +78,8 @@ export default function EditExerciseScreen() {
 
   const loadExercise = () => {
     try {
-      const result = db.getFirstSync<ExerciseInfo>(
-        `SELECT re.id as reId, e.name, e.muscle_group, re.target_sets, re.target_reps,
-                re.rest_time_seconds, re.set_configs
-         FROM routine_exercises re
-         JOIN exercises e ON re.exercise_id = e.id
-         WHERE re.id = ?`,
-        [reId]
-      );
+      const result = RoutineRepository.getExerciseInfoForEdit(reId as string);
+      
       if (result) {
         setExerciseName(result.name);
         setSetConfigs(parseSetConfigs(result));
@@ -181,7 +175,7 @@ export default function EditExerciseScreen() {
 
       <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
         <Text className="text-forge-muted text-[10px] font-bold tracking-widest mb-1.5 mt-4">CURRENT EXERCISE</Text>
-        <Text className="text-white text-[28px] font-black leading-8 mb-8">{exerciseName}</Text>
+        <Text className="text-white text-[28px] font-black leading-8 mb-8">{toTitleCase(exerciseName)}</Text>
 
         {setConfigs.map((config, index) => {
           const hasLineBelow = connectsBelow(index);

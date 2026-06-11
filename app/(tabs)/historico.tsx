@@ -1,11 +1,11 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useFocusEffect } from 'expo-router';
 import { AppHeader } from '@/components/AppHeader';
 import { MonthCalendar } from '@/components/history/MonthCalendar';
 import { SessionHistoryItem } from '@/components/history/SessionHistoryItem';
-import { historyService, HistorySession } from '@/services/historyService';
+import { HistorySession, SessionRepository } from '@/database/repositories/SessionRepository';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HistoricoTab() {
   const router = useRouter();
@@ -16,12 +16,12 @@ export default function HistoricoTab() {
   const loadHistoryData = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
-    
+
     try {
-      const dates = historyService.getHistoryDates(year, month);
+      const dates = SessionRepository.getHistoryDates(year, month);
       setMarkedDates(dates);
-      
-      const monthSessions = historyService.getSessionsForMonth(year, month);
+
+      const monthSessions = SessionRepository.getSessionsForMonth(year, month);
       setSessions(monthSessions);
     } catch (e) {
       console.error('Failed to load history', e);
@@ -42,21 +42,21 @@ export default function HistoricoTab() {
   return (
     <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
       <AppHeader />
-      
-      <ScrollView 
-        className="flex-1 px-5" 
+
+      <ScrollView
+        className="flex-1 px-5"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         <Text className="text-white text-3xl font-black tracking-tight mb-1">
-          History
+          Histórico
         </Text>
         <Text className="text-forge-muted text-sm font-medium mb-6">
-          Review your progress
+          Reveja seu progresso
         </Text>
 
         <View className="mb-8">
-          <MonthCalendar 
+          <MonthCalendar
             currentDate={currentDate}
             onChangeMonth={handleChangeMonth}
             markedDates={markedDates}
@@ -66,7 +66,7 @@ export default function HistoricoTab() {
         <View>
           {sessions.length > 0 ? (
             sessions.map((session, index) => (
-              <SessionHistoryItem 
+              <SessionHistoryItem
                 key={session.id}
                 session={session}
                 index={index}

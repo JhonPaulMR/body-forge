@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, Modal, Alert } from 'react-native';
 import { X, Plus, Trash2, Pencil } from 'lucide-react-native';
-import { getNotesForExercise, addNote, deleteNote, updateNote, ExerciseNote } from '@/services/notesService';
+import { ExerciseNotesRepository, ExerciseNote } from '@/database/repositories/ExerciseNotesRepository';
 
 interface ExerciseNotesModalProps {
   exerciseId: string;
@@ -18,7 +18,7 @@ export function ExerciseNotesModal({ exerciseId, exerciseName, visible, onClose 
 
   const loadNotes = () => {
     if (exerciseId) {
-      setNotes(getNotesForExercise(exerciseId));
+      setNotes(ExerciseNotesRepository.getNotesForExercise(exerciseId));
     }
   };
 
@@ -37,9 +37,9 @@ export function ExerciseNotesModal({ exerciseId, exerciseName, visible, onClose 
     }
 
     if (currentNoteId) {
-      updateNote(currentNoteId, noteText);
+      ExerciseNotesRepository.updateNote(currentNoteId, noteText);
     } else {
-      addNote(exerciseId, noteText);
+      ExerciseNotesRepository.addNote(exerciseId, noteText);
     }
     
     setNoteText('');
@@ -52,7 +52,7 @@ export function ExerciseNotesModal({ exerciseId, exerciseName, visible, onClose 
     Alert.alert('Excluir', 'Tem certeza que deseja excluir esta nota?', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Excluir', style: 'destructive', onPress: () => {
-        deleteNote(id);
+        ExerciseNotesRepository.deleteNote(id);
         loadNotes();
       }}
     ]);

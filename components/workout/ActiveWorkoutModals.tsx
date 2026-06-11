@@ -4,6 +4,8 @@ import { X, Check } from 'lucide-react-native';
 import { WorkoutExercise } from '@/hooks/useWorkoutStore';
 import { muscleImages } from '@/constants/muscleImages';
 import { getExerciseStats, ExerciseHistorySession } from '@/services/exerciseService';
+import { ExerciseMediaRepository } from '@/database/repositories/ExerciseMediaRepository';
+import { toTitleCase } from '@/utils/stringUtils';
 import { ExerciseNotesModal } from '@/components/exercises/ExerciseNotesModal';
 
 // --- HISTORY MODAL ---
@@ -26,7 +28,7 @@ export function HistoryModal({ exercise, visible, onClose }: { exercise: Workout
           <View className="flex-row justify-between items-center mb-6">
             <View>
               <Text className="text-white text-xl font-bold">Histórico</Text>
-              <Text className="text-forge-muted text-sm">{exercise.name}</Text>
+              <Text className="text-forge-muted text-sm">{toTitleCase(exercise.name)}</Text>
             </View>
             <TouchableOpacity onPress={onClose} className="p-2 bg-forge-surface rounded-full">
               <X size={20} color="#8A8F98" />
@@ -230,11 +232,11 @@ export function CreateSupersetModal({ visible, currentExerciseId, exercises, onC
                       {exerciseImage ? (
                         <Image source={{ uri: exerciseImage }} className="w-full h-full" resizeMode="cover" />
                       ) : (
-                        <View className="w-full h-full items-center justify-center bg-forge-surface"><Text className="text-white font-bold">{ex.name.charAt(0)}</Text></View>
+                        <View className="w-full h-full items-center justify-center bg-forge-surface"><Text className="text-white font-bold">{toTitleCase(ex.name).charAt(0)}</Text></View>
                       )}
                     </View>
                     <View className="flex-1 pr-4">
-                      <Text className="text-white font-bold text-sm">{ex.name}</Text>
+                      <Text className="text-white font-bold text-sm">{toTitleCase(ex.name)}</Text>
                     </View>
                   </View>
                   

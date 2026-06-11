@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,13 @@ import {
   Image,
   Modal,
   Pressable,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { X, Search, ChevronDown, Check } from 'lucide-react-native';
-import { db } from '@/database/schema';
+import { ExerciseRepository } from '@/database/repositories/ExerciseRepository';
+import { RoutineRepository } from '@/database/repositories/RoutineRepository';
 import { muscleImages } from '@/constants/muscleImages';
 import { parseMuscleGroup } from '@/services/muscleGroupUtils';
 
@@ -22,12 +24,22 @@ interface Exercise {
   muscle_group: string;
   equipment: string;
   image_uri: string | null;
+  gif_url?: string | null;
+  body_part?: string;
+  target?: string;
 }
+
+const toTitleCase = (str: string) => {
+  return str.replace(
+    /\w\S*/g,
+    (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+  );
+};
 
 export default function ExercisePickerScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { dayId, routineId, mode, replaceId } = useLocalSearchParams<{ dayId: string; routineId: string; mode?: string; replaceId?: string }>();
+  const { dayId, routineId, mode, replaceId, newlyCreatedId } = useLocalSearchParams<{ dayId: string; routineId: string; mode?: string; replaceId?: string; newlyCreatedId?: string }>();
 
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -44,12 +56,22 @@ export default function ExercisePickerScreen() {
     loadAlreadyAdded();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadExercises();
+    }, [])
+  );
+
+  useEffect(() => {
+    if (newlyCreatedId) {
+      setSelectedIds(prev => new Set(prev).add(newlyCreatedId));
+    }
+  }, [newlyCreatedId]);
+
   const loadExercises = () => {
     try {
-      const result = db.getAllSync<Exercise>(
-        'SELECT id, name, muscle_group, equipment, image_uri FROM exercises ORDER BY muscle_group, name'
-      );
-      setExercises(result);
+      const result = ExerciseRepository.getAllExercisesForPicker();
+      setExercises(result as any);
     } catch (error) {
       console.error('Error loading exercises:', error);
     }
@@ -71,18 +93,29 @@ export default function ExercisePickerScreen() {
 
     if (!dayId) return;
     try {
-      const result = db.getAllSync<{ exercise_id: string }>(
-        'SELECT exercise_id FROM routine_exercises WHERE routine_day_id = ?',
-        [dayId]
-      );
-      setAlreadyAddedIds(new Set(result.map((r) => r.exercise_id)));
+      const resultIds = RoutineRepository.getDayExercisesIds(dayId);
+      setAlreadyAddedIds(new Set(resultIds));
     } catch (error) {
       console.error('Error loading existing exercises:', error);
     }
   };
 
+  const getDisplayMuscle = (ex: Exercise) => {
+    let primary = ex.body_part;
+    if (primary && (primary.toLowerCase() === 'braços' || primary.toLowerCase() === 'pernas') && ex.target) {
+      primary = ex.target;
+    }
+    if (primary) return primary;
+
+    if (ex.muscle_group && ex.muscle_group.startsWith('{')) {
+      const parsed = parseMuscleGroup(ex.muscle_group);
+      return parsed.primaryString || 'Outros';
+    }
+    return ex.muscle_group || 'Outros';
+  };
+
   const muscleGroups = useMemo(() => {
-    return [...new Set(exercises.map((e) => e.muscle_group).filter(Boolean))].sort();
+    return [...new Set(exercises.map(getDisplayMuscle).filter(Boolean))].sort();
   }, [exercises]);
 
   const equipmentTypes = useMemo(() => {
@@ -93,7 +126,7 @@ export default function ExercisePickerScreen() {
     return exercises.filter((ex) => {
       const matchesSearch = searchQuery === '' ||
         ex.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesMuscle = !selectedMuscle || ex.muscle_group === selectedMuscle;
+      const matchesMuscle = !selectedMuscle || getDisplayMuscle(ex) === selectedMuscle;
       const matchesEquipment = !selectedEquipment || ex.equipment === selectedEquipment;
       return matchesSearch && matchesMuscle && matchesEquipment;
     });
@@ -136,7 +169,7 @@ export default function ExercisePickerScreen() {
           exercise_id: exId,
           name: baseEx?.name || 'Unknown',
           muscle_group: baseEx?.muscle_group || 'Peito',
-          image_uri: baseEx?.image_uri || null,
+          image_uri: baseEx?.gif_url || baseEx?.image_uri || null,
           target_sets: 3,
           target_reps: '8-12',
           rest_time_seconds: 90,
@@ -170,32 +203,9 @@ export default function ExercisePickerScreen() {
 
     if (!dayId) return;
 
-    try {
-      const maxIdx = db.getFirstSync<{ max_idx: number }>(
-        'SELECT COALESCE(MAX(order_index), 0) as max_idx FROM routine_exercises WHERE routine_day_id = ?',
-        [dayId]
-      );
-      let nextIndex = (maxIdx?.max_idx || 0) + 1;
-
-      const supersetGroupId = supersetIds.size >= 2 ? 'ss_' + Date.now() : null;
-
-      const stmt = db.prepareSync(
-        `INSERT INTO routine_exercises
-          (id, routine_day_id, exercise_id, order_index, superset_id, target_sets, target_reps, rest_time_seconds)
-         VALUES (?, ?, ?, ?, ?, 3, '8-12', 90)`
-      );
-
-      for (const exId of selectedIds) {
-        const reId = 're_' + Date.now() + '_' + nextIndex;
-        const ssId = supersetIds.has(exId) ? supersetGroupId : null;
-        stmt.executeSync([reId, dayId, exId, nextIndex, ssId]);
-        nextIndex++;
-      }
+      RoutineRepository.addExercisesToDay(dayId, selectedIds, supersetIds);
 
       router.back();
-    } catch (error) {
-      console.error('Error adding exercises:', error);
-    }
   };
 
   const renderFilterModal = (
@@ -210,25 +220,27 @@ export default function ExercisePickerScreen() {
       <Pressable className="flex-1 bg-black/60 justify-center items-center" onPress={onClose}>
         <View className="bg-forge-surface rounded-[20px] p-6 w-[80%] max-h-[60%]">
           <Text className="text-white text-lg font-extrabold mb-4">{title}</Text>
-          <TouchableOpacity
-            className={`py-3 px-4 rounded-xl mb-1 ${!selected ? 'bg-forge-accent-bg' : ''}`}
-            onPress={() => { onSelect(null); onClose(); }}
-          >
-            <Text className={`text-sm font-semibold ${!selected ? 'text-forge-accent' : 'text-forge-text-secondary'}`}>
-              Todos
-            </Text>
-          </TouchableOpacity>
-          {options.map((opt) => (
+          <ScrollView className="w-full" showsVerticalScrollIndicator={false}>
             <TouchableOpacity
-              key={opt}
-              className={`py-3 px-4 rounded-xl mb-1 ${selected === opt ? 'bg-forge-accent-bg' : ''}`}
-              onPress={() => { onSelect(opt); onClose(); }}
+              className={`py-3 px-4 rounded-xl mb-1 ${!selected ? 'bg-forge-accent-bg' : ''}`}
+              onPress={() => { onSelect(null); onClose(); }}
             >
-              <Text className={`text-sm font-semibold ${selected === opt ? 'text-forge-accent' : 'text-forge-text-secondary'}`}>
-                {opt}
+              <Text className={`text-sm font-semibold ${!selected ? 'text-forge-accent' : 'text-forge-text-secondary'}`}>
+                Todos
               </Text>
             </TouchableOpacity>
-          ))}
+            {options.map((opt) => (
+              <TouchableOpacity
+                key={opt}
+                className={`py-3 px-4 rounded-xl mb-1 ${selected === opt ? 'bg-forge-accent-bg' : ''}`}
+                onPress={() => { onSelect(opt); onClose(); }}
+              >
+                <Text className={`text-sm font-semibold ${selected === opt ? 'text-forge-accent' : 'text-forge-text-secondary'}`}>
+                  {opt}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
       </Pressable>
     </Modal>
@@ -239,7 +251,7 @@ export default function ExercisePickerScreen() {
     const isAlreadyAdded = alreadyAddedIds.has(item.id);
     const muscleData = parseMuscleGroup(item.muscle_group);
     const primaryDisplay = muscleData.primaryString;
-    const imgUri = item.image_uri || muscleImages[primaryDisplay] || muscleImages['Peito'];
+    const imgUri = item.gif_url || item.image_uri || muscleImages[primaryDisplay] || muscleImages['Peito'];
 
     return (
       <TouchableOpacity
@@ -250,7 +262,7 @@ export default function ExercisePickerScreen() {
       >
         <Image source={{ uri: imgUri }} className="w-11 h-11 rounded-xl bg-forge-border" />
         <View className="flex-1 mx-3">
-          <Text className="text-white text-[14px] font-bold mb-0.5">{item.name}</Text>
+          <Text className="text-white text-[14px] font-bold mb-0.5">{toTitleCase(item.name)}</Text>
           <Text className="text-forge-muted-dark text-[10px] font-bold tracking-wide">
             {primaryDisplay?.toUpperCase()}
           </Text>
@@ -278,7 +290,7 @@ export default function ExercisePickerScreen() {
           <X size={20} color="#FFF" />
         </TouchableOpacity>
         <Text className="text-white text-base font-extrabold tracking-wide">ESCOLHER EXERCÍCIOS</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push(`/exercises/create?fromPicker=true&dayId=${dayId || ''}&routineId=${routineId || ''}&mode=${mode || ''}` as any)}>
           <Text className="text-forge-accent text-sm font-extrabold tracking-tight">CRIAR</Text>
         </TouchableOpacity>
       </View>

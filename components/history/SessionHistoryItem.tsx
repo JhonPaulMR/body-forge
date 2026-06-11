@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Clock, Dumbbell, List } from 'lucide-react-native';
-import { HistorySession } from '@/services/historyService';
+import { Clock, Dumbbell, Check } from 'lucide-react-native';
+import { HistorySession } from '@/database/repositories/SessionRepository';
 
 interface SessionHistoryItemProps {
   session: HistorySession;
@@ -58,7 +58,7 @@ export function SessionHistoryItem({ session, onPress, index }: SessionHistoryIt
           </View>
 
           <View className="flex-row items-center gap-1.5">
-            <List size={14} color="#9CA3AF" />
+            <Check size={14} color="#9CA3AF" />
             <Text className="text-forge-muted text-xs font-medium">
               {session.total_sets} Sets
             </Text>

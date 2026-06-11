@@ -6,6 +6,7 @@ import { Check, Plus, MoreVertical, Clock, Minus } from 'lucide-react-native';
 import { useWorkoutStore, WorkoutExercise, WorkoutSet } from '@/hooks/useWorkoutStore';
 import { muscleImages } from '@/constants/muscleImages';
 import { WorkoutSetRow } from './WorkoutSetRow';
+import { toTitleCase } from '@/utils/stringUtils';
 
 interface SupersetPagerCardProps {
   block: WorkoutExercise[];
@@ -76,7 +77,7 @@ const SupersetPagerCardComponent = ({ block, onOpenHistory, onOpenNotes, onOpenR
           
           <View className="flex-1 justify-center">
             <Text className="text-white text-lg font-bold leading-tight mb-2 pr-2">
-              {exercise.name}
+              {toTitleCase(exercise.name)}
             </Text>
             <TouchableOpacity onPress={() => onOpenRest(exercise)} className="flex-row items-center gap-1.5 self-start px-2 py-1 bg-forge-surface rounded-md">
               <Clock size={12} color="#10B981" />

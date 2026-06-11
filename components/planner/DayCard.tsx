@@ -1,7 +1,8 @@
-import React, { useMemo, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Dimensions, TextInput } from 'react-native';
 import { GripVertical, Link, MoreVertical, Plus, Dumbbell } from 'lucide-react-native';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
+import { toTitleCase } from '@/utils/stringUtils';
 import { useRouter } from 'expo-router';
 
 // Types mapping what we need
@@ -10,6 +11,7 @@ interface RoutineDay {
   day_name: string;
   order_index: number;
 }
+import { RoutineRepository } from '@/database/repositories/RoutineRepository';
 
 interface DayExercise {
   id: string;
@@ -40,12 +42,14 @@ interface DayCardProps {
   day: RoutineDay;
   exercises: DayExercise[];
   cardAreaHeight: number;
-  onMenuDay: (day: RoutineDay) => void;
-  onAddExercises: (dayId: string) => void;
+  onMenuDay?: (day: RoutineDay) => void;
+  onAddExercises?: (dayId: string) => void;
   onDragBegin: () => void;
   onDragEnd: (data: RenderItem[], dayId: string) => void;
-  onMenuExercise: (ex: DayExercise, dayId: string, inSuperset: boolean) => void;
-  onMenuSuperset: (supersetId: string, dayId: string) => void;
+  onMenuExercise?: (ex: DayExercise, dayId: string, inSuperset: boolean) => void;
+  onMenuSuperset?: (supersetId: string, dayId: string) => void;
+  onDayUpdated?: (dayId: string) => void;
+  isReadOnly?: boolean;
 }
 
 function groupExercises(exercises: DayExercise[]): RenderItem[] {
@@ -68,10 +72,26 @@ function groupExercises(exercises: DayExercise[]): RenderItem[] {
 
 const DayCardComponent = ({
   day, exercises, cardAreaHeight,
-  onMenuDay, onAddExercises, onDragBegin, onDragEnd, onMenuExercise, onMenuSuperset
+  onMenuDay, onAddExercises, onDragBegin, onDragEnd, onMenuExercise, onMenuSuperset, onDayUpdated, isReadOnly
 }: DayCardProps) => {
   const router = useRouter();
   
+  const [dayName, setDayName] = useState(day.day_name);
+
+  useEffect(() => {
+    setDayName(day.day_name);
+  }, [day.day_name]);
+
+  const handleUpdateName = () => {
+    const trimmed = dayName.trim();
+    if (trimmed && trimmed !== day.day_name) {
+      RoutineRepository.updateDayName(day.id, trimmed);
+      if (onDayUpdated) onDayUpdated(day.id);
+    } else {
+      setDayName(day.day_name);
+    }
+  };
+
   // Memoize grouped items to prevent recalculation inside the list
   const items = useMemo(() => groupExercises(exercises), [exercises]);
 
@@ -92,10 +112,12 @@ const DayCardComponent = ({
                 <Text className="text-white text-[13px] font-bold">Superset</Text>
                 <Text className="text-forge-muted text-[10px] font-medium">{item.exercises!.length} exercícios</Text>
               </View>
-              <TouchableOpacity className="px-3 py-2"
-                onPress={() => onMenuSuperset(item.supersetId!, day.id)}>
-                <MoreVertical size={16} color="#5F6368" />
-              </TouchableOpacity>
+              {!isReadOnly && onMenuSuperset && (
+                <TouchableOpacity className="px-3 py-2"
+                  onPress={() => onMenuSuperset(item.supersetId!, day.id)}>
+                  <MoreVertical size={16} color="#5F6368" />
+                </TouchableOpacity>
+              )}
             </TouchableOpacity>
             {item.exercises!.map((ex) => (
               <TouchableOpacity
@@ -105,13 +127,15 @@ const DayCardComponent = ({
                 onPress={() => router.push(`/planner/edit-exercise?reId=${ex.id}&dayId=${day.id}` as any)}
               >
                 <View className="flex-1 ml-3">
-                  <Text className="text-white text-[13px] font-bold mb-0.5">{ex.name}</Text>
+                  <Text className="text-white text-[13px] font-bold mb-0.5">{toTitleCase(ex.name)}</Text>
                   <Text className="text-forge-muted text-[10px] font-medium">{ex.target_sets} séries × {ex.target_reps} reps</Text>
                 </View>
-                <TouchableOpacity className="px-3 py-2"
-                  onPress={() => onMenuExercise(ex, day.id, true)}>
-                  <MoreVertical size={16} color="#5F6368" />
-                </TouchableOpacity>
+                {!isReadOnly && onMenuExercise && (
+                  <TouchableOpacity className="px-3 py-2"
+                    onPress={() => onMenuExercise(ex, day.id, true)}>
+                    <MoreVertical size={16} color="#5F6368" />
+                  </TouchableOpacity>
+                )}
               </TouchableOpacity>
             ))}
           </View>
@@ -127,17 +151,19 @@ const DayCardComponent = ({
           activeOpacity={0.7}
           onPress={() => router.push(`/planner/edit-exercise?reId=${ex.id}&dayId=${day.id}` as any)}
         >
-          <TouchableOpacity className="px-2.5" onLongPress={drag} delayLongPress={150}>
+          <TouchableOpacity className="px-2.5" onLongPress={isReadOnly ? undefined : drag} delayLongPress={150}>
             <GripVertical size={16} color={isActive ? '#A0C4FF' : '#3A3D44'} />
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-white text-[13px] font-bold mb-0.5">{ex.name}</Text>
+            <Text className="text-white text-[13px] font-bold mb-0.5">{toTitleCase(ex.name)}</Text>
             <Text className="text-forge-muted text-[10px] font-medium">{ex.target_sets} séries × {ex.target_reps} reps</Text>
           </View>
-          <TouchableOpacity className="px-3 py-2"
-            onPress={() => onMenuExercise(ex, day.id, false)}>
-            <MoreVertical size={16} color="#5F6368" />
-          </TouchableOpacity>
+          {!isReadOnly && onMenuExercise && (
+            <TouchableOpacity className="px-3 py-2"
+              onPress={() => onMenuExercise(ex, day.id, false)}>
+              <MoreVertical size={16} color="#5F6368" />
+            </TouchableOpacity>
+          )}
         </TouchableOpacity>
       </ScaleDecorator>
     );
@@ -148,10 +174,27 @@ const DayCardComponent = ({
       <View className="bg-forge-surface rounded-[20px] flex-1 overflow-hidden">
         {/* Day Header */}
         <View className="flex-row items-center justify-between p-5 pb-3">
-          <Text className="text-white text-2xl font-black">{day.day_name}</Text>
-          <TouchableOpacity onPress={() => onMenuDay(day)} className="p-1">
-            <MoreVertical size={18} color="#5F6368" />
-          </TouchableOpacity>
+          {isReadOnly ? (
+            <Text className="flex-1 text-white text-2xl font-black border-b border-forge-border-light pb-1 mr-4">
+              {dayName}
+            </Text>
+          ) : (
+            <TextInput
+              className="flex-1 text-white text-2xl font-black border-b border-forge-border-light pb-1 mr-4"
+              value={dayName}
+              onChangeText={setDayName}
+              onBlur={handleUpdateName}
+              onSubmitEditing={handleUpdateName}
+              returnKeyType="done"
+              placeholder="Nome do dia..."
+              placeholderTextColor="#8A8F98"
+            />
+          )}
+          {!isReadOnly && onMenuDay && (
+            <TouchableOpacity onPress={() => onMenuDay(day)} className="p-1">
+              <MoreVertical size={18} color="#5F6368" />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Exercise List (DraggableFlatList) */}
@@ -166,13 +209,15 @@ const DayCardComponent = ({
             containerStyle={{ flex: 1 }}
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
             ListFooterComponent={
-              <TouchableOpacity
-                className="flex-row items-center justify-center bg-forge-accent-bg rounded-2xl py-4 mt-2 gap-2"
-                onPress={() => onAddExercises(day.id)}
-              >
-                <Plus size={18} color="#A0C4FF" />
-                <Text className="text-forge-accent text-xs font-extrabold tracking-tight">ADICIONAR EXERCÍCIOS</Text>
-              </TouchableOpacity>
+              !isReadOnly && onAddExercises ? (
+                <TouchableOpacity
+                  className="flex-row items-center justify-center bg-forge-accent-bg rounded-2xl py-4 mt-2 gap-2"
+                  onPress={() => onAddExercises(day.id)}
+                >
+                  <Plus size={18} color="#A0C4FF" />
+                  <Text className="text-forge-accent text-xs font-extrabold tracking-tight">ADICIONAR EXERCÍCIOS</Text>
+                </TouchableOpacity>
+              ) : null
             }
           />
         ) : (
@@ -181,16 +226,20 @@ const DayCardComponent = ({
               <Dumbbell size={24} color="#5F6368" />
             </View>
             <Text className="text-white text-base font-bold mb-1">Seu treino está vazio</Text>
-            <Text className="text-forge-muted text-xs text-center mb-4">
-              Adicionar exercícios para o{'\n'}seu treino
-            </Text>
-            <TouchableOpacity
-              className="flex-row items-center justify-center bg-forge-accent-bg rounded-2xl py-4 px-8 gap-2"
-              onPress={() => onAddExercises(day.id)}
-            >
-              <Plus size={18} color="#A0C4FF" />
-              <Text className="text-forge-accent text-xs font-extrabold tracking-tight">ADICIONAR EXERCÍCIOS</Text>
-            </TouchableOpacity>
+            {!isReadOnly && onAddExercises && (
+              <>
+                <Text className="text-forge-muted text-xs text-center mb-4">
+                  Adicionar exercícios para o{'\n'}seu treino
+                </Text>
+                <TouchableOpacity
+                  className="flex-row items-center justify-center bg-forge-accent-bg rounded-2xl py-4 px-8 gap-2"
+                  onPress={() => onAddExercises(day.id)}
+                >
+                  <Plus size={18} color="#A0C4FF" />
+                  <Text className="text-forge-accent text-xs font-extrabold tracking-tight">ADICIONAR EXERCÍCIOS</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         )}
       </View>

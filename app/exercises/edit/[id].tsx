@@ -1,7 +1,7 @@
 import MuscleSelectionModal, { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
 import { ExerciseRepository } from '@/database/repositories/ExerciseRepository';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Camera, ChevronDown, Plus, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
@@ -15,6 +15,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useLocalSearchParams } from 'expo-router';
+import { getExerciseById } from '@/services/exerciseService';
+import { useEffect } from 'react';
+
 const CATEGORIES = [
   'Peso e reps',
   'Peso corporal assistido e reps',
@@ -23,9 +27,9 @@ const CATEGORIES = [
   'Tempo',
 ];
 
-export default function CreateExerciseScreen() {
+export default function EditExerciseScreen() {
   const router = useRouter();
-  const { fromPicker, dayId, routineId, mode } = useLocalSearchParams<{ fromPicker?: string, dayId?: string, routineId?: string, mode?: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [name, setName] = useState('');
   const [instructions, setInstructions] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -37,6 +41,26 @@ export default function CreateExerciseScreen() {
   const [showPrimaryModal, setShowPrimaryModal] = useState(false);
   const [showSecondaryModal, setShowSecondaryModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      const exercise = getExerciseById(id as string);
+      if (exercise) {
+        setName(exercise.name);
+        setInstructions(exercise.instructions || '');
+        setImageUri(exercise.image_uri || null);
+        setCategory(exercise.equipment || CATEGORIES[0]);
+        
+        try {
+          const parsed = JSON.parse(exercise.muscle_group);
+          if (parsed.primary) setPrimaryMuscles(parsed.primary);
+          if (parsed.secondary) setSecondaryMuscles(parsed.secondary);
+        } catch (e) {
+          // Backward compatibility if muscle_group is just a string
+        }
+      }
+    }
+  }, [id]);
 
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -64,20 +88,16 @@ export default function CreateExerciseScreen() {
     }
 
     try {
-      // Create a UUID - using a simple math random for simplicity as crypto might not be available
-      const id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
       
       const primaryMuscleObj = getMuscleById(primaryMuscles[0]);
       
       const muscleGroupData = {
         primary: primaryMuscles,
         secondary: secondaryMuscles,
-        // We also store a top level primary string for backwards compatibility with the rest of the app that expects a simple string
         primaryString: primaryMuscleObj?.name || 'Vários'
       };
 
-      ExerciseRepository.createCustomExercise({
-        id,
+      ExerciseRepository.updateCustomExercise(id as string, {
         name: name.trim(),
         muscleGroupData: JSON.stringify(muscleGroupData),
         category,
@@ -85,14 +105,7 @@ export default function CreateExerciseScreen() {
         imageUri
       });
 
-      if (fromPicker === 'true') {
-        router.navigate({ 
-          pathname: '/planner/exercise-picker', 
-          params: { dayId, routineId, mode, newlyCreatedId: id } 
-        } as any);
-      } else {
-        router.back();
-      }
+      router.back();
     } catch (error) {
       console.error('Error saving exercise:', error);
       Alert.alert('Erro', 'Não foi possível salvar o exercício.');
@@ -106,7 +119,7 @@ export default function CreateExerciseScreen() {
         <TouchableOpacity onPress={() => router.back()} className="w-9 h-9 items-center justify-center">
           <X size={24} color="#FFF" />
         </TouchableOpacity>
-        <Text className="text-white text-base font-extrabold tracking-wide uppercase">CRIAR EXERCÍCIO</Text>
+        <Text className="text-white text-base font-extrabold tracking-wide uppercase">EDITAR EXERCÍCIO</Text>
         <TouchableOpacity onPress={handleSave} className="h-9 justify-center">
           <Text className="text-forge-accent text-sm font-bold tracking-wide">SAVE</Text>
         </TouchableOpacity>

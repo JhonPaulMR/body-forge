@@ -1,18 +1,21 @@
 import { MediaCarousel } from '@/components/exercises/MediaCarousel';
+import { toTitleCase } from '@/utils/stringUtils';
 import { MediaOptionsMenu } from '@/components/exercises/MediaOptionsMenu';
 import { MuscleCard } from '@/components/exercises/MuscleCard';
 import { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
 import { muscleImages, muscleStringMap } from '@/constants/muscleImages';
-import { addMedia, deleteMedia, ExerciseMedia, getMediaForExercise, replaceMedia } from '@/services/exerciseMediaService';
+import { ExerciseMediaRepository, ExerciseMedia } from '@/database/repositories/ExerciseMediaRepository';
 import { Exercise, getExerciseById, getExerciseStats, ExerciseStats } from '@/services/exerciseService';
 import { ExerciseNotesModal } from '@/components/exercises/ExerciseNotesModal';
 import * as ImagePicker from 'expo-image-picker';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, ChevronRight, FileText, TrendingUp, Minus } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { ArrowLeft, ChevronRight, FileText, TrendingUp, Minus, MoreVertical, Trash2, Pencil, X } from 'lucide-react-native';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Alert,
+  Modal,
+  Pressable,
   Dimensions,
+  Alert,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -38,9 +41,13 @@ export default function ExerciseDetailScreen() {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<ExerciseMedia | null>(null);
 
+  // Exercise options state
+  const [isExerciseMenuVisible, setIsExerciseMenuVisible] = useState(false);
+  const [showExerciseDeleteConfirm, setShowExerciseDeleteConfirm] = useState(false);
+
   const loadMedia = () => {
     if (id) {
-      const media = getMediaForExercise(id as string);
+      const media = ExerciseMediaRepository.getMediaForExercise(id as string);
       setExerciseMedia(media);
     }
   };
@@ -86,34 +93,53 @@ export default function ExerciseDetailScreen() {
     if (!exercise) return;
     const media = await pickMedia('all');
     if (!media) return;
-    await addMedia(exercise.id, media);
+    await ExerciseMediaRepository.addMedia(exercise.id, {
+      uri: media.uri,
+      type: media.type === 'video' ? 'video' : 'image',
+      fileName: media.fileName
+    });
     loadMedia();
   };
 
   const handleReplaceMedia = async () => {
     if (!selectedMedia) return;
-    const media = await pickMedia(selectedMedia.media_type);
-    if (!media) return;
-    await replaceMedia(selectedMedia.id, media.uri, media.fileName);
-    loadMedia();
+    const mediaResult = await pickMedia(selectedMedia.media_type);
+    if (mediaResult) {
+      await ExerciseMediaRepository.replaceMedia(selectedMedia.id, mediaResult.uri, mediaResult.fileName);
+      loadMedia();
+    }
   };
 
   const handleDeleteMedia = async () => {
     if (!selectedMedia) return;
-    await deleteMedia(selectedMedia.id);
+    await ExerciseMediaRepository.deleteMedia(selectedMedia.id);
     setSelectedMedia(null);
     loadMedia();
   };
 
-  useEffect(() => {
-    if (id) {
-      const result = getExerciseById(id as string);
-      setExercise(result);
-      const exStats = getExerciseStats(id as string);
-      setStats(exStats);
-      loadMedia();
+  const handleDeleteExercise = () => {
+    if (!exercise) return;
+    try {
+      // Import on demand to avoid circular deps or heavy init
+      const { ExerciseRepository } = require('@/database/repositories/ExerciseRepository');
+      ExerciseRepository.deleteCustomExercise(exercise.id);
+      router.back();
+    } catch (e) {
+      console.error('Error deleting exercise:', e);
     }
-  }, [id]);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      if (id) {
+        const result = getExerciseById(id as string);
+        setExercise(result);
+        const exStats = getExerciseStats(id as string);
+        setStats(exStats);
+        loadMedia();
+      }
+    }, [id])
+  );
 
   if (!exercise) {
     return (
@@ -123,7 +149,7 @@ export default function ExerciseDetailScreen() {
     );
   }
 
-  const heroImage = exercise.image_uri || muscleImages[exercise.muscle_group] || muscleImages['Peito'];
+  const heroImage = exercise.gif_url || exercise.image_uri || muscleImages[exercise.muscle_group] || muscleImages['Peito'];
   const exerciseType = exercise.equipment === 'Peso Corporal' ? 'CALISTENIA' : 'FORÇA';
 
   let parsedMuscleData: { primary: string[], secondary: string[], primaryString: string } | null = null;
@@ -131,13 +157,28 @@ export default function ExerciseDetailScreen() {
 
   const primaryIds = parsedMuscleData ? parsedMuscleData.primary : [];
   const secondaryIds = parsedMuscleData ? parsedMuscleData.secondary : [];
-  const primaryDisplayString = parsedMuscleData ? parsedMuscleData.primaryString : exercise.muscle_group;
+  let derivedPrimary = exercise.body_part || exercise.muscle_group;
+  let derivedSecondary = exercise.target;
+
+  if (
+    derivedPrimary &&
+    (derivedPrimary.toLowerCase() === 'braços' || derivedPrimary.toLowerCase() === 'pernas') &&
+    derivedSecondary
+  ) {
+    derivedPrimary = derivedSecondary;
+    derivedSecondary = undefined;
+  }
+
+  const primaryDisplayString = parsedMuscleData ? parsedMuscleData.primaryString : derivedPrimary;
 
   // Build body highlighter data
   const bodyData: any[] = [];
   let mainSide: 'front' | 'back' = 'front';
   
-  if (parsedMuscleData) {
+  let hasValidParsedData = false;
+
+  if (parsedMuscleData && parsedMuscleData.primary.length > 0) {
+    hasValidParsedData = true;
     primaryIds.forEach(mId => {
       const muscle = getMuscleById(mId);
       if (muscle && muscle.slug) {
@@ -152,12 +193,23 @@ export default function ExerciseDetailScreen() {
       }
     });
   } else {
-    const mapped = muscleStringMap[exercise.muscle_group];
+    const mapped = muscleStringMap[primaryDisplayString];
     if (mapped) {
       bodyData.push({ slug: mapped.slug, intensity: 1 });
       mainSide = mapped.side;
     }
   }
+
+  const parseInstructions = (text: string | null) => {
+    if (!text) return 'Nenhuma instrução disponível para este exercício.';
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) {
+        return parsed.map((step, idx) => `${idx + 1}. ${step}`).join('\n\n');
+      }
+    } catch (e) {}
+    return text;
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
@@ -211,9 +263,16 @@ export default function ExerciseDetailScreen() {
         <View className="px-5">
           {activeTab === 'resumo' ? (
             <>
-              <Text className="text-white text-[26px] font-black mb-2 leading-8">
-                {exercise.name.toUpperCase()}
-              </Text>
+              <View className="flex-row items-start justify-between mb-2">
+                <Text className="text-white text-[26px] font-black leading-8 flex-1">
+                  {toTitleCase(exercise.name).toUpperCase()}
+                </Text>
+                {exercise.is_custom === 1 && (
+                  <TouchableOpacity onPress={() => setIsExerciseMenuVisible(true)} className="w-10 h-10 items-center justify-end flex-row">
+                    <MoreVertical size={24} color="#FFF" />
+                  </TouchableOpacity>
+                )}
+              </View>
               <View className="flex-row items-center gap-2 mb-6">
                 <Text className="text-forge-accent text-[11px] font-bold tracking-wide">{exerciseType}</Text>
                 <Text className="text-forge-muted-dark text-sm">·</Text>
@@ -222,21 +281,24 @@ export default function ExerciseDetailScreen() {
 
               <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-2">INSTRUÇÕES</Text>
               <Text className="text-forge-text-secondary text-sm leading-[22px] mb-6">
-                {exercise.instructions || 'Nenhuma instrução disponível para este exercício.'}
+                {parseInstructions(exercise.instructions)}
               </Text>
 
               {/* Músculos Primários */}
               <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-3 mt-2">MÚSCULOS PRIMÁRIOS</Text>
-              {primaryIds.length > 0 
+              {hasValidParsedData 
                 ? primaryIds.map((muscleId: string) => <MuscleCard key={muscleId} muscleId={muscleId} stringFallback={null} type="primary" />)
-                : <MuscleCard muscleId={null} stringFallback={exercise.muscle_group} type="primary" />
+                : <MuscleCard muscleId={null} stringFallback={derivedPrimary} type="primary" />
               }
 
               {/* Músculos Secundários */}
-              {secondaryIds.length > 0 && (
+              {(hasValidParsedData ? secondaryIds.length > 0 : (!!derivedSecondary && derivedSecondary.toLowerCase() !== derivedPrimary?.toLowerCase())) && (
                 <>
                   <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-3 mt-2">MÚSCULOS SECUNDÁRIOS</Text>
-                  {secondaryIds.map((muscleId: string) => <MuscleCard key={muscleId} muscleId={muscleId} stringFallback={null} type="secondary" />)}
+                  {hasValidParsedData 
+                    ? secondaryIds.map((muscleId: string) => <MuscleCard key={muscleId} muscleId={muscleId} stringFallback={null} type="secondary" />)
+                    : <MuscleCard muscleId={null} stringFallback={derivedSecondary!} type="secondary" />
+                  }
                 </>
               )}
 
@@ -267,7 +329,7 @@ export default function ExerciseDetailScreen() {
           ) : (
             <>
               <Text className="text-forge-muted text-[11px] font-bold tracking-wide mb-1">HISTÓRICO DO EXERCÍCIO</Text>
-              <Text className="text-white text-2xl font-black mb-6">{exercise.name}</Text>
+              <Text className="text-white text-2xl font-black mb-6">{toTitleCase(exercise.name)}</Text>
 
               {stats.history.length === 0 ? (
                 <Text className="text-forge-muted text-center mt-8 mb-8">Nenhum histórico encontrado para este exercício.</Text>
@@ -360,6 +422,87 @@ export default function ExerciseDetailScreen() {
           visible={isNotesVisible}
           onClose={() => setIsNotesVisible(false)}
         />
+      )}
+
+      {/* Exercise Options Modal */}
+      {exercise && exercise.is_custom === 1 && (
+        <Modal visible={isExerciseMenuVisible} transparent animationType="fade">
+          <Pressable className="flex-1 bg-black/60 justify-end" onPress={() => {
+            setShowExerciseDeleteConfirm(false);
+            setIsExerciseMenuVisible(false);
+          }}>
+            <Pressable className="bg-forge-surface rounded-t-3xl px-5 pt-5 pb-10">
+              {!showExerciseDeleteConfirm ? (
+                <>
+                  <View className="flex-row items-center justify-between mb-5">
+                    <Text className="text-white text-base font-extrabold tracking-wide">OPÇÕES DO EXERCÍCIO</Text>
+                    <TouchableOpacity
+                      onPress={() => setIsExerciseMenuVisible(false)}
+                      className="w-8 h-8 rounded-full bg-forge-border justify-center items-center"
+                    >
+                      <X size={16} color="#FFF" />
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                    className="flex-row items-center py-4 border-b border-forge-border"
+                    onPress={() => {
+                      setIsExerciseMenuVisible(false);
+                      router.push(`/exercises/edit/${exercise.id}`);
+                    }}
+                  >
+                    <View className="w-10 h-10 rounded-xl bg-forge-accent/15 justify-center items-center mr-4">
+                      <Pencil size={18} color="#A0C4FF" />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-white text-sm font-bold">Editar Exercício</Text>
+                      <Text className="text-forge-muted text-[11px]">Modificar nome, músculos ou mídia</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    className="flex-row items-center py-4"
+                    onPress={() => setShowExerciseDeleteConfirm(true)}
+                  >
+                    <View className="w-10 h-10 rounded-xl bg-red-500/15 justify-center items-center mr-4">
+                      <Trash2 size={18} color="#EF4444" />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-red-400 text-sm font-bold">Excluir Exercício</Text>
+                      <Text className="text-forge-muted text-[11px]">Remover do aplicativo permanentemente</Text>
+                    </View>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <View className="items-center px-4 py-2">
+                  <View className="w-16 h-16 rounded-full bg-red-500/10 justify-center items-center mb-5">
+                    <Trash2 size={28} color="#EF4444" />
+                  </View>
+                  <Text className="text-white text-xl font-black mb-2 text-center">Excluir Exercício?</Text>
+                  <Text className="text-forge-muted text-sm text-center mb-8 leading-5">
+                    Isso removerá "{exercise.name}" de todas as suas rotinas e excluirá o histórico de treinos associado. Essa ação é irreversível.
+                  </Text>
+                  
+                  <View className="flex-row gap-3 w-full">
+                    <TouchableOpacity 
+                      className="flex-1 py-4 rounded-xl bg-forge-surface border border-forge-border items-center"
+                      onPress={() => setShowExerciseDeleteConfirm(false)}
+                    >
+                      <Text className="text-white text-sm font-bold tracking-wide">CANCELAR</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                      className="flex-1 py-4 rounded-xl bg-red-500 items-center"
+                      onPress={handleDeleteExercise}
+                    >
+                      <Text className="text-white text-sm font-bold tracking-wide">EXCLUIR</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </Pressable>
+          </Pressable>
+        </Modal>
       )}
     </SafeAreaView>
   );

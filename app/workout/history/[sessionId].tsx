@@ -2,10 +2,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Clock, MessageSquare, Dumbbell, List } from 'lucide-react-native';
-import { db } from '@/database/schema';
+import { ArrowLeft, Clock, Dumbbell, Pencil, Check } from 'lucide-react-native';
 
-import { historyService, HistorySession } from '@/services/historyService';
+import { SessionRepository, HistorySession } from '@/database/repositories/SessionRepository';
 import { HistoryExerciseList } from '@/components/history/HistoryExerciseList';
 import { useWorkoutStore } from '@/hooks/useWorkoutStore';
 
@@ -20,7 +19,7 @@ export default function SessionDetailsScreen() {
 
   useEffect(() => {
     if (sessionId) {
-      const data = historyService.getSessionDetails(sessionId);
+      const data = SessionRepository.getSessionDetails(sessionId as string);
       if (data) {
         setSession(data);
         setNotes(data.session_notes || '');
@@ -37,7 +36,7 @@ export default function SessionDetailsScreen() {
   useEffect(() => {
     return () => {
       if (sessionId) {
-        historyService.updateSessionNotes(sessionId, latestNotes.current);
+        SessionRepository.updateSessionNotes(sessionId as string, latestNotes.current);
       }
     };
   }, [sessionId]);
@@ -49,7 +48,7 @@ export default function SessionDetailsScreen() {
     }
     saveTimeoutRef.current = setTimeout(() => {
       if (sessionId) {
-        historyService.updateSessionNotes(sessionId, text);
+        SessionRepository.updateSessionNotes(sessionId as string, text);
       }
     }, 500);
   };
@@ -60,12 +59,9 @@ export default function SessionDetailsScreen() {
     const newSessionId = 'sess_' + Math.random().toString(36).substr(2, 9);
     
     try {
-      db.runSync(
-        'INSERT INTO sessions (id, user_id, routine_day_id, start_time, total_volume_kg) VALUES (?, ?, ?, ?, ?)',
-        [newSessionId, 'user_1', null, new Date().toISOString(), 0]
-      );
+      SessionRepository.createSession(newSessionId, 'user_1', null);
 
-      const exercises = historyService.getPerformAgainExercises(sessionId);
+      const exercises = SessionRepository.getPerformAgainExercises(sessionId as string);
       
       const { startFreeWorkout, addExercisesToActive } = useWorkoutStore.getState();
       startFreeWorkout(newSessionId);
@@ -120,10 +116,10 @@ export default function SessionDetailsScreen() {
         </View>
 
         {/* Notes Container */}
-        <Text className="text-[#A0C4FF] text-sm font-bold tracking-wide mb-3">Editar nome e data</Text>
+        <Text className="text-[#A0C4FF] text-sm font-bold tracking-wide mb-3">Anotações</Text>
         <View className="bg-forge-surface rounded-2xl p-4 mb-6 min-h-[60px] border border-forge-border">
           <View className="flex-row items-start">
-            <MessageSquare size={20} color="#9CA3AF" className="mt-0.5" />
+            <Pencil size={20} color="#9CA3AF" className="mt-0.5" />
             <TextInput
               className="flex-1 ml-3 text-white text-sm"
               placeholder="Toque aqui para adicionar anotações"
@@ -146,7 +142,7 @@ export default function SessionDetailsScreen() {
           </View>
           
           <View className="items-center flex-1 border-r border-forge-border/40">
-            <List size={24} color="#6EE7B7" className="mb-2" />
+            <Check size={24} color="#6EE7B7" className="mb-2" />
             <Text className="text-forge-muted text-[10px] font-bold tracking-widest uppercase mb-1">Séries</Text>
             <Text className="text-white text-xl font-black">{session.total_sets}</Text>
           </View>

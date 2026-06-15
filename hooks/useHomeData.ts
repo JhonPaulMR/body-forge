@@ -152,71 +152,68 @@ export function useHomeData() {
 
       const globalMuscleSets: Record<string, number> = {};
 
-      // Tonnage & RPE Query
-      const sessions = db.getAllSync<{ id: string, dateStr: string, name: string }>(
-        `SELECT s.id, date(s.start_time) as dateStr, rd.day_name as name 
-         FROM sessions s 
+      // Tonnage & RPE Query — Single optimized JOIN query instead of N+1
+      const allWeekData = db.getAllSync<{
+        session_id: string;
+        dateStr: string;
+        day_name: string | null;
+        muscle_group: string | null;
+        weight: number;
+        reps: number;
+        rpe: number;
+        is_completed: number;
+      }>(
+        `SELECT s.id as session_id, date(s.start_time) as dateStr, rd.day_name,
+                e.muscle_group, st.weight, st.reps, st.rpe, st.is_completed
+         FROM sessions s
          LEFT JOIN routine_days rd ON s.routine_day_id = rd.id
-         WHERE dateStr >= ? AND dateStr <= ?`,
+         LEFT JOIN session_exercises se ON se.session_id = s.id
+         LEFT JOIN exercises e ON se.exercise_id = e.id
+         LEFT JOIN sets st ON st.session_exercise_id = se.id
+         WHERE date(s.start_time) >= ? AND date(s.start_time) <= ?`,
         [startStr, endStr]
       );
 
       let compDays = new Set<string>();
 
-      sessions.forEach(s => {
-        if (!s.dateStr) return;
-        compDays.add(s.dateStr);
-        if (!statsMap[s.dateStr]) return;
-        
-        statsMap[s.dateStr].workoutName = s.name || 'Treino Livre';
+      allWeekData.forEach(row => {
+        if (!row.dateStr) return;
+        compDays.add(row.dateStr);
+        if (!statsMap[row.dateStr]) return;
 
-        const sesExs = db.getAllSync<{ id: string, muscle_group: string }>(
-          `SELECT se.id, e.muscle_group FROM session_exercises se
-           LEFT JOIN exercises e ON se.exercise_id = e.id
-           WHERE se.session_id = ?`,
-           [s.id]
-        );
-
-        let dayVolume = 0;
-        let dayRpeSum = 0;
-        let dayRpeCount = 0;
-        let daySets = 0;
-        const muscleCounts: Record<string, number> = {};
-
-        sesExs.forEach(se => {
-          const muscleData = parseMuscleGroup(se.muscle_group);
-          let muscle = muscleData.primaryString;
-          
-          if (muscle && (muscle.toLowerCase().includes('quad') || muscle.toLowerCase().includes('posterior'))) {
-            muscle = 'Pernas';
-          }
-          
-          const sets = db.getAllSync<{ weight: number, reps: number, rpe: number }>(
-            'SELECT weight, reps, rpe FROM sets WHERE session_exercise_id = ? AND is_completed = 1',
-            [se.id]
-          );
-
-          if (muscle) {
-            muscleCounts[muscle] = (muscleCounts[muscle] || 0) + 1;
-            globalMuscleSets[muscle] = (globalMuscleSets[muscle] || 0) + sets.length;
-          }
-          
-          sets.forEach(set => {
-            dayVolume += (set.weight || 0) * (set.reps || 0);
-            if (set.rpe) {
-              dayRpeSum += set.rpe;
-              dayRpeCount++;
-            }
-            daySets++;
-          });
-        });
-
-        statsMap[s.dateStr].volume += dayVolume;
-        statsMap[s.dateStr].setsCompleted += daySets;
-        if (dayRpeCount > 0) {
-          statsMap[s.dateStr].rpe = dayRpeSum / dayRpeCount;
+        if (!statsMap[row.dateStr].workoutName) {
+          statsMap[row.dateStr].workoutName = row.day_name || 'Treino Livre';
         }
 
+        if (row.is_completed) {
+          const volume = (row.weight || 0) * (row.reps || 0);
+          statsMap[row.dateStr].volume += volume;
+          statsMap[row.dateStr].setsCompleted += 1;
+
+          if (row.rpe) {
+            // Accumulate RPE for averaging later
+            statsMap[row.dateStr].rpe += row.rpe;
+          }
+
+          if (row.muscle_group) {
+            const muscleData = parseMuscleGroup(row.muscle_group);
+            let muscle = muscleData.primaryString;
+            if (muscle && (muscle.toLowerCase().includes('quad') || muscle.toLowerCase().includes('posterior'))) {
+              muscle = 'Pernas';
+            }
+            if (muscle) {
+              globalMuscleSets[muscle] = (globalMuscleSets[muscle] || 0) + 1;
+            }
+          }
+        }
+      });
+
+      // Average RPE per day
+      weekDays.forEach(d => {
+        const key = d.toISOString().split('T')[0];
+        if (statsMap[key].setsCompleted > 0 && statsMap[key].rpe > 0) {
+          statsMap[key].rpe = statsMap[key].rpe / statsMap[key].setsCompleted;
+        }
       });
 
       setCompletedDays(compDays.size);

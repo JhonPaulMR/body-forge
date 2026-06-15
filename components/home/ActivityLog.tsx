@@ -136,7 +136,7 @@ export function ActivityLog({ completedDays, weeklyStats, weeklyMuscleData = [] 
           </TouchableOpacity>
         </View>
         
-        {completedDays === 0 ? (
+        {weeklyStats.every(s => s.setsCompleted === 0) ? (
           <View className="items-center justify-center h-[100px] mt-4">
             <Activity size={24} color="#5F6368" className="mb-2" />
             <Text className="text-forge-muted text-sm font-semibold">Sem Registros de Treino</Text>

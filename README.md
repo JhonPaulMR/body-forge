@@ -93,15 +93,22 @@ O desenvolvimento está estruturado em 6 Sprints semanais, focando inicialmente 
   * Tela de treino inativo (quando não há treino em andamento).
   * Modal de anotações do exercício durante e fora do treino.
   * Tela de Resumo Pós-Treino calculando o volume total da `session`.
-  * Timer de descanso entre séries (ainda não rodando em background).
+  * Timer de descanso entre séries com estado global via Zustand.
 
+* [x] **Sprint 5 (Semana 6): Dataset, Estatísticas Funcionais, Histórico e Otimizações**
+  * Adição de dataset de exercícios com GIFs, instruções e nome do exercício (`exercises_seed.json`).
+  * Reformulação da Tela de Planos com carrosséis por categoria e planos prontos (built-in).
+  * Tela de Estatísticas Funcional com filtros de período, gráfico rosquinha de foco muscular (primário/secundário) e gráfico de barras de treinos ao longo do tempo.
+  * Melhoria nos gráficos da tela inicial (Volume, Consistência RPE, Foco Muscular semanal).
+  * Adição de estatísticas do treino (por plano) e do exercício (histórico, volume semanal, tendência de carga).
+  * Tela de Histórico com calendário mensal e detalhes de sessões passadas.
+  * Cálculo real de streak (sequência de dias consecutivos) na tela de conclusão do treino.
+  * Detecção de Recorde Pessoal (PR) no histórico de cada exercício.
+  * Otimização de queries no dashboard (N+1 → JOIN único), hook leve `useCalendarData` para reduzir re-renders.
+  * Tradução completa de modais para PT-BR.
 
-* [ ] **Sprint 5 (Semana 6): Histórico, Cronômetro e Estatísticas**
-  * Implementação do Timer de Descanso executando em background (estado global com Zustand).
-  * Dashboard de "Estatísticas" integrando queries de agrupamento para o gráfico rosquinha (volume por músculo).
-
-* [ ] **Sprint 6 (Semana 7): Gamificação, Polimento e Entrega**
-  * Implementação da tela "Treino Concluído" exibindo ganho de XP e Troféus.
+* [ ] **Sprint 6 (Semana 7): Polimento, Configurações e Entrega**
+  * Implementação da tela de "Configurações" (incremento de peso +/-, meta de água, permissões de notificação, exportar/importar dados).
   * Refinamento visual aplicando os detalhes da UI "Titanium Steel" (Ajuste de cores e *haptics* de vibração do Expo).
   * Atualização da documentação (este README) e build final (APK) para entrega do Checkpoint.
 

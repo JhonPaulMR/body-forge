@@ -8,6 +8,7 @@ import {
   Image,
   Modal,
   Pressable,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -24,6 +25,9 @@ interface Exercise {
   equipment: string;
   instructions: string | null;
   image_uri: string | null;
+  gif_url?: string | null;
+  body_part?: string;
+  target?: string;
   is_custom: number;
 }
 
@@ -51,8 +55,22 @@ export default function ExercisesListScreen() {
     }
   };
 
+  const getDisplayMuscle = (ex: Exercise) => {
+    let primary = ex.body_part;
+    if (primary && (primary.toLowerCase() === 'braços' || primary.toLowerCase() === 'pernas') && ex.target) {
+      primary = ex.target;
+    }
+    if (primary) return primary;
+
+    if (ex.muscle_group && ex.muscle_group.startsWith('{')) {
+      const parsed = parseMuscleGroup(ex.muscle_group);
+      return parsed.primaryString || 'Outros';
+    }
+    return ex.muscle_group || 'Outros';
+  };
+
   const muscleGroups = useMemo(() => {
-    const groups = [...new Set(exercises.map((e) => e.muscle_group).filter(Boolean))];
+    const groups = [...new Set(exercises.map(getDisplayMuscle).filter(Boolean))];
     return groups.sort();
   }, [exercises]);
 
@@ -65,7 +83,7 @@ export default function ExercisesListScreen() {
     return exercises.filter((ex) => {
       const matchesSearch = searchQuery === '' ||
         ex.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesMuscle = !selectedMuscle || ex.muscle_group === selectedMuscle;
+      const matchesMuscle = !selectedMuscle || getDisplayMuscle(ex) === selectedMuscle;
       const matchesEquipment = !selectedEquipment || ex.equipment === selectedEquipment;
       return matchesSearch && matchesMuscle && matchesEquipment;
     });
@@ -83,35 +101,44 @@ export default function ExercisesListScreen() {
       <Pressable className="flex-1 bg-black/60 justify-center items-center" onPress={onClose}>
         <View className="bg-forge-surface rounded-[20px] p-6 w-[80%] max-h-[60%]">
           <Text className="text-white text-lg font-extrabold mb-4">{title}</Text>
-          <TouchableOpacity
-            className={`py-3 px-4 rounded-xl mb-1 ${!selected ? 'bg-forge-accent-bg' : ''}`}
-            onPress={() => { onSelect(null); onClose(); }}
-          >
-            <Text className={`text-sm font-semibold ${!selected ? 'text-forge-accent' : 'text-forge-text-secondary'}`}>
-              Todos
-            </Text>
-          </TouchableOpacity>
-          {options.map((opt) => (
+          <ScrollView className="w-full" showsVerticalScrollIndicator={false}>
             <TouchableOpacity
-              key={opt}
-              className={`py-3 px-4 rounded-xl mb-1 ${selected === opt ? 'bg-forge-accent-bg' : ''}`}
-              onPress={() => { onSelect(opt); onClose(); }}
+              className={`py-3 px-4 rounded-xl mb-1 ${!selected ? 'bg-forge-accent-bg' : ''}`}
+              onPress={() => { onSelect(null); onClose(); }}
             >
-              <Text className={`text-sm font-semibold ${selected === opt ? 'text-forge-accent' : 'text-forge-text-secondary'}`}>
-                {opt}
+              <Text className={`text-sm font-semibold ${!selected ? 'text-forge-accent' : 'text-forge-text-secondary'}`}>
+                Todos
               </Text>
             </TouchableOpacity>
-          ))}
+            {options.map((opt) => (
+              <TouchableOpacity
+                key={opt}
+                className={`py-3 px-4 rounded-xl mb-1 ${selected === opt ? 'bg-forge-accent-bg' : ''}`}
+                onPress={() => { onSelect(opt); onClose(); }}
+              >
+                <Text className={`text-sm font-semibold ${selected === opt ? 'text-forge-accent' : 'text-forge-text-secondary'}`}>
+                  {opt}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
       </Pressable>
     </Modal>
   );
 
+  const toTitleCase = (str: string) => {
+    return str.replace(
+      /\w\S*/g,
+      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+    );
+  };
+
   const renderExerciseItem = ({ item }: { item: Exercise }) => {
     const muscleData = parseMuscleGroup(item.muscle_group);
     const primaryDisplay = muscleData.primaryString;
 
-    const imageUri = item.image_uri || muscleImages[primaryDisplay] || muscleImages['Peito'];
+    const imageUri = item.gif_url || item.image_uri || muscleImages[primaryDisplay] || muscleImages['Peito'];
     
     return (
       <TouchableOpacity
@@ -121,7 +148,7 @@ export default function ExercisesListScreen() {
       >
         <Image source={{ uri: imageUri }} className="w-[70px] h-[70px] bg-forge-border" />
         <View className="flex-1 px-4 py-3.5">
-          <Text className="text-white text-[15px] font-bold mb-1">{item.name}</Text>
+          <Text className="text-white text-[15px] font-bold mb-1">{toTitleCase(item.name)}</Text>
           <Text className="text-forge-accent text-[10px] font-bold tracking-wide">
             {primaryDisplay?.toUpperCase()}
           </Text>

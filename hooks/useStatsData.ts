@@ -2,6 +2,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { db } from '@/database/schema';
 
+import { SessionRepository } from '@/database/repositories/SessionRepository';
+
 export interface BodyMetric {
   id: string;
   date: string;
@@ -10,8 +12,18 @@ export interface BodyMetric {
   notes: string | null;
 }
 
+export type StatsPeriod = '7' | '30' | '1y' | 'all';
+export type MuscleFocusType = 'primary' | 'secondary';
+
 export function useStatsData() {
-  const [periodFilter, setPeriodFilter] = useState<'7' | '30'>('30');
+  const [periodFilter, setPeriodFilter] = useState<StatsPeriod>('30');
+  const [muscleType, setMuscleType] = useState<MuscleFocusType>('primary');
+  
+  // New Stats State
+  const [overview, setOverview] = useState({ total_sessions: 0, total_duration_seconds: 0, total_sets: 0 });
+  const [muscleFocus, setMuscleFocus] = useState<{label: string, value: number}[]>([]);
+  const [workoutsOverTime, setWorkoutsOverTime] = useState<{label: string, value: number, dateStr: string}[]>([]);
+
   const [bodyMetrics, setBodyMetrics] = useState<BodyMetric[]>([]);
   const [showAddMetricModal, setShowAddMetricModal] = useState(false);
   
@@ -23,6 +35,66 @@ export function useStatsData() {
   useEffect(() => {
     loadBodyMetrics();
   }, []);
+
+  useEffect(() => {
+    loadDynamicStats();
+  }, [periodFilter, muscleType]);
+
+  const loadDynamicStats = useCallback(() => {
+    let startDate: string | null = null;
+    const now = new Date();
+    
+    if (periodFilter === '7') {
+      now.setDate(now.getDate() - 7);
+      startDate = now.toISOString();
+    } else if (periodFilter === '30') {
+      now.setDate(now.getDate() - 30);
+      startDate = now.toISOString();
+    } else if (periodFilter === '1y') {
+      now.setFullYear(now.getFullYear() - 1);
+      startDate = now.toISOString();
+    }
+    // 'all' leaves startDate as null
+
+    try {
+      const statsOverview = SessionRepository.getStatsOverview(startDate);
+      setOverview(statsOverview);
+
+      const rawMuscleStats = SessionRepository.getMuscleFocusStats(startDate, muscleType);
+      
+      // Group small segments into "Outros"
+      const totalMuscleSets = rawMuscleStats.reduce((sum, item) => sum + item.value, 0);
+      let outrosValue = 0;
+      const filteredStats = rawMuscleStats.filter(item => {
+        const percent = (item.value / totalMuscleSets) * 100;
+        // Se for <= 3% ou se for o grupo "outros" original, agrupa
+        if (percent <= 3 || item.label.toLowerCase() === 'outros' || item.label.toLowerCase() === 'vários') {
+          outrosValue += item.value;
+          return false;
+        }
+        return true;
+      });
+      
+      if (outrosValue > 0) {
+        filteredStats.push({ label: 'Outros', value: outrosValue });
+      }
+      
+      // Re-sort so "Outros" is typically at the end or ordered by value
+      filteredStats.sort((a, b) => b.value - a.value);
+      
+      setMuscleFocus(filteredStats);
+
+      if (periodFilter !== '7') {
+        const groupBy = periodFilter === '30' ? 'week' : 'month';
+        const wOverTime = SessionRepository.getWorkoutsOverTime(startDate, groupBy);
+        setWorkoutsOverTime(wOverTime);
+      } else {
+        setWorkoutsOverTime([]);
+      }
+    } catch (e) {
+      console.error('Error loading dynamic stats:', e);
+    }
+  }, [periodFilter, muscleType]);
 
   const loadBodyMetrics = useCallback(() => {
     try {
@@ -90,6 +162,11 @@ export function useStatsData() {
   return {
     periodFilter,
     setPeriodFilter,
+    muscleType,
+    setMuscleType,
+    overview,
+    muscleFocus,
+    workoutsOverTime,
     bodyMetrics,
     showAddMetricModal,
     setShowAddMetricModal,

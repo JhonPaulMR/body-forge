@@ -4,9 +4,12 @@ export interface Exercise {
   id: string;
   name: string;
   muscle_group: string;
+  body_part?: string;
+  target?: string;
   equipment: string;
   instructions: string | null;
   image_uri: string | null;
+  gif_url?: string | null;
   is_custom: number;
 }
 
@@ -101,18 +104,47 @@ export const getExerciseStats = (exerciseId: string): ExerciseStats => {
       });
     });
 
-    const history: ExerciseHistorySession[] = Object.keys(sessionsMap).map(date => ({
-      date,
-      isPersonalRecord: false, // Could calculate this based on max weight historically
-      sets: sessionsMap[date]
-    }));
+    // Calculate Personal Records by tracking max weight progression
+    const sessionDates = Object.keys(sessionsMap);
+    let historicalMaxWeight = 0;
+    
+    // Process sessions from oldest to newest to track PR progression
+    const history: ExerciseHistorySession[] = sessionDates.map(date => {
+      const sets = sessionsMap[date];
+      const sessionMaxWeight = Math.max(...sets.map(s => s.weight || 0), 0);
+      
+      let isPersonalRecord = false;
+      if (sessionMaxWeight > historicalMaxWeight && sessionMaxWeight > 0) {
+        isPersonalRecord = true;
+        historicalMaxWeight = sessionMaxWeight;
+      }
+      
+      return { date, isPersonalRecord, sets };
+    });
+
+    // Reverse back so newest is first (the query was DESC but we mapped in order)
+    // Sessions are already in DESC order from the grouping, so PR marking 
+    // needs to be done from the end (oldest first)
+    const reversedHistory = [...history].reverse();
+    let runningMax = 0;
+    reversedHistory.forEach(session => {
+      const sessionMax = Math.max(...session.sets.map(s => s.weight || 0), 0);
+      if (sessionMax > runningMax && sessionMax > 0) {
+        session.isPersonalRecord = true;
+        runningMax = sessionMax;
+      } else {
+        session.isPersonalRecord = false;
+      }
+    });
+    // Reverse back to DESC order for display
+    reversedHistory.reverse();
 
     let trendMessage = 'Continue treinando para gerar mais dados de tendência.';
     let trendDirection: 'up' | 'down' | 'neutral' = 'neutral';
 
-    if (history.length >= 2) {
-      const latestSets = history[0].sets;
-      const prevSets = history[1].sets;
+    if (reversedHistory.length >= 2) {
+      const latestSets = reversedHistory[0].sets;
+      const prevSets = reversedHistory[1].sets;
       
       const maxLatest = Math.max(...latestSets.map(s => s.weight || 0), 0);
       const maxPrev = Math.max(...prevSets.map(s => s.weight || 0), 0);
@@ -131,7 +163,7 @@ export const getExerciseStats = (exerciseId: string): ExerciseStats => {
       }
     }
 
-    return { weeklyVolume, history, trendMessage, trendDirection };
+    return { weeklyVolume, history: reversedHistory, trendMessage, trendDirection };
   } catch (error) {
     console.error('Error fetching exercise stats:', error);
     return { weeklyVolume: 0, history: [], trendMessage: '', trendDirection: 'neutral' };

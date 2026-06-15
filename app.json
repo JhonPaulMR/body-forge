@@ -42,7 +42,8 @@
           "color": "#A0C4FF",
           "sounds": []
         }
-      ]
+      ],
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true

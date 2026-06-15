@@ -140,7 +140,18 @@ export const useWorkoutStore = create<WorkoutState>()(
         state.restTimer = { isActive: false, totalSeconds: 0, restEndTime: null };
       }),
 
-    finishWorkout: () => set((state) => { state.isActive = false; }),
+    finishWorkout: () =>
+      set((state) => {
+        state.isActive = false;
+        state.sessionId = null;
+        state.routineDayId = null;
+        state.startTime = null;
+        state.elapsedSeconds = 0;
+        state.exercises = [];
+        state.modifications = [];
+        state.hasStructuralChanges = false;
+        state.restTimer = { isActive: false, totalSeconds: 0, restEndTime: null };
+      }),
 
     cancelWorkout: () =>
       set((state) => {

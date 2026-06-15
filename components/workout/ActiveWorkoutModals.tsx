@@ -4,6 +4,8 @@ import { X, Check } from 'lucide-react-native';
 import { WorkoutExercise } from '@/hooks/useWorkoutStore';
 import { muscleImages } from '@/constants/muscleImages';
 import { getExerciseStats, ExerciseHistorySession } from '@/services/exerciseService';
+import { ExerciseMediaRepository } from '@/database/repositories/ExerciseMediaRepository';
+import { toTitleCase } from '@/utils/stringUtils';
 import { ExerciseNotesModal } from '@/components/exercises/ExerciseNotesModal';
 
 // --- HISTORY MODAL ---
@@ -26,7 +28,7 @@ export function HistoryModal({ exercise, visible, onClose }: { exercise: Workout
           <View className="flex-row justify-between items-center mb-6">
             <View>
               <Text className="text-white text-xl font-bold">Histórico</Text>
-              <Text className="text-forge-muted text-sm">{exercise.name}</Text>
+              <Text className="text-forge-muted text-sm">{toTitleCase(exercise.name)}</Text>
             </View>
             <TouchableOpacity onPress={onClose} className="p-2 bg-forge-surface rounded-full">
               <X size={20} color="#8A8F98" />
@@ -125,14 +127,14 @@ export function ConfirmUpdateModal({
       <View className="flex-1 justify-end bg-black/60">
         <View className="bg-[#1C1E23] rounded-t-3xl h-[85%] p-6">
           <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-white text-2xl font-bold">Update your workout?</Text>
+            <Text className="text-white text-2xl font-bold">Atualizar seu treino?</Text>
             <TouchableOpacity onPress={onKeepOriginal} className="p-2">
               <X size={24} color="#FFF" />
             </TouchableOpacity>
           </View>
           
           <Text className="text-forge-muted text-sm mb-6">
-            You've made changes during your workout. Select which structural modifications you want to save to your original routine for next time:
+            Você fez alterações durante o treino. Selecione quais modificações estruturais deseja salvar na rotina original para a próxima vez:
           </Text>
 
           <ScrollView showsVerticalScrollIndicator={false} className="flex-1 mb-4">
@@ -158,10 +160,10 @@ export function ConfirmUpdateModal({
 
           <View className="mt-2 gap-3 pb-4">
             <TouchableOpacity onPress={onApply} className="bg-[#3B82F6] py-4 rounded-full items-center">
-              <Text className="text-white font-bold">Apply selected changes</Text>
+              <Text className="text-white font-bold">Aplicar alterações selecionadas</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={onKeepOriginal} className="bg-transparent border border-forge-border py-4 rounded-full items-center">
-              <Text className="text-white font-bold">Keep original workout</Text>
+              <Text className="text-white font-bold">Manter treino original</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -207,11 +209,11 @@ export function CreateSupersetModal({ visible, currentExerciseId, exercises, onC
             <TouchableOpacity onPress={onClose} className="p-2 -ml-2 mr-2">
               <X size={24} color="#FFF" />
             </TouchableOpacity>
-            <Text className="text-white text-xl font-bold">Create superset</Text>
+            <Text className="text-white text-xl font-bold">Criar Superset</Text>
           </View>
           
           <Text className="text-forge-muted text-sm mb-6">
-            Select the exercises you want to superset
+            Selecione os exercícios que deseja agrupar em superset
           </Text>
 
           <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
@@ -230,11 +232,11 @@ export function CreateSupersetModal({ visible, currentExerciseId, exercises, onC
                       {exerciseImage ? (
                         <Image source={{ uri: exerciseImage }} className="w-full h-full" resizeMode="cover" />
                       ) : (
-                        <View className="w-full h-full items-center justify-center bg-forge-surface"><Text className="text-white font-bold">{ex.name.charAt(0)}</Text></View>
+                        <View className="w-full h-full items-center justify-center bg-forge-surface"><Text className="text-white font-bold">{toTitleCase(ex.name).charAt(0)}</Text></View>
                       )}
                     </View>
                     <View className="flex-1 pr-4">
-                      <Text className="text-white font-bold text-sm">{ex.name}</Text>
+                      <Text className="text-white font-bold text-sm">{toTitleCase(ex.name)}</Text>
                     </View>
                   </View>
                   
@@ -252,7 +254,7 @@ export function CreateSupersetModal({ visible, currentExerciseId, exercises, onC
               disabled={selectedIds.size < 2}
               className={`py-4 rounded-full items-center ${selectedIds.size > 1 ? 'bg-[#3B82F6]' : 'bg-forge-surface border border-forge-border opacity-50'}`}
             >
-              <Text className={`font-bold ${selectedIds.size > 1 ? 'text-white' : 'text-forge-muted'}`}>Save</Text>
+              <Text className={`font-bold ${selectedIds.size > 1 ? 'text-white' : 'text-forge-muted'}`}>Salvar</Text>
             </TouchableOpacity>
           </View>
         </View>

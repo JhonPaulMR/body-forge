@@ -130,19 +130,37 @@ export function LineChart({
             />
           ))}
 
-        {showLabels &&
-          data.map((point, i) => (
-            <SvgText
-              key={i}
-              x={getX(i)}
-              y={height - 4}
-              fill="#5F6368"
-              fontSize={9}
-              textAnchor="middle"
-            >
-              {point.label}
-            </SvgText>
-          ))}
+        {showLabels && (() => {
+          const maxLabels = Math.max(2, Math.floor(chartWidth / 75));
+          const visibleIndices = new Set<number>();
+          
+          if (data.length <= maxLabels) {
+            data.forEach((_, i) => visibleIndices.add(i));
+          } else {
+            visibleIndices.add(0);
+            visibleIndices.add(data.length - 1);
+            const step = (data.length - 1) / (maxLabels - 1);
+            for (let i = 1; i < maxLabels - 1; i++) {
+              visibleIndices.add(Math.round(i * step));
+            }
+          }
+
+          return data.map((point, i) => {
+            if (!visibleIndices.has(i)) return null;
+            return (
+              <SvgText
+                key={i}
+                x={getX(i)}
+                y={height - 4}
+                fill="#5F6368"
+                fontSize={9}
+                textAnchor="middle"
+              >
+                {point.label}
+              </SvgText>
+            );
+          });
+        })()}
       </Svg>
     </View>
   );

@@ -42,8 +42,12 @@ export function CalendarWidget({ currentMonthStr, completedDays, weekDays, weekl
           const dayNames = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 
           return (
-            <View key={i} className={`py-2.5 px-3 rounded-lg items-center flex-1 mx-[2px] ${isToday ? 'bg-forge-accent' : 'bg-forge-surface'}`}>
-              <Text className={`text-[11px] mb-1 font-semibold ${isToday ? 'text-forge-bg' : 'text-forge-muted'}`}>
+            <View key={i} className={`py-2 px-1 rounded-lg items-center flex-1 mx-[2px] ${isToday ? 'bg-forge-accent' : 'bg-forge-surface'}`}>
+              <Text 
+                className={`text-[10px] mb-1 font-bold ${isToday ? 'text-forge-bg' : 'text-forge-muted'}`}
+                numberOfLines={1} 
+                adjustsFontSizeToFit
+              >
                 {dayNames[date.getDay()]}
               </Text>
               <Text className={`text-base font-bold ${isToday ? 'text-forge-bg' : 'text-forge-text-secondary'}`}>

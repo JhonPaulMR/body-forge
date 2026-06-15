@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Check, Plus, MoreVertical, Clock, Minus } from 'lucide-react-native';
 import { useWorkoutStore, WorkoutExercise, WorkoutSet } from '@/hooks/useWorkoutStore';
 import { muscleImages } from '@/constants/muscleImages';
 import { WorkoutSetRow } from './WorkoutSetRow';
+import { toTitleCase } from '@/utils/stringUtils';
 
 interface SupersetPagerCardProps {
   block: WorkoutExercise[];
@@ -65,7 +67,7 @@ const SupersetPagerCardComponent = ({ block, onOpenHistory, onOpenNotes, onOpenR
             className="border border-forge-border rounded-xl overflow-hidden bg-forge-surface-hover"
           >
             {exerciseImage ? (
-              <Image source={{ uri: exerciseImage }} className="w-16 h-16" resizeMode="cover" />
+              <Image source={{ uri: exerciseImage }} style={{ width: 64, height: 64 }} contentFit="cover" cachePolicy="disk" />
             ) : (
               <View className="w-16 h-16 items-center justify-center">
                 <Text className="text-forge-muted font-bold text-xl">{exercise.name.charAt(0)}</Text>
@@ -75,7 +77,7 @@ const SupersetPagerCardComponent = ({ block, onOpenHistory, onOpenNotes, onOpenR
           
           <View className="flex-1 justify-center">
             <Text className="text-white text-lg font-bold leading-tight mb-2 pr-2">
-              {exercise.name}
+              {toTitleCase(exercise.name)}
             </Text>
             <TouchableOpacity onPress={() => onOpenRest(exercise)} className="flex-row items-center gap-1.5 self-start px-2 py-1 bg-forge-surface rounded-md">
               <Clock size={12} color="#10B981" />

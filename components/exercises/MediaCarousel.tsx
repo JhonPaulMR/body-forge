@@ -1,4 +1,4 @@
-import { ExerciseMedia } from '@/services/exerciseMediaService';
+import { ExerciseMedia } from '@/database/repositories/ExerciseMediaRepository';
 import { Camera, MoreVertical, Play } from 'lucide-react-native';
 import React, { useCallback, useRef, useState } from 'react';
 import { Dimensions, FlatList, Image as RNImage, Text, TouchableOpacity, View } from 'react-native';
@@ -79,7 +79,7 @@ export function MediaCarousel({ heroImageUri, exerciseMedia, fallbackImage, onMe
           <RNImage
             source={{ uri: item.uri }}
             style={{ width: '100%', height: '100%' }}
-            resizeMode="cover"
+            resizeMode="contain"
           />
         ) : fallbackImage ? (
           <RNImage

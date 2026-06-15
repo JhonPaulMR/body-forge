@@ -17,9 +17,14 @@ export interface ActivityStats {
   dateStr: string;
   volume: number;
   rpe: number;
-  mainMuscle: string | null;
   workoutName: string | null;
   setsCompleted: number;
+}
+
+export interface WeeklyMuscleData {
+  label: string;
+  value: number;
+  color: string;
 }
 
 export function useHomeData() {
@@ -30,6 +35,7 @@ export function useHomeData() {
 
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [weeklyStats, setWeeklyStats] = useState<ActivityStats[]>([]);
+  const [weeklyMuscleData, setWeeklyMuscleData] = useState<WeeklyMuscleData[]>([]);
 
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
   const [weightDiff, setWeightDiff] = useState<number | null>(null);
@@ -141,70 +147,72 @@ export function useHomeData() {
       
       const statsMap: Record<string, ActivityStats> = {};
       weekDays.forEach(d => {
-        statsMap[d.toISOString().split('T')[0]] = { dateStr: d.toISOString().split('T')[0], volume: 0, rpe: 0, mainMuscle: null, workoutName: null, setsCompleted: 0 };
+        statsMap[d.toISOString().split('T')[0]] = { dateStr: d.toISOString().split('T')[0], volume: 0, rpe: 0, workoutName: null, setsCompleted: 0 };
       });
 
-      // Tonnage & RPE Query
-      const sessions = db.getAllSync<{ id: string, dateStr: string, name: string }>(
-        `SELECT s.id, date(s.start_time) as dateStr, rd.day_name as name 
-         FROM sessions s 
+      const globalMuscleSets: Record<string, number> = {};
+
+      // Tonnage & RPE Query — Single optimized JOIN query instead of N+1
+      const allWeekData = db.getAllSync<{
+        session_id: string;
+        dateStr: string;
+        day_name: string | null;
+        muscle_group: string | null;
+        weight: number;
+        reps: number;
+        rpe: number;
+        is_completed: number;
+      }>(
+        `SELECT s.id as session_id, date(s.start_time) as dateStr, rd.day_name,
+                e.muscle_group, st.weight, st.reps, st.rpe, st.is_completed
+         FROM sessions s
          LEFT JOIN routine_days rd ON s.routine_day_id = rd.id
-         WHERE dateStr >= ? AND dateStr <= ?`,
+         LEFT JOIN session_exercises se ON se.session_id = s.id
+         LEFT JOIN exercises e ON se.exercise_id = e.id
+         LEFT JOIN sets st ON st.session_exercise_id = se.id
+         WHERE date(s.start_time) >= ? AND date(s.start_time) <= ?`,
         [startStr, endStr]
       );
 
       let compDays = new Set<string>();
 
-      sessions.forEach(s => {
-        if (!s.dateStr) return;
-        compDays.add(s.dateStr);
-        if (!statsMap[s.dateStr]) return;
-        
-        statsMap[s.dateStr].workoutName = s.name || 'Treino Livre';
+      allWeekData.forEach(row => {
+        if (!row.dateStr) return;
+        compDays.add(row.dateStr);
+        if (!statsMap[row.dateStr]) return;
 
-        const sesExs = db.getAllSync<{ id: string, muscle_group: string }>(
-          `SELECT se.id, e.muscle_group FROM session_exercises se
-           LEFT JOIN exercises e ON se.exercise_id = e.id
-           WHERE se.session_id = ?`,
-           [s.id]
-        );
-
-        let dayVolume = 0;
-        let dayRpeSum = 0;
-        let dayRpeCount = 0;
-        let daySets = 0;
-        const muscleCounts: Record<string, number> = {};
-
-        sesExs.forEach(se => {
-          const muscleData = parseMuscleGroup(se.muscle_group);
-          const muscle = muscleData.primaryString;
-          if (muscle) {
-            muscleCounts[muscle] = (muscleCounts[muscle] || 0) + 1;
-          }
-          const sets = db.getAllSync<{ weight: number, reps: number, rpe: number }>(
-            'SELECT weight, reps, rpe FROM sets WHERE session_exercise_id = ? AND is_completed = 1',
-            [se.id]
-          );
-          sets.forEach(set => {
-            dayVolume += (set.weight || 0) * (set.reps || 0);
-            if (set.rpe) {
-              dayRpeSum += set.rpe;
-              dayRpeCount++;
-            }
-            daySets++;
-          });
-        });
-
-        statsMap[s.dateStr].volume += dayVolume;
-        statsMap[s.dateStr].setsCompleted += daySets;
-        if (dayRpeCount > 0) {
-          statsMap[s.dateStr].rpe = dayRpeSum / dayRpeCount;
+        if (!statsMap[row.dateStr].workoutName) {
+          statsMap[row.dateStr].workoutName = row.day_name || 'Treino Livre';
         }
 
-        // Main muscle
-        if (Object.keys(muscleCounts).length > 0) {
-           const main = Object.keys(muscleCounts).reduce((a, b) => muscleCounts[a] > muscleCounts[b] ? a : b);
-           statsMap[s.dateStr].mainMuscle = main;
+        if (row.is_completed) {
+          const volume = (row.weight || 0) * (row.reps || 0);
+          statsMap[row.dateStr].volume += volume;
+          statsMap[row.dateStr].setsCompleted += 1;
+
+          if (row.rpe) {
+            // Accumulate RPE for averaging later
+            statsMap[row.dateStr].rpe += row.rpe;
+          }
+
+          if (row.muscle_group) {
+            const muscleData = parseMuscleGroup(row.muscle_group);
+            let muscle = muscleData.primaryString;
+            if (muscle && (muscle.toLowerCase().includes('quad') || muscle.toLowerCase().includes('posterior'))) {
+              muscle = 'Pernas';
+            }
+            if (muscle) {
+              globalMuscleSets[muscle] = (globalMuscleSets[muscle] || 0) + 1;
+            }
+          }
+        }
+      });
+
+      // Average RPE per day
+      weekDays.forEach(d => {
+        const key = d.toISOString().split('T')[0];
+        if (statsMap[key].setsCompleted > 0 && statsMap[key].rpe > 0) {
+          statsMap[key].rpe = statsMap[key].rpe / statsMap[key].setsCompleted;
         }
       });
 
@@ -212,6 +220,74 @@ export function useHomeData() {
       
       const statsArr = weekDays.map(d => statsMap[d.toISOString().split('T')[0]]);
       setWeeklyStats(statsArr);
+
+      // Map globalMuscleSets to WeeklyMuscleData array
+      const FALLBACK_COLORS = [
+        '#FCD34D', // Amber
+        '#6EE7B7', // Light Emerald
+        '#93C5FD', // Light Blue
+        '#FCA5A5', // Light Red
+        '#C4B5FD', // Light Violet
+        '#FBCFE8', // Light Pink
+        '#86EFAC', // Light Green
+        '#67E8F9', // Light Cyan
+        '#FDBA74'  // Light Orange
+      ];
+      let fallbackIndex = 0;
+      
+      const getMuscleColor = (muscle: string | null) => {
+        if (!muscle) return '#353945';
+        const lower = muscle.toLowerCase();
+        if (lower.includes('peito')) return '#3B82F6'; // Azul forte
+        if (lower.includes('costa')) return '#10B981'; // Verde Esmeralda
+        if (lower.includes('perna') || lower.includes('quad') || lower.includes('posterior')) return '#F97316'; // Laranja
+        if (lower.includes('ombro') || lower.includes('deltoide')) return '#8B5CF6'; // Violeta
+        if (lower.includes('bicep')) return '#EC4899'; // Rosa forte
+        if (lower.includes('tricep')) return '#EAB308'; // Amarelo escuro
+        if (lower.includes('glute')) return '#EF4444'; // Vermelho
+        if (lower.includes('abdom') || lower.includes('abdôm') || lower.includes('core')) return '#06B6D4'; // Ciano
+        if (lower.includes('panturilha') || lower.includes('calf')) return '#D946EF'; // Fúcsia/Magenta
+        
+        const color = FALLBACK_COLORS[fallbackIndex % FALLBACK_COLORS.length];
+        fallbackIndex++;
+        return color;
+      };
+
+      let totalSetsOfWeek = 0;
+      Object.values(globalMuscleSets).forEach(v => totalSetsOfWeek += v);
+
+      let outrosSets = 0;
+      const filteredMuscleData: WeeklyMuscleData[] = [];
+
+      Object.keys(globalMuscleSets).forEach(muscle => {
+        const val = globalMuscleSets[muscle];
+        const percent = totalSetsOfWeek > 0 ? (val / totalSetsOfWeek) * 100 : 0;
+        
+        if (percent <= 3) {
+          outrosSets += val;
+        } else {
+          filteredMuscleData.push({
+            label: muscle,
+            value: Math.round(percent),
+            color: getMuscleColor(muscle)
+          });
+        }
+      });
+
+      if (outrosSets > 0) {
+        const percentOutros = (outrosSets / totalSetsOfWeek) * 100;
+        if (Math.round(percentOutros) > 0) {
+          filteredMuscleData.push({
+            label: 'Outros',
+            value: Math.round(percentOutros),
+            color: '#9CA3AF'
+          });
+        }
+      }
+
+      filteredMuscleData.sort((a, b) => b.value - a.value);
+
+      setWeeklyMuscleData(filteredMuscleData);
 
     } catch (e) {
       console.error('Home Data Load Error', e);
@@ -239,6 +315,7 @@ export function useHomeData() {
     completedDays,
     routines,
     weeklyStats,
+    weeklyMuscleData,
     currentWeight,
     weightDiff,
     imc,

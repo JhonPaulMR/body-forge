@@ -7,37 +7,20 @@ import {
   Dimensions,
   Alert,
   Image,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { FlatList as GHFlatList } from 'react-native-gesture-handler';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { X, Plus, Dumbbell, Camera } from 'lucide-react-native';
+import { X, Plus, Dumbbell, Camera, MoreVertical, Copy, Trash2 } from 'lucide-react-native';
 
 // Imported components
 import CoverImagePickerModal from '@/components/planner/CoverImagePickerModal';
-import CreateSupersetModal from '@/components/planner/CreateSupersetModal';
 import { ExerciseMenu, SupersetMenu, DayMenu } from '@/components/planner/PlannerActionMenus';
 import DayCard from '@/components/planner/DayCard';
-
-// Service
-import {
-  RoutineDay,
-  DayExercise,
-  RenderItem,
-  loadRoutineData,
-  saveRoutine,
-  loadDaysAndExercises,
-  addDay,
-  duplicateDay as duplicateDayService,
-  deleteDay as deleteDayService,
-  duplicateExercise as duplicateExerciseService,
-  deleteExercise as deleteExerciseService,
-  removeFromSuperset as removeFromSupersetService,
-  createSuperset,
-  dissolveSuperset,
-  deleteSupersetExercises,
-  reorderExercises,
-} from '@/services/plannerService';
+import CreateSupersetModal from '@/components/planner/CreateSupersetModal';
+import { RoutineRepository, RoutineDay, DayExercise, RenderItem } from '@/database/repositories/RoutineRepository';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 40;
@@ -51,6 +34,7 @@ export default function PlannerScreen() {
   const [description, setDescription] = useState('');
   const [coverImageUri, setCoverImageUri] = useState<string | null>(null);
   const [savedRoutineId, setSavedRoutineId] = useState<string | null>(routineId || null);
+  const [isBuiltin, setIsBuiltin] = useState(false);
   const [days, setDays] = useState<RoutineDay[]>([]);
   const [dayExercises, setDayExercises] = useState<Record<string, DayExercise[]>>({});
   const [activeDayIndex, setActiveDayIndex] = useState(0);
@@ -60,6 +44,11 @@ export default function PlannerScreen() {
   const [menuSuperset, setMenuSuperset] = useState<{ supersetId: string; dayId: string } | null>(null);
   const [supersetPopup, setSupersetPopup] = useState<{ dayId: string } | null>(null);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
+
+  // Confirmation Modals
+  const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
+  const [showDeleteDayConfirm, setShowDeleteDayConfirm] = useState<string | null>(null);
+  const [showDeleteSupersetConfirm, setShowDeleteSupersetConfirm] = useState<string | null>(null);
 
   const [isDragging, setIsDragging] = useState(false);
   const [cardAreaHeight, setCardAreaHeight] = useState(400);
@@ -71,11 +60,12 @@ export default function PlannerScreen() {
 
   useEffect(() => {
     if (routineId) {
-      const routine = loadRoutineData(routineId);
+      const routine = RoutineRepository.loadRoutineData(routineId);
       if (routine) {
         setPlanName(routine.name);
         setDescription(routine.description || '');
         setCoverImageUri(routine.cover_image_uri);
+        setIsBuiltin(routine.is_builtin === 1);
       }
       refreshDays(routineId);
     }
@@ -88,7 +78,7 @@ export default function PlannerScreen() {
   );
 
   const refreshDays = (rId: string) => {
-    const { days: d, exerciseMap } = loadDaysAndExercises(rId);
+    const { days: d, exerciseMap } = RoutineRepository.loadDaysAndExercises(rId);
     setDays(d);
     setDayExercises(exerciseMap);
   };
@@ -96,7 +86,7 @@ export default function PlannerScreen() {
   // ---- Ensure Routine Saved ----
 
   const ensureRoutineSaved = (): string | null => {
-    const id = saveRoutine(savedRoutineId, planName, description, coverImageUri);
+    const id = RoutineRepository.saveRoutine(savedRoutineId, planName, description, coverImageUri);
     if (id && !savedRoutineId) setSavedRoutineId(id);
     return id;
   };
@@ -107,12 +97,16 @@ export default function PlannerScreen() {
     router.back();
   };
 
+  const handleDuplicateRoutine = () => {
+    setShowDuplicateConfirm(true);
+  };
+
   // ---- Day Actions ----
 
   const handleAddDay = () => {
     const id = ensureRoutineSaved();
     if (!id) return;
-    addDay(id);
+    RoutineRepository.addDay(id);
     refreshDays(id);
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 200);
   };
@@ -125,39 +119,31 @@ export default function PlannerScreen() {
 
   const handleDuplicateDay = (day: RoutineDay) => {
     if (!savedRoutineId) return;
-    duplicateDayService(day, savedRoutineId, dayExercises[day.id] || []);
+    RoutineRepository.duplicateDay(day, savedRoutineId, dayExercises[day.id] || []);
     refreshDays(savedRoutineId);
     setMenuDay(null);
   };
 
   const handleDeleteDay = (dayId: string) => {
-    Alert.alert('Excluir dia', 'Deseja excluir este dia e todos os seus exercícios?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Excluir', style: 'destructive', onPress: () => {
-        deleteDayService(dayId);
-        if (savedRoutineId) refreshDays(savedRoutineId);
-        setActiveDayIndex(Math.max(0, activeDayIndex - 1));
-        setMenuDay(null);
-      }},
-    ]);
+    setShowDeleteDayConfirm(dayId);
   };
 
   // ---- Exercise Actions ----
 
   const handleDuplicateExercise = (ex: DayExercise, dayId: string) => {
-    duplicateExerciseService(ex, dayId);
+    RoutineRepository.duplicateExercise(ex, dayId);
     if (savedRoutineId) refreshDays(savedRoutineId);
     setMenuExercise(null);
   };
 
   const handleDeleteExercise = (reId: string) => {
-    deleteExerciseService(reId);
+    RoutineRepository.deleteExercise(reId);
     if (savedRoutineId) refreshDays(savedRoutineId);
     setMenuExercise(null);
   };
 
   const handleRemoveFromSuperset = (ex: DayExercise) => {
-    removeFromSupersetService(ex.id);
+    RoutineRepository.removeFromSuperset(ex.id);
     if (savedRoutineId) refreshDays(savedRoutineId);
     setMenuExercise(null);
   };
@@ -168,32 +154,25 @@ export default function PlannerScreen() {
 
   const saveSupersetFromPopup = (selections: string[]) => {
     if (!supersetPopup || selections.length < 2) return;
-    createSuperset(supersetPopup.dayId, selections, dayExercises[supersetPopup.dayId] || []);
+    RoutineRepository.createSuperset(supersetPopup.dayId, selections, dayExercises[supersetPopup.dayId] || []);
     if (savedRoutineId) refreshDays(savedRoutineId);
     setSupersetPopup(null);
   };
 
   const handleDissolveSuperset = (supersetId: string) => {
-    dissolveSuperset(supersetId);
+    RoutineRepository.dissolveSuperset(supersetId);
     if (savedRoutineId) refreshDays(savedRoutineId);
     setMenuSuperset(null);
   };
 
   const handleDeleteSuperset = (supersetId: string) => {
-    Alert.alert('Excluir superset', 'Deseja excluir todos os exercícios deste superset?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Excluir', style: 'destructive', onPress: () => {
-        deleteSupersetExercises(supersetId);
-        if (savedRoutineId) refreshDays(savedRoutineId);
-        setMenuSuperset(null);
-      }},
-    ]);
+    setShowDeleteSupersetConfirm(supersetId);
   };
 
   // ---- Drag & Scroll ----
 
   const handleDragEnd = (data: RenderItem[], dayId: string) => {
-    reorderExercises(data);
+    RoutineRepository.reorderExercises(data);
     if (savedRoutineId) refreshDays(savedRoutineId);
   };
 
@@ -208,12 +187,16 @@ export default function PlannerScreen() {
       day={day}
       exercises={dayExercises[day.id] || []}
       cardAreaHeight={cardAreaHeight}
-      onMenuDay={setMenuDay}
-      onAddExercises={handleAddExercises}
+      onMenuDay={isBuiltin ? undefined : setMenuDay}
+      onAddExercises={isBuiltin ? undefined : handleAddExercises}
       onDragBegin={() => setIsDragging(true)}
       onDragEnd={(data) => { setIsDragging(false); handleDragEnd(data, day.id); }}
-      onMenuExercise={(ex, dayId, inSuperset) => setMenuExercise({ ex, dayId, inSuperset })}
-      onMenuSuperset={(supersetId, dayId) => setMenuSuperset({ supersetId, dayId })}
+      onMenuExercise={isBuiltin ? undefined : (ex, dayId, inSuperset) => setMenuExercise({ ex, dayId, inSuperset })}
+      onMenuSuperset={isBuiltin ? undefined : (supersetId, dayId) => setMenuSuperset({ supersetId, dayId })}
+      onDayUpdated={(dayId) => {
+        if (savedRoutineId) refreshDays(savedRoutineId);
+      }}
+      isReadOnly={isBuiltin}
     />
   );
 
@@ -224,10 +207,18 @@ export default function PlannerScreen() {
         <TouchableOpacity onPress={() => router.back()} className="w-9 h-9 rounded-xl bg-forge-surface justify-center items-center">
           <X size={20} color="#FFF" />
         </TouchableOpacity>
-        <Text className="text-white text-base font-extrabold tracking-wide">CONSTRUIR PLANO</Text>
-        <TouchableOpacity onPress={handleSave}>
-          <Text className="text-forge-accent text-sm font-extrabold tracking-tight">SALVAR</Text>
-        </TouchableOpacity>
+        <Text className="text-white text-base font-extrabold tracking-wide">
+          {isBuiltin ? 'VISUALIZAR PLANO' : 'CONSTRUIR PLANO'}
+        </Text>
+        {isBuiltin ? (
+          <TouchableOpacity onPress={handleDuplicateRoutine}>
+            <MoreVertical size={24} color="#FFF" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={handleSave}>
+            <Text className="text-forge-accent text-sm font-extrabold tracking-tight">SALVAR</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Cover Image (compact) */}
@@ -239,24 +230,37 @@ export default function PlannerScreen() {
             <Dumbbell size={24} color="#5F6368" />
           </View>
         )}
-        <TouchableOpacity
-          className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-forge-surface justify-center items-center"
-          onPress={() => setShowCoverPicker(true)}
-        >
-          <Camera size={16} color="#A0C4FF" />
-        </TouchableOpacity>
+        {!isBuiltin && (
+          <TouchableOpacity
+            className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-forge-surface justify-center items-center"
+            onPress={() => setShowCoverPicker(true)}
+          >
+            <Camera size={16} color="#A0C4FF" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Name */}
       <View className="px-5 mb-3">
-        <Text className="text-forge-muted text-[10px] font-bold tracking-widest mb-1">NOME *</Text>
-        <TextInput
-          className="border-b border-forge-border pb-2 text-white text-lg font-bold"
-          placeholder="Meu Plano de Treino"
-          placeholderTextColor="#5F6368"
-          value={planName}
-          onChangeText={setPlanName}
-        />
+        {isBuiltin ? (
+          <View>
+            <Text className="text-white text-2xl font-black mb-2">{planName}</Text>
+            {description ? (
+              <Text className="text-forge-muted text-sm leading-5">{description}</Text>
+            ) : null}
+          </View>
+        ) : (
+          <>
+            <Text className="text-forge-muted text-[10px] font-bold tracking-widest mb-1">NOME *</Text>
+            <TextInput
+              className="border-b border-forge-border pb-2 text-white text-lg font-bold"
+              placeholder="Meu Plano de Treino"
+              placeholderTextColor="#5F6368"
+              value={planName}
+              onChangeText={setPlanName}
+            />
+          </>
+        )}
       </View>
 
       {/* Day Cards Area */}
@@ -301,14 +305,16 @@ export default function PlannerScreen() {
       )}
 
       {/* FAB */}
-      <TouchableOpacity
-        className="absolute right-6 w-14 h-14 rounded-2xl bg-forge-accent justify-center items-center"
-        style={{ elevation: 8, shadowColor: '#A0C4FF', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, bottom: Math.max(24, insets.bottom + 16) }}
-        activeOpacity={0.8}
-        onPress={handleAddDay}
-      >
-        <Plus size={24} color="#FFF" />
-      </TouchableOpacity>
+      {!isBuiltin && (
+        <TouchableOpacity
+          className="absolute right-6 w-14 h-14 rounded-2xl bg-forge-accent justify-center items-center"
+          style={{ elevation: 8, shadowColor: '#A0C4FF', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, bottom: Math.max(24, insets.bottom + 16) }}
+          activeOpacity={0.8}
+          onPress={handleAddDay}
+        >
+          <Plus size={24} color="#FFF" />
+        </TouchableOpacity>
+      )}
 
       <ExerciseMenu
         visible={!!menuExercise}
@@ -352,6 +358,128 @@ export default function PlannerScreen() {
         onClose={() => setShowCoverPicker(false)}
         onSelectCover={setCoverImageUri}
       />
+
+      {/* Confirmation Modals */}
+      
+      {/* Duplicate Routine Modal */}
+      <Modal visible={showDuplicateConfirm} transparent animationType="fade">
+        <Pressable className="flex-1 bg-black/60 justify-end" onPress={() => setShowDuplicateConfirm(false)}>
+          <Pressable className="bg-forge-surface rounded-t-3xl px-5 pt-5 pb-10">
+            <View className="items-center px-4 py-2">
+              <View className="w-16 h-16 rounded-full bg-forge-accent/10 justify-center items-center mb-5">
+                <Copy size={28} color="#A0C4FF" />
+              </View>
+              <Text className="text-white text-xl font-black mb-2 text-center">Duplicar Plano?</Text>
+              <Text className="text-forge-muted text-sm text-center mb-8 leading-5">
+                Deseja duplicar este plano para a sua biblioteca (Seus Planos)?
+              </Text>
+              
+              <View className="flex-row gap-3 w-full">
+                <TouchableOpacity 
+                  className="flex-1 py-4 rounded-xl bg-forge-bg border border-forge-border items-center"
+                  onPress={() => setShowDuplicateConfirm(false)}
+                >
+                  <Text className="text-white text-sm font-bold tracking-wide">CANCELAR</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  className="flex-1 py-4 rounded-xl bg-forge-accent items-center"
+                  onPress={() => {
+                    if (savedRoutineId) {
+                      const newId = RoutineRepository.duplicateRoutine(savedRoutineId);
+                      router.replace({ pathname: '/planner', params: { routineId: newId } } as any);
+                    }
+                    setShowDuplicateConfirm(false);
+                  }}
+                >
+                  <Text className="text-forge-bg text-sm font-bold tracking-wide">DUPLICAR</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Delete Day Modal */}
+      <Modal visible={!!showDeleteDayConfirm} transparent animationType="fade">
+        <Pressable className="flex-1 bg-black/60 justify-end" onPress={() => setShowDeleteDayConfirm(null)}>
+          <Pressable className="bg-forge-surface rounded-t-3xl px-5 pt-5 pb-10">
+            <View className="items-center px-4 py-2">
+              <View className="w-16 h-16 rounded-full bg-red-500/10 justify-center items-center mb-5">
+                <Trash2 size={28} color="#EF4444" />
+              </View>
+              <Text className="text-white text-xl font-black mb-2 text-center">Excluir Dia?</Text>
+              <Text className="text-forge-muted text-sm text-center mb-8 leading-5">
+                Deseja excluir este dia e todos os seus exercícios permanentemente?
+              </Text>
+              
+              <View className="flex-row gap-3 w-full">
+                <TouchableOpacity 
+                  className="flex-1 py-4 rounded-xl bg-forge-bg border border-forge-border items-center"
+                  onPress={() => setShowDeleteDayConfirm(null)}
+                >
+                  <Text className="text-white text-sm font-bold tracking-wide">CANCELAR</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  className="flex-1 py-4 rounded-xl bg-red-500 items-center"
+                  onPress={() => {
+                    if (showDeleteDayConfirm) {
+                      RoutineRepository.deleteDay(showDeleteDayConfirm);
+                      if (savedRoutineId) refreshDays(savedRoutineId);
+                      setActiveDayIndex(Math.max(0, activeDayIndex - 1));
+                      setMenuDay(null);
+                    }
+                    setShowDeleteDayConfirm(null);
+                  }}
+                >
+                  <Text className="text-white text-sm font-bold tracking-wide">EXCLUIR</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Delete Superset Modal */}
+      <Modal visible={!!showDeleteSupersetConfirm} transparent animationType="fade">
+        <Pressable className="flex-1 bg-black/60 justify-end" onPress={() => setShowDeleteSupersetConfirm(null)}>
+          <Pressable className="bg-forge-surface rounded-t-3xl px-5 pt-5 pb-10">
+            <View className="items-center px-4 py-2">
+              <View className="w-16 h-16 rounded-full bg-red-500/10 justify-center items-center mb-5">
+                <Trash2 size={28} color="#EF4444" />
+              </View>
+              <Text className="text-white text-xl font-black mb-2 text-center">Excluir Superset?</Text>
+              <Text className="text-forge-muted text-sm text-center mb-8 leading-5">
+                Deseja excluir todos os exercícios deste superset permanentemente?
+              </Text>
+              
+              <View className="flex-row gap-3 w-full">
+                <TouchableOpacity 
+                  className="flex-1 py-4 rounded-xl bg-forge-bg border border-forge-border items-center"
+                  onPress={() => setShowDeleteSupersetConfirm(null)}
+                >
+                  <Text className="text-white text-sm font-bold tracking-wide">CANCELAR</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  className="flex-1 py-4 rounded-xl bg-red-500 items-center"
+                  onPress={() => {
+                    if (showDeleteSupersetConfirm) {
+                      RoutineRepository.deleteSupersetExercises(showDeleteSupersetConfirm);
+                      if (savedRoutineId) refreshDays(savedRoutineId);
+                      setMenuSuperset(null);
+                    }
+                    setShowDeleteSupersetConfirm(null);
+                  }}
+                >
+                  <Text className="text-white text-sm font-bold tracking-wide">EXCLUIR</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }

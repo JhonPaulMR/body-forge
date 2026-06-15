@@ -4,14 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Play } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { db } from '@/database/schema';
-
+import { SessionRepository } from '@/database/repositories/SessionRepository';
+import { RoutineRepository } from '@/database/repositories/RoutineRepository';
 import { useWorkoutStore } from '@/hooks/useWorkoutStore';
 import { ActiveWorkoutView } from '@/components/workout/ActiveWorkoutView';
 import { parseMuscleGroup } from '@/services/muscleGroupUtils';
 import { AppHeader } from '@/components/AppHeader';
 import { CalendarWidget } from '@/components/CalendarWidget';
-import { useHomeData } from '@/hooks/useHomeData';
+import { useCalendarData } from '@/hooks/useCalendarData';
 
 export default function TreinoTab() {
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function TreinoTab() {
   const { isActive } = useWorkoutStore();
   const [nextWorkout, setNextWorkout] = useState<any>(null);
   const [consumedDayId, setConsumedDayId] = useState<string | null>(null);
-  const homeData = useHomeData();
+  const calendarData = useCalendarData();
 
   const currentDayId = params.dayId;
 
@@ -51,24 +51,14 @@ export default function TreinoTab() {
       // Pegamos a primeira rotina ativa
       const mainRoutineId = activeIds[0];
       
-      const days = db.getAllSync<any>(
-        'SELECT id, day_name, order_index FROM routine_days WHERE routine_id = ? ORDER BY order_index ASC',
-        [mainRoutineId]
-      );
+      const days = RoutineRepository.getRoutineDays(mainRoutineId);
 
       if (days.length === 0) {
         setNextWorkout(null);
         return;
       }
 
-      const lastSession = db.getFirstSync<any>(
-        `SELECT rd.order_index 
-         FROM sessions s 
-         JOIN routine_days rd ON s.routine_day_id = rd.id
-         WHERE rd.routine_id = ? 
-         ORDER BY s.start_time DESC LIMIT 1`,
-        [mainRoutineId]
-      );
+      const lastSession = SessionRepository.getLastSessionOrderIndex(mainRoutineId);
 
       let nextDay = days[0];
       if (lastSession) {
@@ -78,13 +68,7 @@ export default function TreinoTab() {
         }
       }
 
-      const exs = db.getAllSync<any>(
-        `SELECT re.target_sets, re.rest_time_seconds, re.superset_id, e.muscle_group
-         FROM routine_exercises re
-         JOIN exercises e ON re.exercise_id = e.id
-         WHERE re.routine_day_id = ?`,
-        [nextDay.id]
-      );
+      const exs = RoutineRepository.getDayExercisesStats(nextDay.id);
 
       let totalMinutes = 0;
       const muscleCounts: Record<string, number> = {};
@@ -136,11 +120,11 @@ export default function TreinoTab() {
       
       <View className="px-5 mb-4">
         <CalendarWidget 
-          currentMonthStr={homeData.currentMonthStr}
-          completedDays={homeData.completedDays}
-          weekDays={homeData.weekDays}
-          weeklyGoal={homeData.weeklyGoal}
-          onUpdateGoal={homeData.updateWeeklyGoal}
+          currentMonthStr={calendarData.currentMonthStr}
+          completedDays={calendarData.completedDays}
+          weekDays={calendarData.weekDays}
+          weeklyGoal={calendarData.weeklyGoal}
+          onUpdateGoal={calendarData.updateWeeklyGoal}
         />
       </View>
 
@@ -159,10 +143,7 @@ export default function TreinoTab() {
           const newSessionId = 'sess_' + Math.random().toString(36).substr(2, 9);
           
           try {
-            db.runSync(
-              'INSERT INTO sessions (id, user_id, routine_day_id, start_time, total_volume_kg) VALUES (?, ?, ?, ?, ?)',
-              [newSessionId, 'user_1', null, new Date().toISOString(), 0]
-            );
+            SessionRepository.createSession(newSessionId, 'user_1', null);
             const { startFreeWorkout } = useWorkoutStore.getState();
             startFreeWorkout(newSessionId);
           } catch (e) {

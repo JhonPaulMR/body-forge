@@ -1,15 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Check, Zap } from 'lucide-react-native';
+import { SessionRepository } from '@/database/repositories/SessionRepository';
 
 export default function WorkoutCompleteScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [streak, setStreak] = useState(0);
 
   useEffect(() => {
-    // Simulando som de completado ou animação no futuro
+    const currentStreak = SessionRepository.getCurrentStreak();
+    setStreak(currentStreak);
   }, []);
 
   return (
@@ -31,7 +34,9 @@ export default function WorkoutCompleteScreen() {
             <Zap size={20} color="#FBBF24" />
             <Text className="text-white font-bold">Sequência Atual</Text>
           </View>
-          <Text className="text-[#FBBF24] font-black text-xl">3 Dias</Text>
+          <Text className="text-[#FBBF24] font-black text-xl">
+            {streak} {streak === 1 ? 'Dia' : 'Dias'}
+          </Text>
         </View>
       </View>
 

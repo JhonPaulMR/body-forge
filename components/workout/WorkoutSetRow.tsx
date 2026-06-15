@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { Check, Plus, Minus, MoreVertical } from 'lucide-react-native';
 import { useWorkoutStore, WorkoutSet, WorkoutExercise } from '@/hooks/useWorkoutStore';
@@ -26,15 +26,36 @@ const WorkoutSetRowComponent = ({
   setMenuVisibleId,
   handleComplete,
 }: WorkoutSetRowProps) => {
-  // Access store actions at event-time, not render-time
+  const [localWeight, setLocalWeight] = useState(set.weight ? set.weight.toString() : '');
+  const [localReps, setLocalReps] = useState(set.reps ? set.reps.toString() : '');
+
+  // Sincroniza estado externo quando botões de +/- forem usados ou banco de dados alterar
+  useEffect(() => {
+    setLocalWeight(set.weight ? set.weight.toString() : '');
+  }, [set.weight]);
+
+  useEffect(() => {
+    setLocalReps(set.reps ? set.reps.toString() : '');
+  }, [set.reps]);
+
   const handleAdjustValue = (field: 'weight' | 'reps', currentVal: number, delta: number) => {
     const newVal = Math.max(0, currentVal + delta);
     useWorkoutStore.getState().updateSet(exercise.id, set.id, { [field]: newVal });
   };
 
-  const handleTextChange = (field: 'weight' | 'reps', text: string) => {
-    const val = field === 'weight' ? (parseFloat(text) || 0) : (parseInt(text) || 0);
-    useWorkoutStore.getState().updateSet(exercise.id, set.id, { [field]: val });
+  const handleBlur = (field: 'weight' | 'reps') => {
+    const rawVal = field === 'weight' ? localWeight : localReps;
+    // Substitui vírgula por ponto para parse correto
+    const parsed = parseFloat(rawVal.replace(',', '.')) || 0;
+    
+    // Converte para float se peso, int se repetições
+    const finalVal = field === 'weight' ? parsed : Math.round(parsed);
+    
+    useWorkoutStore.getState().updateSet(exercise.id, set.id, { [field]: finalVal });
+    
+    // Atualiza input visualmente para remover zeros excessivos
+    if (field === 'weight') setLocalWeight(finalVal.toString());
+    else setLocalReps(finalVal.toString());
   };
 
   return (
@@ -74,9 +95,12 @@ const WorkoutSetRowComponent = ({
             </TouchableOpacity>
             <TextInput 
               className="flex-1 text-white text-center font-bold text-lg"
-              keyboardType="numeric"
-              value={set.weight ? set.weight.toString() : '0'}
-              onChangeText={(t) => handleTextChange('weight', t)}
+              keyboardType="decimal-pad"
+              selectTextOnFocus={true}
+              value={localWeight}
+              onChangeText={setLocalWeight}
+              onBlur={() => handleBlur('weight')}
+              onSubmitEditing={() => handleBlur('weight')}
               editable={!set.is_completed}
             />
             <TouchableOpacity onPress={() => handleAdjustValue('weight', set.weight, 1)} className="p-2">
@@ -100,8 +124,11 @@ const WorkoutSetRowComponent = ({
             <TextInput 
               className="flex-1 text-white text-center font-bold text-lg"
               keyboardType="numeric"
-              value={set.reps ? set.reps.toString() : '0'}
-              onChangeText={(t) => handleTextChange('reps', t)}
+              selectTextOnFocus={true}
+              value={localReps}
+              onChangeText={setLocalReps}
+              onBlur={() => handleBlur('reps')}
+              onSubmitEditing={() => handleBlur('reps')}
               editable={!set.is_completed}
             />
             <TouchableOpacity onPress={() => handleAdjustValue('reps', set.reps, 1)} className="p-2">

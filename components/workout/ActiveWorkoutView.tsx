@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Dimensions, Alert, FlatList, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Dimensions, Alert, FlatList, Animated, BackHandler } from 'react-native';
+import { Image } from 'expo-image';
+import { toTitleCase } from '@/utils/stringUtils';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Plus, MoreVertical, X } from 'lucide-react-native';
 import { useWorkoutStore, WorkoutExercise } from '@/hooks/useWorkoutStore';
 import { useNavbarStore } from '@/hooks/useNavbarStore';
-import { db } from '@/database/schema';
+import { SessionRepository } from '@/database/repositories/SessionRepository';
+import { RoutineRepository } from '@/database/repositories/RoutineRepository';
 import { SupersetPagerCard } from './SupersetPagerCard';
 import { HistoryModal, NotesModal, CreateSupersetModal, ActionMenuModal } from './ActiveWorkoutModals';
 import TimePadModal from '@/components/ui/TimePadModal';
@@ -139,40 +142,12 @@ export function ActiveWorkoutView() {
 
     try {
       const newSessionId = 'sess_' + Date.now().toString();
-      db.runSync(
-        'INSERT INTO sessions (id, user_id, routine_day_id, start_time, total_volume_kg) VALUES (?, ?, ?, ?, ?)',
-        [newSessionId, 'user_1', dayId, new Date().toISOString(), 0]
-      );
+      SessionRepository.createSession(newSessionId, 'user_1', dayId);
 
-      const exs = db.getAllSync<any>(
-        `SELECT 
-          re.id, re.exercise_id, e.name, e.muscle_group, e.image_uri, re.target_sets, re.target_reps, re.rest_time_seconds, re.superset_id, re.set_configs 
-         FROM routine_exercises re 
-         JOIN exercises e ON re.exercise_id = e.id 
-         WHERE re.routine_day_id = ? 
-         ORDER BY re.order_index`,
-        [dayId]
-      );
+      const exs = RoutineRepository.getDayExercises(dayId);
 
       const parsedExercises: WorkoutExercise[] = exs.map((ex) => {
-        let previousSets: { weight: number, reps: number }[] = [];
-        try {
-          const lastSessionEx = db.getFirstSync<any>(`
-            SELECT se.id 
-            FROM session_exercises se
-            JOIN sessions s ON se.session_id = s.id
-            WHERE se.exercise_id = ? AND s.end_time IS NOT NULL
-            ORDER BY s.end_time DESC LIMIT 1
-          `, [ex.exercise_id]);
-
-          if (lastSessionEx) {
-            const prevSetsDb = db.getAllSync<any>(
-              'SELECT weight, reps FROM sets WHERE session_exercise_id = ? AND is_completed = 1 ORDER BY set_order',
-              [lastSessionEx.id]
-            );
-            previousSets = prevSetsDb;
-          }
-        } catch (e) { console.warn(e); }
+        const previousSets = SessionRepository.getPreviousSetsForExercise(ex.exercise_id);
 
         const initialSets = [];
         const numSets = ex.target_sets || 1;
@@ -340,12 +315,16 @@ export function ActiveWorkoutView() {
                             className="flex-row items-center gap-4 flex-1"
                             onPress={() => setActiveExerciseIndex(blockIndex)}
                           >
-                            <View className="w-10 h-10 bg-forge-bg border border-forge-border rounded-xl items-center justify-center">
-                              <Text className="text-[#A0C4FF] font-bold">{globalIndex}</Text>
+                            <View className="w-12 h-12 bg-forge-bg border border-forge-border rounded-xl items-center justify-center overflow-hidden">
+                              {ex.image_uri ? (
+                                <Image source={{ uri: ex.image_uri }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
+                              ) : (
+                                <Text className="text-[#A0C4FF] font-bold">{globalIndex}</Text>
+                              )}
                             </View>
                             <View className="flex-1 pr-2">
                               <Text className="text-white font-bold text-sm mb-1 leading-tight" numberOfLines={2}>
-                                {ex.name}
+                                {toTitleCase(ex.name)}
                               </Text>
                               <Text className="text-forge-muted text-xs">
                                 {completedSets}/{ex.sets.length} séries completas
@@ -443,6 +422,9 @@ export function ActiveWorkoutView() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         initialScrollIndex={activeExerciseIndex}
+        keyExtractor={(_, index) => `pager_block_${index}`}
+        windowSize={3}
+        maxToRenderPerBatch={2}
         getItemLayout={(data, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index, index })}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}

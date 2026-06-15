@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { X, Minus, Plus, Zap } from 'lucide-react-native';
-import { db } from '@/database/schema';
+import { RoutineRepository } from '@/database/repositories/RoutineRepository';
 import TimePadModal from '@/components/ui/TimePadModal';
 
 interface SetConfig {
@@ -60,10 +60,7 @@ export default function EditSetScreen() {
 
   const loadAllConfigs = (): SetConfig[] => {
     try {
-      const result = db.getFirstSync<{ set_configs: string | null; target_sets: number; target_reps: string; rest_time_seconds: number }>(
-        'SELECT set_configs, target_sets, target_reps, rest_time_seconds FROM routine_exercises WHERE id = ?',
-        [reId]
-      );
+      const result = RoutineRepository.getExerciseSetsForEdit(reId as string);
       if (result?.set_configs) return JSON.parse(result.set_configs);
       const reps = (result?.target_reps || '8-12').split('-');
       const configs: SetConfig[] = [];
@@ -84,8 +81,7 @@ export default function EditSetScreen() {
 
   const saveConfigs = (configs: SetConfig[]) => {
     try {
-      db.runSync('UPDATE routine_exercises SET set_configs = ?, target_sets = ? WHERE id = ?',
-        [JSON.stringify(configs), configs.length, reId]);
+      RoutineRepository.updateSetConfigs(reId as string, JSON.stringify(configs), configs.length);
     } catch (e) {
       console.error('Error saving:', e);
     }

@@ -1,0 +1,2470 @@
+[
+  {
+    "id": "routine_builtin_1",
+    "name": "Full Body Clássico (3x na semana)",
+    "description": "Um programa focado em FORCA. Full Body Clássico (3x na semana)",
+    "cover_image_uri": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "FORCA",
+    "days": [
+      {
+        "id": "rd_builtin_k42fqma93",
+        "day_name": "Treino A - Full Body",
+        "exercises": [
+          {
+            "exercise_id": "ex_1291",
+            "target_sets": 5,
+            "target_reps": "5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_1420",
+            "target_sets": 5,
+            "target_reps": "5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_1329",
+            "target_sets": 5,
+            "target_reps": "5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0574",
+            "target_sets": 5,
+            "target_reps": "5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_2796",
+            "target_sets": 5,
+            "target_reps": "5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0411",
+            "target_sets": 5,
+            "target_reps": "5",
+            "rest_time_seconds": 180
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_ij0sywbzi",
+        "day_name": "Treino B - Full Body",
+        "exercises": [
+          {
+            "exercise_id": "ex_0090",
+            "target_sets": 5,
+            "target_reps": "5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_1420",
+            "target_sets": 5,
+            "target_reps": "5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0027",
+            "target_sets": 5,
+            "target_reps": "5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0041",
+            "target_sets": 5,
+            "target_reps": "5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_1409",
+            "target_sets": 5,
+            "target_reps": "5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0069",
+            "target_sets": 5,
+            "target_reps": "5",
+            "rest_time_seconds": 180
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_2",
+    "name": "Upper / Lower Split",
+    "description": "Um programa focado em FORCA. Upper / Lower Split",
+    "cover_image_uri": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "FORCA",
+    "days": [
+      {
+        "id": "rd_builtin_u287w5u11",
+        "day_name": "Treino A - Upper (Superiores)",
+        "exercises": [
+          {
+            "exercise_id": "ex_2292",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_0391",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_1654",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_1735",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_0034",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_0296",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_grhurtyyh",
+        "day_name": "Treino B - Lower (Inferiores)",
+        "exercises": [
+          {
+            "exercise_id": "ex_0032",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_3759",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0776",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_1420",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0648",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0586",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_3",
+    "name": "Push / Pull / Legs (Foco em Força)",
+    "description": "Um programa focado em FORCA. Push / Pull / Legs (Foco em Força)",
+    "cover_image_uri": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "FORCA",
+    "days": [
+      {
+        "id": "rd_builtin_4rdz84dp3",
+        "day_name": "Treino A - Push (Empurrar)",
+        "exercises": [
+          {
+            "exercise_id": "ex_0423",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_1743",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_0356",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_0398",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_0395",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_0041",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_q518x9b0w",
+        "day_name": "Treino B - Pull (Puxar)",
+        "exercises": [
+          {
+            "exercise_id": "ex_0080",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_1640",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_0034",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_2330",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_2414",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_1643",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_r2glnzspn",
+        "day_name": "Treino C - Legs (Pernas)",
+        "exercises": [
+          {
+            "exercise_id": "ex_0578",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_2611",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0024",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0026",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0116",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0768",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_4",
+    "name": "Divisão de Força em 4 Dias (ABCD)",
+    "description": "Um programa focado em FORCA. Divisão de Força em 4 Dias (ABCD)",
+    "cover_image_uri": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "FORCA",
+    "days": [
+      {
+        "id": "rd_builtin_2m29s0pvf",
+        "day_name": "Treino A - Peito e Ombro Pesado",
+        "exercises": [
+          {
+            "exercise_id": "ex_0122",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0121",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_3237",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0047",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0107",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0091",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_7kblub707",
+        "day_name": "Treino B - Foco Quadríceps",
+        "exercises": [
+          {
+            "exercise_id": "ex_0597",
+            "target_sets": 5,
+            "target_reps": "4-6",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0750",
+            "target_sets": 5,
+            "target_reps": "4-6",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0099",
+            "target_sets": 5,
+            "target_reps": "4-6",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0739",
+            "target_sets": 5,
+            "target_reps": "4-6",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_3194",
+            "target_sets": 5,
+            "target_reps": "4-6",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0811",
+            "target_sets": 5,
+            "target_reps": "4-6",
+            "rest_time_seconds": 180
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_nsud6ltzn",
+        "day_name": "Treino C - Costas Pesado",
+        "exercises": [
+          {
+            "exercise_id": "ex_3017",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_1317",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0118",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0095",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0064",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          },
+          {
+            "exercise_id": "ex_0049",
+            "target_sets": 5,
+            "target_reps": "3-5",
+            "rest_time_seconds": 180
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_octipm4zv",
+        "day_name": "Treino D - Foco Cadeia Posterior (Glúteo/Posterior)",
+        "exercises": [
+          {
+            "exercise_id": "ex_0069",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_0026",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_0381",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_2796",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_1757",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          },
+          {
+            "exercise_id": "ex_3635",
+            "target_sets": 4,
+            "target_reps": "4-6",
+            "rest_time_seconds": 150
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_5",
+    "name": "Força Híbrida (Força + Potência)",
+    "description": "Um programa focado em FORCA. Força Híbrida (Força + Potência)",
+    "cover_image_uri": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "FORCA",
+    "days": [
+      {
+        "id": "rd_builtin_jmd98bcag",
+        "day_name": "Treino A - Força Máxima",
+        "exercises": [
+          {
+            "exercise_id": "ex_0040",
+            "target_sets": 5,
+            "target_reps": "3",
+            "rest_time_seconds": 240
+          },
+          {
+            "exercise_id": "ex_0786",
+            "target_sets": 5,
+            "target_reps": "3",
+            "rest_time_seconds": 240
+          },
+          {
+            "exercise_id": "ex_0097",
+            "target_sets": 5,
+            "target_reps": "3",
+            "rest_time_seconds": 240
+          },
+          {
+            "exercise_id": "ex_0073",
+            "target_sets": 5,
+            "target_reps": "3",
+            "rest_time_seconds": 240
+          },
+          {
+            "exercise_id": "ex_0058",
+            "target_sets": 5,
+            "target_reps": "3",
+            "rest_time_seconds": 240
+          },
+          {
+            "exercise_id": "ex_0036",
+            "target_sets": 5,
+            "target_reps": "3",
+            "rest_time_seconds": 240
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_3sil73720",
+        "day_name": "Treino B - Potência e Velocidade",
+        "exercises": [
+          {
+            "exercise_id": "ex_1287",
+            "target_sets": 6,
+            "target_reps": "3 (Explosivo)",
+            "rest_time_seconds": 120
+          },
+          {
+            "exercise_id": "ex_0438",
+            "target_sets": 6,
+            "target_reps": "3 (Explosivo)",
+            "rest_time_seconds": 120
+          },
+          {
+            "exercise_id": "ex_0046",
+            "target_sets": 6,
+            "target_reps": "3 (Explosivo)",
+            "rest_time_seconds": 120
+          },
+          {
+            "exercise_id": "ex_0323",
+            "target_sets": 6,
+            "target_reps": "3 (Explosivo)",
+            "rest_time_seconds": 120
+          },
+          {
+            "exercise_id": "ex_1284",
+            "target_sets": 6,
+            "target_reps": "3 (Explosivo)",
+            "rest_time_seconds": 120
+          },
+          {
+            "exercise_id": "ex_0058",
+            "target_sets": 6,
+            "target_reps": "3 (Explosivo)",
+            "rest_time_seconds": 120
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_6",
+    "name": "ABC Clássico",
+    "description": "Um programa focado em HIPERTROFIA. ABC Clássico",
+    "cover_image_uri": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "HIPERTROFIA",
+    "days": [
+      {
+        "id": "rd_builtin_t2yq1w6e8",
+        "day_name": "Treino A - Peito e Tríceps",
+        "exercises": [
+          {
+            "exercise_id": "ex_0438",
+            "target_sets": 4,
+            "target_reps": "8-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0398",
+            "target_sets": 4,
+            "target_reps": "8-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1746",
+            "target_sets": 4,
+            "target_reps": "8-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0340",
+            "target_sets": 4,
+            "target_reps": "8-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0351",
+            "target_sets": 4,
+            "target_reps": "8-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1288",
+            "target_sets": 4,
+            "target_reps": "8-12",
+            "rest_time_seconds": 90
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_xsafihtrj",
+        "day_name": "Treino B - Costas e Bíceps",
+        "exercises": [
+          {
+            "exercise_id": "ex_0868",
+            "target_sets": 4,
+            "target_reps": "8-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0673",
+            "target_sets": 4,
+            "target_reps": "8-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0589",
+            "target_sets": 4,
+            "target_reps": "8-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0248",
+            "target_sets": 4,
+            "target_reps": "8-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1316",
+            "target_sets": 4,
+            "target_reps": "8-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1321",
+            "target_sets": 4,
+            "target_reps": "8-12",
+            "rest_time_seconds": 90
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_2lecrbb84",
+        "day_name": "Treino C - Pernas e Ombros",
+        "exercises": [
+          {
+            "exercise_id": "ex_3888",
+            "target_sets": 4,
+            "target_reps": "10-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0378",
+            "target_sets": 4,
+            "target_reps": "10-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0387",
+            "target_sets": 4,
+            "target_reps": "10-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_2286",
+            "target_sets": 4,
+            "target_reps": "10-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0762",
+            "target_sets": 4,
+            "target_reps": "10-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1434",
+            "target_sets": 4,
+            "target_reps": "10-15",
+            "rest_time_seconds": 90
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_7",
+    "name": "Push / Pull / Legs",
+    "description": "Um programa focado em HIPERTROFIA. Push / Pull / Legs",
+    "cover_image_uri": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "HIPERTROFIA",
+    "days": [
+      {
+        "id": "rd_builtin_y4ndkbnfv",
+        "day_name": "Treino A - Push",
+        "exercises": [
+          {
+            "exercise_id": "ex_3697",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0398",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1277",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1618",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0424",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0765",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_juouywaui",
+        "day_name": "Treino B - Pull",
+        "exercises": [
+          {
+            "exercise_id": "ex_0370",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1634",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1313",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0218",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0239",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0205",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_n2s0qrz05",
+        "day_name": "Treino C - Legs",
+        "exercises": [
+          {
+            "exercise_id": "ex_0077",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0111",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0042",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0054",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1396",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0114",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_8",
+    "name": "ABCD Estético",
+    "description": "Um programa focado em HIPERTROFIA. ABCD Estético",
+    "cover_image_uri": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "HIPERTROFIA",
+    "days": [
+      {
+        "id": "rd_builtin_9nmb7luwz",
+        "day_name": "Treino A - Peito e Ombro Anterior/Lateral",
+        "exercises": [
+          {
+            "exercise_id": "ex_0405",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0863",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0757",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0775",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1280",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0325",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_e6ukfc4f3",
+        "day_name": "Treino B - Costas e Ombro Posterior",
+        "exercises": [
+          {
+            "exercise_id": "ex_0236",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0203",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0602",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0235",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0148",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0584",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_5rt866m1h",
+        "day_name": "Treino C - Pernas Completas",
+        "exercises": [
+          {
+            "exercise_id": "ex_0032",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_3194",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0578",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0598",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0044",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0115",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_ui5oq3rys",
+        "day_name": "Treino D - Braços Isolados",
+        "exercises": [
+          {
+            "exercise_id": "ex_3547",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1652",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0346",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1648",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0430",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0373",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_9",
+    "name": "Upper / Lower Hipertrofia",
+    "description": "Um programa focado em HIPERTROFIA. Upper / Lower Hipertrofia",
+    "cover_image_uri": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "HIPERTROFIA",
+    "days": [
+      {
+        "id": "rd_builtin_imxzfgtos",
+        "day_name": "Treino A - Upper",
+        "exercises": [
+          {
+            "exercise_id": "ex_0287",
+            "target_sets": 3,
+            "target_reps": "10-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0318",
+            "target_sets": 3,
+            "target_reps": "10-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1266",
+            "target_sets": 3,
+            "target_reps": "10-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0387",
+            "target_sets": 3,
+            "target_reps": "10-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0192",
+            "target_sets": 3,
+            "target_reps": "10-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1301",
+            "target_sets": 3,
+            "target_reps": "10-15",
+            "rest_time_seconds": 90
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_xtliby3o1",
+        "day_name": "Treino B - Lower",
+        "exercises": [
+          {
+            "exercise_id": "ex_0593",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0381",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0585",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1394",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1380",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0744",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_10",
+    "name": "ABCDE (Bro Split)",
+    "description": "Um programa focado em HIPERTROFIA. ABCDE (Bro Split)",
+    "cover_image_uri": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "HIPERTROFIA",
+    "days": [
+      {
+        "id": "rd_builtin_q3usknvtv",
+        "day_name": "Treino A - Peito",
+        "exercises": [
+          {
+            "exercise_id": "ex_1279",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_2144",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0343",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0288",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0342",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0227",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_rag6zepo3",
+        "day_name": "Treino B - Costas",
+        "exercises": [
+          {
+            "exercise_id": "ex_0015",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1361",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1325",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0184",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_2464",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_1356",
+            "target_sets": 4,
+            "target_reps": "10-12",
+            "rest_time_seconds": 90
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_hty6ykvc6",
+        "day_name": "Treino C - Pernas",
+        "exercises": [
+          {
+            "exercise_id": "ex_0098",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_3759",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0058",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0597",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0024",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0741",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_fkk7jwi8e",
+        "day_name": "Treino D - Ombros",
+        "exercises": [
+          {
+            "exercise_id": "ex_2397",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_2292",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0161",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0437",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0216",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          },
+          {
+            "exercise_id": "ex_0290",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 90
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_f4e4nfg25",
+        "day_name": "Treino E - Braços",
+        "exercises": [
+          {
+            "exercise_id": "ex_1724",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1669",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_2401",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0374",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0165",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1667",
+            "target_sets": 4,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_11",
+    "name": "Circuito Full Body Metabólico",
+    "description": "Um programa focado em GORDURA. Circuito Full Body Metabólico",
+    "cover_image_uri": "https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "GORDURA",
+    "days": [
+      {
+        "id": "rd_builtin_nx441vd65",
+        "day_name": "Treino A - Circuito 1",
+        "exercises": [
+          {
+            "exercise_id": "ex_2808",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_1287",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_3433",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_3635",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_1295",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_0872",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 30
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_6jzdxgz90",
+        "day_name": "Treino B - Circuito 2",
+        "exercises": [
+          {
+            "exercise_id": "ex_3292",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_1366",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_1330",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_2300",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_0405",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_0431",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 30
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_12",
+    "name": "ABC + HIIT",
+    "description": "Um programa focado em GORDURA. ABC + HIIT",
+    "cover_image_uri": "https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "GORDURA",
+    "days": [
+      {
+        "id": "rd_builtin_bavjwqb2s",
+        "day_name": "Treino A - Push Metabólico",
+        "exercises": [
+          {
+            "exercise_id": "ex_0344",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_1276",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_0302",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_3546",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_0296",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_0164",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_gthtvkik6",
+        "day_name": "Treino B - Pull Metabólico",
+        "exercises": [
+          {
+            "exercise_id": "ex_0382",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_1331",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_1614",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_0304",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_1662",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_3541",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_nbreek0wm",
+        "day_name": "Treino C - Legs & HIIT",
+        "exercises": [
+          {
+            "exercise_id": "ex_3636",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_3638",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_1476",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_1759",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_3214",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_3218",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 45
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_13",
+    "name": "Upper/Lower Queima Intensa",
+    "description": "Um programa focado em GORDURA. Upper/Lower Queima Intensa",
+    "cover_image_uri": "https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "GORDURA",
+    "days": [
+      {
+        "id": "rd_builtin_z0beh29r7",
+        "day_name": "Treino A - Upper com Descanso Curto",
+        "exercises": [
+          {
+            "exercise_id": "ex_3697",
+            "target_sets": 3,
+            "target_reps": "15-20",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_1655",
+            "target_sets": 3,
+            "target_reps": "15-20",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_2189",
+            "target_sets": 3,
+            "target_reps": "15-20",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_0235",
+            "target_sets": 3,
+            "target_reps": "15-20",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_0421",
+            "target_sets": 3,
+            "target_reps": "15-20",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_0308",
+            "target_sets": 3,
+            "target_reps": "15-20",
+            "rest_time_seconds": 40
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_ui1eqmltf",
+        "day_name": "Treino B - Lower Pliométrico",
+        "exercises": [
+          {
+            "exercise_id": "ex_3013",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_0411",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_0809",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_3218",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_0661",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_2796",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 40
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_14",
+    "name": "Híbrido Funcional & Core",
+    "description": "Um programa focado em GORDURA. Híbrido Funcional & Core",
+    "cover_image_uri": "https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "GORDURA",
+    "days": [
+      {
+        "id": "rd_builtin_5401d2cp9",
+        "day_name": "Treino A - Foco Core e Estabilidade",
+        "exercises": [
+          {
+            "exercise_id": "ex_0310",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_0002",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_3670",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_2135",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_0138",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_0635",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 30
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_sywq37tgg",
+        "day_name": "Treino B - Funcional Superiores/Inferiores",
+        "exercises": [
+          {
+            "exercise_id": "ex_1287",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_1288",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_1279",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_1757",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_1624",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 40
+          },
+          {
+            "exercise_id": "ex_0371",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 40
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_15",
+    "name": "Push / Pull / Legs Rápido",
+    "description": "Um programa focado em GORDURA. Push / Pull / Legs Rápido",
+    "cover_image_uri": "https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "GORDURA",
+    "days": [
+      {
+        "id": "rd_builtin_ml1l3vyon",
+        "day_name": "Treino A - Push",
+        "exercises": [
+          {
+            "exercise_id": "ex_0419",
+            "target_sets": 3,
+            "target_reps": "15",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_0361",
+            "target_sets": 3,
+            "target_reps": "15",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_0864",
+            "target_sets": 3,
+            "target_reps": "15",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_0762",
+            "target_sets": 3,
+            "target_reps": "15",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_0286",
+            "target_sets": 3,
+            "target_reps": "15",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_1278",
+            "target_sets": 3,
+            "target_reps": "15",
+            "rest_time_seconds": 30
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_qavkn6i5q",
+        "day_name": "Treino B - Pull",
+        "exercises": [
+          {
+            "exercise_id": "ex_1325",
+            "target_sets": 3,
+            "target_reps": "15",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_0571",
+            "target_sets": 3,
+            "target_reps": "15",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_0244",
+            "target_sets": 3,
+            "target_reps": "15",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_1351",
+            "target_sets": 3,
+            "target_reps": "15",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_0580",
+            "target_sets": 3,
+            "target_reps": "15",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_1638",
+            "target_sets": 3,
+            "target_reps": "15",
+            "rest_time_seconds": 30
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_sftbwi4y6",
+        "day_name": "Treino C - Legs",
+        "exercises": [
+          {
+            "exercise_id": "ex_0749",
+            "target_sets": 3,
+            "target_reps": "20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_1373",
+            "target_sets": 3,
+            "target_reps": "20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_3769",
+            "target_sets": 3,
+            "target_reps": "20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_3132",
+            "target_sets": 3,
+            "target_reps": "20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_2315",
+            "target_sets": 3,
+            "target_reps": "20",
+            "rest_time_seconds": 30
+          },
+          {
+            "exercise_id": "ex_1604",
+            "target_sets": 3,
+            "target_reps": "20",
+            "rest_time_seconds": 30
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_16",
+    "name": "Full Body Iniciante (Sem Equipamento)",
+    "description": "Um programa focado em CASA. Full Body Iniciante (Sem Equipamento)",
+    "cover_image_uri": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "CASA",
+    "days": [
+      {
+        "id": "rd_builtin_4gouddn4j",
+        "day_name": "Treino A - Iniciação",
+        "exercises": [
+          {
+            "exercise_id": "ex_3523",
+            "target_sets": 3,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_3314",
+            "target_sets": 3,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0668",
+            "target_sets": 3,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0277",
+            "target_sets": 3,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_2135",
+            "target_sets": 3,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0513",
+            "target_sets": 3,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_jjqe52569",
+        "day_name": "Treino B - Movimentos Básicos",
+        "exercises": [
+          {
+            "exercise_id": "ex_3582",
+            "target_sets": 3,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1460",
+            "target_sets": 3,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0808",
+            "target_sets": 3,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_3644",
+            "target_sets": 3,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1763",
+            "target_sets": 3,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0852",
+            "target_sets": 3,
+            "target_reps": "12-15",
+            "rest_time_seconds": 60
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_17",
+    "name": "Calistenia ABC (Push / Pull / Legs)",
+    "description": "Um programa focado em CASA. Calistenia ABC (Push / Pull / Legs)",
+    "cover_image_uri": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "CASA",
+    "days": [
+      {
+        "id": "rd_builtin_f5mlrc5ql",
+        "day_name": "Treino A - Push Casa",
+        "exercises": [
+          {
+            "exercise_id": "ex_3145",
+            "target_sets": 4,
+            "target_reps": "Falha -2",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1167",
+            "target_sets": 4,
+            "target_reps": "Falha -2",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0662",
+            "target_sets": 4,
+            "target_reps": "Falha -2",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1306",
+            "target_sets": 4,
+            "target_reps": "Falha -2",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_3641",
+            "target_sets": 4,
+            "target_reps": "Falha -2",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1311",
+            "target_sets": 4,
+            "target_reps": "Falha -2",
+            "rest_time_seconds": 60
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_edmkqhgoh",
+        "day_name": "Treino B - Pull Casa",
+        "exercises": [
+          {
+            "exercise_id": "ex_2300",
+            "target_sets": 4,
+            "target_reps": "Falha -2",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0670",
+            "target_sets": 4,
+            "target_reps": "Falha -2",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1013",
+            "target_sets": 4,
+            "target_reps": "Falha -2",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0651",
+            "target_sets": 4,
+            "target_reps": "Falha -2",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1763",
+            "target_sets": 4,
+            "target_reps": "Falha -2",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0986",
+            "target_sets": 4,
+            "target_reps": "Falha -2",
+            "rest_time_seconds": 60
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_69nc9ggwp",
+        "day_name": "Treino C - Legs Casa",
+        "exercises": [
+          {
+            "exercise_id": "ex_3642",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1422",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1685",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_3644",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1710",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_3582",
+            "target_sets": 4,
+            "target_reps": "15-20",
+            "rest_time_seconds": 60
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_18",
+    "name": "Upper / Lower Adaptado",
+    "description": "Um programa focado em CASA. Upper / Lower Adaptado",
+    "cover_image_uri": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "CASA",
+    "days": [
+      {
+        "id": "rd_builtin_5moaxl6y4",
+        "day_name": "Treino A - Superiores",
+        "exercises": [
+          {
+            "exercise_id": "ex_3785",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_0688",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_0690",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_0725",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_0974",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_1467",
+            "target_sets": 4,
+            "target_reps": "15",
+            "rest_time_seconds": 45
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_m96k8chjo",
+        "day_name": "Treino B - Inferiores",
+        "exercises": [
+          {
+            "exercise_id": "ex_2400",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_2802",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_0484",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_3769",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_1709",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_0870",
+            "target_sets": 4,
+            "target_reps": "20",
+            "rest_time_seconds": 45
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_19",
+    "name": "Circuito Queima Em Casa",
+    "description": "Um programa focado em CASA. Circuito Queima Em Casa",
+    "cover_image_uri": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "CASA",
+    "days": [
+      {
+        "id": "rd_builtin_nvagvhnde",
+        "day_name": "Treino A - Cardio e Pernas",
+        "exercises": [
+          {
+            "exercise_id": "ex_3582",
+            "target_sets": 5,
+            "target_reps": "45s Ativo",
+            "rest_time_seconds": 15
+          },
+          {
+            "exercise_id": "ex_0628",
+            "target_sets": 5,
+            "target_reps": "45s Ativo",
+            "rest_time_seconds": 15
+          },
+          {
+            "exercise_id": "ex_1759",
+            "target_sets": 5,
+            "target_reps": "45s Ativo",
+            "rest_time_seconds": 15
+          },
+          {
+            "exercise_id": "ex_0661",
+            "target_sets": 5,
+            "target_reps": "45s Ativo",
+            "rest_time_seconds": 15
+          },
+          {
+            "exercise_id": "ex_3221",
+            "target_sets": 5,
+            "target_reps": "45s Ativo",
+            "rest_time_seconds": 15
+          },
+          {
+            "exercise_id": "ex_0852",
+            "target_sets": 5,
+            "target_reps": "45s Ativo",
+            "rest_time_seconds": 15
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_ns9aqojvt",
+        "day_name": "Treino B - Core e Braços",
+        "exercises": [
+          {
+            "exercise_id": "ex_0689",
+            "target_sets": 5,
+            "target_reps": "45s Ativo",
+            "rest_time_seconds": 15
+          },
+          {
+            "exercise_id": "ex_0866",
+            "target_sets": 5,
+            "target_reps": "45s Ativo",
+            "rest_time_seconds": 15
+          },
+          {
+            "exercise_id": "ex_2312",
+            "target_sets": 5,
+            "target_reps": "45s Ativo",
+            "rest_time_seconds": 15
+          },
+          {
+            "exercise_id": "ex_1259",
+            "target_sets": 5,
+            "target_reps": "45s Ativo",
+            "rest_time_seconds": 15
+          },
+          {
+            "exercise_id": "ex_0845",
+            "target_sets": 5,
+            "target_reps": "45s Ativo",
+            "rest_time_seconds": 15
+          },
+          {
+            "exercise_id": "ex_1471",
+            "target_sets": 5,
+            "target_reps": "45s Ativo",
+            "rest_time_seconds": 15
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "routine_builtin_20",
+    "name": "Desafio de Resistência Muscular",
+    "description": "Um programa focado em CASA. Desafio de Resistência Muscular",
+    "cover_image_uri": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=1000",
+    "is_builtin": 1,
+    "category": "CASA",
+    "days": [
+      {
+        "id": "rd_builtin_6k40ytwym",
+        "day_name": "Treino A - Superiores Isométrico/Dinâmico",
+        "exercises": [
+          {
+            "exercise_id": "ex_0834",
+            "target_sets": 3,
+            "target_reps": "Até a falha",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1773",
+            "target_sets": 3,
+            "target_reps": "Até a falha",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_3158",
+            "target_sets": 3,
+            "target_reps": "Até a falha",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1401",
+            "target_sets": 3,
+            "target_reps": "Até a falha",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_0688",
+            "target_sets": 3,
+            "target_reps": "Até a falha",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_3145",
+            "target_sets": 3,
+            "target_reps": "Até a falha",
+            "rest_time_seconds": 60
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_3qtz0eq01",
+        "day_name": "Treino B - Inferiores Resistência",
+        "exercises": [
+          {
+            "exercise_id": "ex_0778",
+            "target_sets": 4,
+            "target_reps": "30 repetições",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1460",
+            "target_sets": 4,
+            "target_reps": "30 repetições",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_3214",
+            "target_sets": 4,
+            "target_reps": "30 repetições",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1419",
+            "target_sets": 4,
+            "target_reps": "30 repetições",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_3552",
+            "target_sets": 4,
+            "target_reps": "30 repetições",
+            "rest_time_seconds": 60
+          },
+          {
+            "exercise_id": "ex_1585",
+            "target_sets": 4,
+            "target_reps": "30 repetições",
+            "rest_time_seconds": 60
+          }
+        ]
+      },
+      {
+        "id": "rd_builtin_wpvh3rpuv",
+        "day_name": "Treino C - Core Blindado",
+        "exercises": [
+          {
+            "exercise_id": "ex_1761",
+            "target_sets": 4,
+            "target_reps": "20 repetições",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_3239",
+            "target_sets": 4,
+            "target_reps": "20 repetições",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_1758",
+            "target_sets": 4,
+            "target_reps": "20 repetições",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_0570",
+            "target_sets": 4,
+            "target_reps": "20 repetições",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_0491",
+            "target_sets": 4,
+            "target_reps": "20 repetições",
+            "rest_time_seconds": 45
+          },
+          {
+            "exercise_id": "ex_0849",
+            "target_sets": 4,
+            "target_reps": "20 repetições",
+            "rest_time_seconds": 45
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,7 +1,7 @@
 import MuscleSelectionModal, { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
-import { db } from '@/database/schema';
+import { ExerciseRepository } from '@/database/repositories/ExerciseRepository';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Camera, ChevronDown, Plus, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
@@ -25,6 +25,7 @@ const CATEGORIES = [
 
 export default function CreateExerciseScreen() {
   const router = useRouter();
+  const { fromPicker, dayId, routineId, mode } = useLocalSearchParams<{ fromPicker?: string, dayId?: string, routineId?: string, mode?: string }>();
   const [name, setName] = useState('');
   const [instructions, setInstructions] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -75,20 +76,23 @@ export default function CreateExerciseScreen() {
         primaryString: primaryMuscleObj?.name || 'Vários'
       };
 
-      db.runSync(
-        `INSERT INTO exercises (id, name, muscle_group, equipment, instructions, image_uri, is_custom)
-         VALUES (?, ?, ?, ?, ?, ?, 1)`,
-        [
-          id,
-          name.trim(),
-          JSON.stringify(muscleGroupData),
-          category,
-          instructions.trim(),
-          imageUri
-        ]
-      );
+      ExerciseRepository.createCustomExercise({
+        id,
+        name: name.trim(),
+        muscleGroupData: JSON.stringify(muscleGroupData),
+        category,
+        instructions: instructions.trim(),
+        imageUri
+      });
 
-      router.back();
+      if (fromPicker === 'true') {
+        router.navigate({ 
+          pathname: '/planner/exercise-picker', 
+          params: { dayId, routineId, mode, newlyCreatedId: id } 
+        } as any);
+      } else {
+        router.back();
+      }
     } catch (error) {
       console.error('Error saving exercise:', error);
       Alert.alert('Erro', 'Não foi possível salvar o exercício.');

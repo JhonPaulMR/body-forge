@@ -11,7 +11,7 @@ import { ActiveWorkoutView } from '@/components/workout/ActiveWorkoutView';
 import { parseMuscleGroup } from '@/services/muscleGroupUtils';
 import { AppHeader } from '@/components/AppHeader';
 import { CalendarWidget } from '@/components/CalendarWidget';
-import { useHomeData } from '@/hooks/useHomeData';
+import { useCalendarData } from '@/hooks/useCalendarData';
 
 export default function TreinoTab() {
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function TreinoTab() {
   const { isActive } = useWorkoutStore();
   const [nextWorkout, setNextWorkout] = useState<any>(null);
   const [consumedDayId, setConsumedDayId] = useState<string | null>(null);
-  const homeData = useHomeData();
+  const calendarData = useCalendarData();
 
   const currentDayId = params.dayId;
 
@@ -120,11 +120,11 @@ export default function TreinoTab() {
       
       <View className="px-5 mb-4">
         <CalendarWidget 
-          currentMonthStr={homeData.currentMonthStr}
-          completedDays={homeData.completedDays}
-          weekDays={homeData.weekDays}
-          weeklyGoal={homeData.weeklyGoal}
-          onUpdateGoal={homeData.updateWeeklyGoal}
+          currentMonthStr={calendarData.currentMonthStr}
+          completedDays={calendarData.completedDays}
+          weekDays={calendarData.weekDays}
+          weeklyGoal={calendarData.weeklyGoal}
+          onUpdateGoal={calendarData.updateWeeklyGoal}
         />
       </View>
 

@@ -422,6 +422,9 @@ export function ActiveWorkoutView() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         initialScrollIndex={activeExerciseIndex}
+        keyExtractor={(_, index) => `pager_block_${index}`}
+        windowSize={3}
+        maxToRenderPerBatch={2}
         getItemLayout={(data, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index, index })}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}

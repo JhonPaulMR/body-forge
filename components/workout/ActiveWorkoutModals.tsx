@@ -127,14 +127,14 @@ export function ConfirmUpdateModal({
       <View className="flex-1 justify-end bg-black/60">
         <View className="bg-[#1C1E23] rounded-t-3xl h-[85%] p-6">
           <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-white text-2xl font-bold">Update your workout?</Text>
+            <Text className="text-white text-2xl font-bold">Atualizar seu treino?</Text>
             <TouchableOpacity onPress={onKeepOriginal} className="p-2">
               <X size={24} color="#FFF" />
             </TouchableOpacity>
           </View>
           
           <Text className="text-forge-muted text-sm mb-6">
-            You've made changes during your workout. Select which structural modifications you want to save to your original routine for next time:
+            Você fez alterações durante o treino. Selecione quais modificações estruturais deseja salvar na rotina original para a próxima vez:
           </Text>
 
           <ScrollView showsVerticalScrollIndicator={false} className="flex-1 mb-4">
@@ -160,10 +160,10 @@ export function ConfirmUpdateModal({
 
           <View className="mt-2 gap-3 pb-4">
             <TouchableOpacity onPress={onApply} className="bg-[#3B82F6] py-4 rounded-full items-center">
-              <Text className="text-white font-bold">Apply selected changes</Text>
+              <Text className="text-white font-bold">Aplicar alterações selecionadas</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={onKeepOriginal} className="bg-transparent border border-forge-border py-4 rounded-full items-center">
-              <Text className="text-white font-bold">Keep original workout</Text>
+              <Text className="text-white font-bold">Manter treino original</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -209,11 +209,11 @@ export function CreateSupersetModal({ visible, currentExerciseId, exercises, onC
             <TouchableOpacity onPress={onClose} className="p-2 -ml-2 mr-2">
               <X size={24} color="#FFF" />
             </TouchableOpacity>
-            <Text className="text-white text-xl font-bold">Create superset</Text>
+            <Text className="text-white text-xl font-bold">Criar Superset</Text>
           </View>
           
           <Text className="text-forge-muted text-sm mb-6">
-            Select the exercises you want to superset
+            Selecione os exercícios que deseja agrupar em superset
           </Text>
 
           <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
@@ -254,7 +254,7 @@ export function CreateSupersetModal({ visible, currentExerciseId, exercises, onC
               disabled={selectedIds.size < 2}
               className={`py-4 rounded-full items-center ${selectedIds.size > 1 ? 'bg-[#3B82F6]' : 'bg-forge-surface border border-forge-border opacity-50'}`}
             >
-              <Text className={`font-bold ${selectedIds.size > 1 ? 'text-white' : 'text-forge-muted'}`}>Save</Text>
+              <Text className={`font-bold ${selectedIds.size > 1 ? 'text-white' : 'text-forge-muted'}`}>Salvar</Text>
             </TouchableOpacity>
           </View>
         </View>

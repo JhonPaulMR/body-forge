@@ -20,7 +20,7 @@ const formatTime = (seconds: number) => {
 export default function WorkoutSummaryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { sessionId, exercises, elapsedSeconds, cancelWorkout, routineDayId, hasStructuralChanges } = useWorkoutStore();
+  const { sessionId, exercises, elapsedSeconds, finishWorkout, routineDayId, hasStructuralChanges } = useWorkoutStore();
   const [confirmModal, setConfirmModal] = useState(false);
   const [modifications, setModifications] = useState<DetectedModification[]>([]);
   const [selectedModIds, setSelectedModIds] = useState<Set<string>>(new Set());
@@ -198,7 +198,7 @@ export default function WorkoutSummaryScreen() {
         SessionRepository.finishSession(sessionId, new Date().toISOString(), stats.totalVolume, exercises);
       }
       
-      cancelWorkout();
+      finishWorkout();
       router.replace('/workout/complete');
 
     } catch (e: any) {

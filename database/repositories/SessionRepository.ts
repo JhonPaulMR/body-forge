@@ -234,6 +234,8 @@ export class SessionRepository {
   }
 
   static finishSession(sessionId: string, endTime: string, totalVolume: number, exercises: WorkoutExercise[]): void {
+    const rid = () => Math.random().toString(36).substr(2, 5);
+    
     db.withTransactionSync(() => {
       db.runSync(
         'UPDATE sessions SET end_time = ?, total_volume_kg = ? WHERE id = ?',
@@ -242,7 +244,7 @@ export class SessionRepository {
 
       for (let i = 0; i < exercises.length; i++) {
         const ex = exercises[i];
-        const seId = 'se_' + Date.now() + '_' + i;
+        const seId = `se_${Date.now()}_${i}_${rid()}`;
         db.runSync(
           'INSERT INTO session_exercises (id, session_id, exercise_id, order_index, superset_id) VALUES (?, ?, ?, ?, ?)',
           [seId, sessionId, ex.exercise_id, i, ex.superset_id || null]
@@ -253,7 +255,7 @@ export class SessionRepository {
           db.runSync(
             `INSERT INTO sets (id, session_exercise_id, weight, reps, is_completed, is_warmup, is_dropset, is_to_failure, set_order) 
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            ['st_' + Date.now() + '_' + i + '_' + j, seId, s.weight, s.reps, s.is_completed ? 1 : 0, s.is_warmup ? 1 : 0, s.is_dropset ? 1 : 0, s.is_to_failure ? 1 : 0, j]
+            [`st_${Date.now()}_${i}_${j}_${rid()}`, seId, s.weight, s.reps, s.is_completed ? 1 : 0, s.is_warmup ? 1 : 0, s.is_dropset ? 1 : 0, s.is_to_failure ? 1 : 0, j]
           );
         }
       }
@@ -429,5 +431,48 @@ export class SessionRepository {
       reps: r.reps || 0,
       duration_seconds: r.duration_seconds || 0
     }));
+  }
+
+  /**
+   * Calculates the current workout streak (consecutive days with completed sessions).
+   * Counts backwards from today.
+   */
+  static getCurrentStreak(): number {
+    try {
+      const rows = db.getAllSync<{ session_date: string }>(
+        `SELECT DISTINCT date(start_time) as session_date 
+         FROM sessions 
+         WHERE end_time IS NOT NULL 
+         ORDER BY session_date DESC`
+      );
+
+      if (rows.length === 0) return 0;
+
+      let streak = 0;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Start from today and check each day backwards
+      const dateSet = new Set(rows.map(r => r.session_date));
+      
+      for (let i = 0; i <= rows.length + 1; i++) {
+        const checkDate = new Date(today);
+        checkDate.setDate(today.getDate() - i);
+        const checkStr = checkDate.toISOString().split('T')[0];
+        
+        if (dateSet.has(checkStr)) {
+          streak++;
+        } else {
+          // If it's today and no session yet, skip and keep checking from yesterday
+          if (i === 0) continue;
+          break;
+        }
+      }
+
+      return streak;
+    } catch (e) {
+      console.error('Error calculating streak:', e);
+      return 0;
+    }
   }
 }

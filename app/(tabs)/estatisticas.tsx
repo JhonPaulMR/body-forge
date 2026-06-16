@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Menu } from 'lucide-react-native';
+// @ts-ignore - lucide-react-native type definitions have a bug missing some icons
+import { Settings } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 
 import { useStatsData } from '@/hooks/useStatsData';
 import { CurrentWeight } from '@/components/stats/CurrentWeight';
@@ -22,15 +24,16 @@ const CHART_COLORS = [
 ];
 
 export default function EstatisticasScreen() {
+  const router = useRouter();
   const statsData = useStatsData();
 
   return (
     <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
 
         <View className="flex-row items-center justify-between mb-6">
-          <TouchableOpacity>
-            <Menu size={24} color="#FFF" />
+          <TouchableOpacity onPress={() => router.push('/settings')}>
+            <Settings size={24} color="#FFF" />
           </TouchableOpacity>
           <Text className="text-white text-lg font-black tracking-wide">BODY FORGE</Text>
           <View className="w-9 h-9 rounded-full bg-forge-border justify-center items-center">
@@ -195,8 +198,6 @@ export default function EstatisticasScreen() {
           bodyMetrics={statsData.bodyMetrics} 
           setShowAddMetricModal={statsData.setShowAddMetricModal} 
         />
-
-        <View className="h-[100px]" />
       </ScrollView>
 
       <MetricsRegistrationModal {...statsData} />

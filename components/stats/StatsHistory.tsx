@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { BodyMetric } from '@/hooks/useStatsData';
+import { useSettingsStore } from '@/hooks/useSettingsStore';
+import { getDisplayWeight } from '@/utils/units';
 
 interface StatsHistoryProps {
   bodyMetrics: BodyMetric[];
@@ -8,6 +10,8 @@ interface StatsHistoryProps {
 }
 
 export function StatsHistory({ bodyMetrics, setShowAddMetricModal }: StatsHistoryProps) {
+  const weightUnit = useSettingsStore(state => state.weightUnit);
+
   return (
     <View className="bg-forge-surface rounded-[20px] p-5 mb-4">
       <View className="flex-row justify-between items-center mb-2">
@@ -31,7 +35,7 @@ export function StatsHistory({ bodyMetrics, setShowAddMetricModal }: StatsHistor
             {m.notes && <Text className="text-forge-muted-dark text-[11px]">{m.notes}</Text>}
           </View>
           <View className="items-end">
-            <Text className="text-white text-base font-extrabold">{m.weight_kg.toFixed(1)} kg</Text>
+            <Text className="text-white text-base font-extrabold">{getDisplayWeight(m.weight_kg, weightUnit).toFixed(1)} {weightUnit}</Text>
             {m.body_fat_percentage && (
               <Text className="text-forge-muted text-[11px] font-semibold mt-0.5">{m.body_fat_percentage.toFixed(1)}% BF</Text>
             )}

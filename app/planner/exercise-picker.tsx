@@ -17,6 +17,7 @@ import { ExerciseRepository } from '@/database/repositories/ExerciseRepository';
 import { RoutineRepository } from '@/database/repositories/RoutineRepository';
 import { muscleImages } from '@/constants/muscleImages';
 import { parseMuscleGroup } from '@/services/muscleGroupUtils';
+import { useSettingsStore } from '@/hooks/useSettingsStore';
 
 interface Exercise {
   id: string;
@@ -170,11 +171,11 @@ export default function ExercisePickerScreen() {
           name: baseEx?.name || 'Unknown',
           muscle_group: baseEx?.muscle_group || 'Peito',
           image_uri: baseEx?.gif_url || baseEx?.image_uri || null,
-          target_sets: 3,
+          target_sets: useSettingsStore.getState().defaultSets || 3,
           target_reps: '8-12',
-          rest_time_seconds: 90,
+          rest_time_seconds: useSettingsStore.getState().defaultRestTime,
           superset_id: supersetIds.has(exId) ? ('ss_' + Date.now()) : null,
-          sets: Array.from({ length: 3 }).map((_, i) => ({
+          sets: Array.from({ length: useSettingsStore.getState().defaultSets || 3 }).map((_, i) => ({
             id: 'set_' + Math.random().toString(36).substring(2, 7),
             weight: 0,
             reps: 0,

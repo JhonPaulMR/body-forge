@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -11,7 +11,7 @@ import "../global.css";
 import { useColorScheme } from '@/components/useColorScheme';
 import { initDatabase } from '@/database/schema';
 import { seedDatabase } from '@/database/seed';
-import { initNotifications } from '@/services/notificationService';
+import { initNotifications, setupNotificationListeners } from '@/services/notificationService';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -48,10 +48,15 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
 
   useEffect(() => {
     void initNotifications();
-  }, []);
+    const unsubscribe = setupNotificationListeners(router);
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [router]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

@@ -3,6 +3,8 @@ import { Alert } from 'react-native';
 import { db } from '@/database/schema';
 
 import { SessionRepository } from '@/database/repositories/SessionRepository';
+import { useSettingsStore } from '@/hooks/useSettingsStore';
+import { getDisplayMeasurement, convertToKg, convertToCm } from '@/utils/units';
 
 export interface BodyMetric {
   id: string;
@@ -106,7 +108,8 @@ export function useStatsData() {
       
       const user = db.getFirstSync<{ height_cm: number | null }>('SELECT height_cm FROM users WHERE id = ?', ['user_1']);
       if (user && user.height_cm) {
-        setNewHeight(user.height_cm.toString());
+        const displayHeight = getDisplayMeasurement(user.height_cm, useSettingsStore.getState().measurementUnit);
+        setNewHeight(displayHeight.toString());
       }
     } catch (error) {
       console.error('Error loading body metrics:', error);
@@ -114,27 +117,29 @@ export function useStatsData() {
   }, []);
 
   const handleAddMetric = () => {
-    const weight = parseFloat(newWeight);
-    if (isNaN(weight) || weight <= 0) {
+    const inputWeight = parseFloat(newWeight);
+    if (isNaN(inputWeight) || inputWeight <= 0) {
       Alert.alert('Erro', 'Insira um peso válido.');
       return;
     }
+    const weightKg = convertToKg(inputWeight, useSettingsStore.getState().weightUnit);
 
     const bf = newBf ? parseFloat(newBf) : null;
-    const height = newHeight ? parseFloat(newHeight) : null;
+    const inputHeight = newHeight ? parseFloat(newHeight) : null;
+    const heightCm = inputHeight ? convertToCm(inputHeight, useSettingsStore.getState().measurementUnit) : null;
     const id = 'bm_' + Date.now();
     const today = new Date().toISOString().split('T')[0];
 
     try {
       db.runSync('INSERT OR IGNORE INTO users (id, name) VALUES (?, ?)', ['user_1', 'Atleta']);
       
-      if (height) {
-        db.runSync('UPDATE users SET height_cm = ? WHERE id = ?', [height, 'user_1']);
+      if (heightCm) {
+        db.runSync('UPDATE users SET height_cm = ? WHERE id = ?', [heightCm, 'user_1']);
       }
 
       db.runSync(
         'INSERT INTO body_metrics (id, user_id, date, weight_kg, body_fat_percentage, notes) VALUES (?, ?, ?, ?, ?, ?)',
-        [id, 'user_1', today, weight, bf, newNotes || null]
+        [id, 'user_1', today, weightKg, bf, newNotes || null]
       );
       setNewWeight('');
       setNewBf('');

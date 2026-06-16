@@ -20,6 +20,7 @@ import CoverImagePickerModal from '@/components/planner/CoverImagePickerModal';
 import { ExerciseMenu, SupersetMenu, DayMenu } from '@/components/planner/PlannerActionMenus';
 import DayCard from '@/components/planner/DayCard';
 import CreateSupersetModal from '@/components/planner/CreateSupersetModal';
+import { BottomSheetModal } from '@/components/ui/BottomSheetModal';
 import { RoutineRepository, RoutineDay, DayExercise, RenderItem } from '@/database/repositories/RoutineRepository';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -362,124 +363,67 @@ export default function PlannerScreen() {
       {/* Confirmation Modals */}
       
       {/* Duplicate Routine Modal */}
-      <Modal visible={showDuplicateConfirm} transparent animationType="fade">
-        <Pressable className="flex-1 bg-black/60 justify-end" onPress={() => setShowDuplicateConfirm(false)}>
-          <Pressable className="bg-forge-surface rounded-t-3xl px-5 pt-5 pb-10">
-            <View className="items-center px-4 py-2">
-              <View className="w-16 h-16 rounded-full bg-forge-accent/10 justify-center items-center mb-5">
-                <Copy size={28} color="#A0C4FF" />
-              </View>
-              <Text className="text-white text-xl font-black mb-2 text-center">Duplicar Plano?</Text>
-              <Text className="text-forge-muted text-sm text-center mb-8 leading-5">
-                Deseja duplicar este plano para a sua biblioteca (Seus Planos)?
-              </Text>
-              
-              <View className="flex-row gap-3 w-full">
-                <TouchableOpacity 
-                  className="flex-1 py-4 rounded-xl bg-forge-bg border border-forge-border items-center"
-                  onPress={() => setShowDuplicateConfirm(false)}
-                >
-                  <Text className="text-white text-sm font-bold tracking-wide">CANCELAR</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  className="flex-1 py-4 rounded-xl bg-forge-accent items-center"
-                  onPress={() => {
-                    if (savedRoutineId) {
-                      const newId = RoutineRepository.duplicateRoutine(savedRoutineId);
-                      router.replace({ pathname: '/planner', params: { routineId: newId } } as any);
-                    }
-                    setShowDuplicateConfirm(false);
-                  }}
-                >
-                  <Text className="text-forge-bg text-sm font-bold tracking-wide">DUPLICAR</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <BottomSheetModal
+        visible={showDuplicateConfirm}
+        title="Duplicar Plano?"
+        description="Deseja duplicar este plano para a sua biblioteca (Seus Planos)?"
+        icon={<Copy size={28} color="#A0C4FF" />}
+        iconBgColorClass="bg-forge-accent/10"
+        confirmText="DUPLICAR"
+        confirmButtonClass="bg-forge-accent"
+        confirmTextClass="text-forge-bg"
+        onCancel={() => setShowDuplicateConfirm(false)}
+        onConfirm={() => {
+          if (savedRoutineId) {
+            const newId = RoutineRepository.duplicateRoutine(savedRoutineId);
+            router.replace({ pathname: '/planner', params: { routineId: newId } } as any);
+          }
+          setShowDuplicateConfirm(false);
+        }}
+      />
 
       {/* Delete Day Modal */}
-      <Modal visible={!!showDeleteDayConfirm} transparent animationType="fade">
-        <Pressable className="flex-1 bg-black/60 justify-end" onPress={() => setShowDeleteDayConfirm(null)}>
-          <Pressable className="bg-forge-surface rounded-t-3xl px-5 pt-5 pb-10">
-            <View className="items-center px-4 py-2">
-              <View className="w-16 h-16 rounded-full bg-red-500/10 justify-center items-center mb-5">
-                <Trash2 size={28} color="#EF4444" />
-              </View>
-              <Text className="text-white text-xl font-black mb-2 text-center">Excluir Dia?</Text>
-              <Text className="text-forge-muted text-sm text-center mb-8 leading-5">
-                Deseja excluir este dia e todos os seus exercícios permanentemente?
-              </Text>
-              
-              <View className="flex-row gap-3 w-full">
-                <TouchableOpacity 
-                  className="flex-1 py-4 rounded-xl bg-forge-bg border border-forge-border items-center"
-                  onPress={() => setShowDeleteDayConfirm(null)}
-                >
-                  <Text className="text-white text-sm font-bold tracking-wide">CANCELAR</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  className="flex-1 py-4 rounded-xl bg-red-500 items-center"
-                  onPress={() => {
-                    if (showDeleteDayConfirm) {
-                      RoutineRepository.deleteDay(showDeleteDayConfirm);
-                      if (savedRoutineId) refreshDays(savedRoutineId);
-                      setActiveDayIndex(Math.max(0, activeDayIndex - 1));
-                      setMenuDay(null);
-                    }
-                    setShowDeleteDayConfirm(null);
-                  }}
-                >
-                  <Text className="text-white text-sm font-bold tracking-wide">EXCLUIR</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <BottomSheetModal
+        visible={!!showDeleteDayConfirm}
+        title="Excluir Dia?"
+        description="Deseja excluir este dia e todos os seus exercícios permanentemente?"
+        icon={<Trash2 size={28} color="#EF4444" />}
+        iconBgColorClass="bg-red-500/10"
+        confirmText="EXCLUIR"
+        confirmButtonClass="bg-red-500"
+        confirmTextClass="text-white"
+        onCancel={() => setShowDeleteDayConfirm(null)}
+        onConfirm={() => {
+          if (showDeleteDayConfirm) {
+            RoutineRepository.deleteDay(showDeleteDayConfirm);
+            if (savedRoutineId) refreshDays(savedRoutineId);
+            setActiveDayIndex(Math.max(0, activeDayIndex - 1));
+            setMenuDay(null);
+          }
+          setShowDeleteDayConfirm(null);
+        }}
+      />
 
       {/* Delete Superset Modal */}
-      <Modal visible={!!showDeleteSupersetConfirm} transparent animationType="fade">
-        <Pressable className="flex-1 bg-black/60 justify-end" onPress={() => setShowDeleteSupersetConfirm(null)}>
-          <Pressable className="bg-forge-surface rounded-t-3xl px-5 pt-5 pb-10">
-            <View className="items-center px-4 py-2">
-              <View className="w-16 h-16 rounded-full bg-red-500/10 justify-center items-center mb-5">
-                <Trash2 size={28} color="#EF4444" />
-              </View>
-              <Text className="text-white text-xl font-black mb-2 text-center">Excluir Superset?</Text>
-              <Text className="text-forge-muted text-sm text-center mb-8 leading-5">
-                Deseja excluir todos os exercícios deste superset permanentemente?
-              </Text>
-              
-              <View className="flex-row gap-3 w-full">
-                <TouchableOpacity 
-                  className="flex-1 py-4 rounded-xl bg-forge-bg border border-forge-border items-center"
-                  onPress={() => setShowDeleteSupersetConfirm(null)}
-                >
-                  <Text className="text-white text-sm font-bold tracking-wide">CANCELAR</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  className="flex-1 py-4 rounded-xl bg-red-500 items-center"
-                  onPress={() => {
-                    if (showDeleteSupersetConfirm) {
-                      RoutineRepository.deleteSupersetExercises(showDeleteSupersetConfirm);
-                      if (savedRoutineId) refreshDays(savedRoutineId);
-                      setMenuSuperset(null);
-                    }
-                    setShowDeleteSupersetConfirm(null);
-                  }}
-                >
-                  <Text className="text-white text-sm font-bold tracking-wide">EXCLUIR</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <BottomSheetModal
+        visible={!!showDeleteSupersetConfirm}
+        title="Excluir Superset?"
+        description="Deseja excluir todos os exercícios deste superset permanentemente?"
+        icon={<Trash2 size={28} color="#EF4444" />}
+        iconBgColorClass="bg-red-500/10"
+        confirmText="EXCLUIR"
+        confirmButtonClass="bg-red-500"
+        confirmTextClass="text-white"
+        onCancel={() => setShowDeleteSupersetConfirm(null)}
+        onConfirm={() => {
+          if (showDeleteSupersetConfirm) {
+            RoutineRepository.deleteSupersetExercises(showDeleteSupersetConfirm);
+            if (savedRoutineId) refreshDays(savedRoutineId);
+            setMenuSuperset(null);
+          }
+          setShowDeleteSupersetConfirm(null);
+        }}
+      />
     </SafeAreaView>
   );
 }

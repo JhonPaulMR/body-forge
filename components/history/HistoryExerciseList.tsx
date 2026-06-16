@@ -3,6 +3,8 @@ import { View, Text } from 'react-native';
 import { Check } from 'lucide-react-native';
 import { HistoryExercise, HistorySet } from '@/database/repositories/SessionRepository';
 import { toTitleCase } from '@/utils/stringUtils';
+import { useSettingsStore } from '@/hooks/useSettingsStore';
+import { getDisplayWeight } from '@/utils/units';
 
 interface HistoryExerciseListProps {
   exercises: HistoryExercise[];
@@ -32,6 +34,7 @@ export function HistoryExerciseList({ exercises }: HistoryExerciseListProps) {
 
 function HistorySetRow({ set, index }: { set: HistorySet; index: number }) {
   const isCompleted = set.is_completed;
+  const weightUnit = useSettingsStore(state => state.weightUnit);
 
   return (
     <View className="flex-row items-center justify-between mb-4">
@@ -47,7 +50,7 @@ function HistorySetRow({ set, index }: { set: HistorySet; index: number }) {
         {/* Weight & Reps */}
         <View>
           <Text className="text-white text-base font-medium">
-            {set.weight} kg <Text className="text-forge-muted mx-1">×</Text> {set.reps}
+            {getDisplayWeight(set.weight, weightUnit)} {weightUnit} <Text className="text-forge-muted mx-1">×</Text> {set.reps}
           </Text>
           {set.is_dropset && (
             <Text className="text-forge-muted text-[10px] font-bold uppercase tracking-widest mt-0.5">Drop set</Text>

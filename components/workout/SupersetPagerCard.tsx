@@ -49,8 +49,9 @@ const SupersetPagerCardComponent = ({ block, onOpenHistory, onOpenNotes, onOpenR
 
   const handleComplete = (ex: WorkoutExercise, setId: string) => {
     const store = useWorkoutStore.getState();
+    const currentEx = store.exercises.find(e => e.id === ex.id) || ex;
     store.completeSet(ex.id, setId);
-    store.startRestTimer(ex.rest_time_seconds);
+    store.startRestTimer(currentEx.rest_time_seconds);
   };
 
   // Encontrar o número máximo de "grupos" (séries normais) neste bloco

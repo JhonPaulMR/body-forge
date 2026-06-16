@@ -7,10 +7,13 @@ import { getExerciseStats, ExerciseHistorySession } from '@/services/exerciseSer
 import { ExerciseMediaRepository } from '@/database/repositories/ExerciseMediaRepository';
 import { toTitleCase } from '@/utils/stringUtils';
 import { ExerciseNotesModal } from '@/components/exercises/ExerciseNotesModal';
+import { useSettingsStore } from '@/hooks/useSettingsStore';
+import { getDisplayWeight } from '@/utils/units';
 
 // --- HISTORY MODAL ---
 export function HistoryModal({ exercise, visible, onClose }: { exercise: WorkoutExercise | null, visible: boolean, onClose: () => void }) {
   const [history, setHistory] = useState<ExerciseHistorySession[]>([]);
+  const weightUnit = useSettingsStore(state => state.weightUnit);
 
   useEffect(() => {
     if (visible && exercise) {
@@ -51,15 +54,16 @@ export function HistoryModal({ exercise, visible, onClose }: { exercise: Workout
                   </View>
 
                   {session.sets.map((set, setIdx) => {
-                    const volume = (set.weight || 0) * (set.reps || 0);
+                    const displayWeight = getDisplayWeight(set.weight || 0, weightUnit);
+                    const volume = displayWeight * (set.reps || 0);
                     return (
                       <View key={setIdx} className={`bg-forge-surface rounded-xl p-4 mb-2 flex-row items-center flex-wrap ${set.is_dropset ? 'opacity-80 ml-4' : ''}`}>
                         <View className={`w-8 h-8 rounded-2xl ${set.is_warmup ? 'bg-[#F59E0B]/20' : 'bg-forge-border-light'} justify-center items-center mr-4`}>
                           <Text className={`text-sm font-extrabold ${set.is_warmup ? 'text-[#F59E0B]' : 'text-white'}`}>{setIdx + 1}</Text>
                         </View>
                         <View className="flex-1 flex-row items-baseline gap-2">
-                          <Text className="text-white text-[22px] font-black">{set.weight || 0}</Text>
-                          <Text className="text-forge-muted text-[13px] font-semibold"> kg</Text>
+                          <Text className="text-white text-[22px] font-black">{displayWeight}</Text>
+                          <Text className="text-forge-muted text-[13px] font-semibold"> {weightUnit}</Text>
                           <Text className="text-forge-muted-dark text-lg font-semibold">×</Text>
                           <Text className="text-white text-[22px] font-black">{set.reps || 0}</Text>
                           <Text className="text-forge-muted text-[13px] font-semibold"> reps</Text>
@@ -68,7 +72,7 @@ export function HistoryModal({ exercise, visible, onClose }: { exercise: Workout
                           <Text className="text-[#EF4444] font-bold text-[10px] ml-2 uppercase">Falha</Text>
                         )}
                         {volume > 0 && (
-                          <Text className="text-forge-muted-dark text-[9px] font-bold tracking-tight mt-1 w-full pl-12">VOLUME: {volume} KG</Text>
+                          <Text className="text-forge-muted-dark text-[9px] font-bold tracking-tight mt-1 w-full pl-12">VOLUME: {Number.isInteger(volume) ? volume : volume.toFixed(1)} {weightUnit.toUpperCase()}</Text>
                         )}
                       </View>
                     );

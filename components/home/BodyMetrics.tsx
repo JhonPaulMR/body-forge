@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { TrendingUp, ChevronDown } from 'lucide-react-native';
+import { useSettingsStore } from '@/hooks/useSettingsStore';
+import { getDisplayWeight } from '@/utils/units';
 
 interface BodyMetricsProps {
   currentWeight: number | null;
@@ -9,6 +11,10 @@ interface BodyMetricsProps {
 }
 
 export function BodyMetrics({ currentWeight, weightDiff, imc }: BodyMetricsProps) {
+  const weightUnit = useSettingsStore(state => state.weightUnit);
+  const displayWeight = currentWeight ? getDisplayWeight(currentWeight, weightUnit) : null;
+  const displayDiff = weightDiff !== null ? getDisplayWeight(weightDiff, weightUnit) : null;
+
   const getImcLabel = (val: number) => {
     if (val < 18.5) return { label: 'Abaixo do Peso', color: '#A0C4FF', p: 20 };
     if (val < 25) return { label: 'Faixa Saudável', color: '#4ADE80', p: 40 };
@@ -23,14 +29,14 @@ export function BodyMetrics({ currentWeight, weightDiff, imc }: BodyMetricsProps
          {currentWeight ? (
            <>
              <View className="flex-row items-baseline mt-3">
-               <Text className="text-white text-[26px] font-bold">{currentWeight.toFixed(1)}</Text>
-               <Text className="text-forge-muted text-sm font-bold"> KG</Text>
+               <Text className="text-white text-[26px] font-bold">{displayWeight!.toFixed(1)}</Text>
+               <Text className="text-forge-muted text-sm font-bold"> {weightUnit.toUpperCase()}</Text>
              </View>
-             {weightDiff !== null && weightDiff !== 0 && (
+             {displayDiff !== null && displayDiff !== 0 && (
                <View className="flex-row items-center gap-1 mt-3">
-                {weightDiff < 0 ? <ChevronDown size={12} color="#4ADE80" /> : <TrendingUp size={12} color="#FFA07A" />}
-                <Text className={`text-[10px] font-bold ${weightDiff < 0 ? 'text-forge-green' : 'text-forge-orange'}`}>
-                  {weightDiff > 0 ? '+' : ''}{weightDiff.toFixed(1)}kg
+                {displayDiff < 0 ? <ChevronDown size={12} color="#4ADE80" /> : <TrendingUp size={12} color="#FFA07A" />}
+                <Text className={`text-[10px] font-bold ${displayDiff < 0 ? 'text-forge-green' : 'text-forge-orange'}`}>
+                  {displayDiff > 0 ? '+' : ''}{displayDiff.toFixed(1)}{weightUnit}
                 </Text>
               </View>
              )}

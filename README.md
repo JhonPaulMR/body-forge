@@ -16,11 +16,11 @@ Alguns módulos nativos **não estão disponíveis ou estão limitados no Expo G
 - **`expo-av`:** reprodução de vídeo/áudio com o módulo nativo pode mostrar *Cannot find native module 'ExponentAV'* no Expo Go; o mesmo comando `expo run:*` instala o binário com os nativos corretos.
 
 ### Funcionalidades Básicas (Prioritárias)
-- [ ] **Catálogo de Exercícios:** Base de dados local categorizada por grupo muscular e equipamento, com suporte a exercícios customizados.
-- [ ] **Construtor de Planos (Workout Planner):** Criação de rotinas estruturadas divididas por dias (ex: Dia 1 - Push, Dia 2 - Pull), com suporte a Supersets e Trisets.
-- [ ] **Treino Ativo (Logger):** Tela de execução com preenchimento inteligente (herda cargas do treino anterior), inputs rápidos de volume/RPE e cronômetro de descanso automático.
-- [ ] **Anotações Avançadas:** Capacidade de adicionar notas específicas para cada exercício durante a sessão de treino.
-- [ ] **Estatísticas e Corpo:** Dashboard com gráficos de volume semanal, estimativa de 1RM e registro de métricas corporais (peso, BF%).
+- [x] **Catálogo de Exercícios:** Base de dados local categorizada por grupo muscular e equipamento, com suporte a exercícios customizados.
+- [x] **Construtor de Planos (Workout Planner):** Criação de rotinas estruturadas divididas por dias (ex: Dia 1 - Push, Dia 2 - Pull), com suporte a Supersets e Trisets.
+- [x] **Treino Ativo (Logger):** Tela de execução com preenchimento inteligente (herda cargas do treino anterior), inputs rápidos de volume/RPE e cronômetro de descanso automático.
+- [x] **Anotações Avançadas:** Capacidade de adicionar notas específicas para cada exercício durante a sessão de treino.
+- [x] **Estatísticas e Corpo:** Dashboard com gráficos de volume semanal, estimativa de 1RM e registro de métricas corporais (peso, BF%).
 
 ### Funcionalidades Adicionais (Trabalhos Futuros)
 - [ ] **Sincronização em Nuvem:** Backup do banco de dados local para serviços como Supabase ou Firebase.
@@ -44,9 +44,9 @@ https://youtube.com/shorts/gYK6iC9IbmU?feature=share
 
 A persistência de dados será estritamente **Local**, utilizando **SQLite** (via Expo SQLite ou WatermelonDB). O banco é relacional e foi projetado para suportar hierarquias complexas de treino (Rotina > Dia > Exercício) e o histórico detalhado de cada série executada.
 
-* **Ferramenta utilizada:** DrawSQL / diagrams.net
+* **Ferramenta utilizada:** DB Diagram
 * **Modelo Entidade-Relacionamento (DER):**
-* <img width="984" height="897" alt="image" src="https://github.com/user-attachments/assets/e75f0674-6846-4ee5-8d1d-67058cfd474c" />
+* <img width="1609" height="1461" alt="Untitled" src="https://github.com/user-attachments/assets/d10e98a2-0115-4947-8843-328592b6ef94" />
 
 ### Estrutura Base de Dados (Tabelas Atuais)
 O banco principal conta atualmente com a seguinte estrutura lógica mapeada no app:

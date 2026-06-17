@@ -44,7 +44,7 @@ https://youtube.com/shorts/gYK6iC9IbmU?feature=share
 
 A persistência de dados será estritamente **Local**, utilizando **SQLite** (via Expo SQLite ou WatermelonDB). O banco é relacional e foi projetado para suportar hierarquias complexas de treino (Rotina > Dia > Exercício) e o histórico detalhado de cada série executada.
 
-* **Ferramenta utilizada:** DrawSQL / diagrams.net
+* **Ferramenta utilizada:** DB Diagram
 * **Modelo Entidade-Relacionamento (DER):**
 * <img width="1609" height="1461" alt="Untitled" src="https://github.com/user-attachments/assets/d10e98a2-0115-4947-8843-328592b6ef94" />
 

@@ -185,6 +185,15 @@ export const initDatabase = () => {
     // Migrations to add new columns if the table already existed
     try { db.runSync('ALTER TABLE exercises ADD COLUMN api_id TEXT'); } catch (_) {}
     try { db.runSync('CREATE UNIQUE INDEX IF NOT EXISTS idx_exercises_api_id ON exercises(api_id)'); } catch (_) {}
+    
+    // Migration: create performance indexes
+    try {
+      db.runSync('CREATE INDEX IF NOT EXISTS idx_sessions_start_time ON sessions(start_time)');
+      db.runSync('CREATE INDEX IF NOT EXISTS idx_session_exercises_session_id ON session_exercises(session_id)');
+      db.runSync('CREATE INDEX IF NOT EXISTS idx_session_exercises_exercise_id ON session_exercises(exercise_id)');
+      db.runSync('CREATE INDEX IF NOT EXISTS idx_sets_session_exercise_id ON sets(session_exercise_id)');
+    } catch (_) {}
+
     try { db.runSync('ALTER TABLE exercises ADD COLUMN body_part TEXT'); } catch (_) {}
     try { db.runSync('ALTER TABLE exercises ADD COLUMN target TEXT'); } catch (_) {}
     try { db.runSync('ALTER TABLE exercises ADD COLUMN gif_url TEXT'); } catch (_) {}

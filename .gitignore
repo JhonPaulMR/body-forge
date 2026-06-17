@@ -45,3 +45,17 @@ yarn-error.*
 
 # Roteiro
 roteiro.md
+
+# Build artifacts
+*.jar
+build-*.apk
+
+# Temporary/development files
+scratch/
+*.db
+
+# Raw data sources (only the processed seed is needed)
+assets/data/csv/
+assets/data/json/
+assets/data/exercises_seed_orig.json
+assets/data/body_forge.db

@@ -106,38 +106,32 @@ export const getExerciseStats = (exerciseId: string): ExerciseStats => {
 
     // Calculate Personal Records by tracking max weight progression
     const sessionDates = Object.keys(sessionsMap);
-    let historicalMaxWeight = 0;
     
-    // Process sessions from oldest to newest to track PR progression
-    const history: ExerciseHistorySession[] = sessionDates.map(date => {
+    // Reverse sessions so oldest is first for calculating PR progression
+    const chronologicalDates = [...sessionDates].reverse();
+    let runningMax = 0;
+    
+    // First map all sessions to an array to hold their final shapes
+    const sessionsByDate: Record<string, ExerciseHistorySession> = {};
+    
+    chronologicalDates.forEach(date => {
       const sets = sessionsMap[date];
       const sessionMaxWeight = Math.max(...sets.map(s => s.weight || 0), 0);
       
       let isPersonalRecord = false;
-      if (sessionMaxWeight > historicalMaxWeight && sessionMaxWeight > 0) {
+      if (sessionMaxWeight > runningMax && sessionMaxWeight > 0) {
         isPersonalRecord = true;
-        historicalMaxWeight = sessionMaxWeight;
+        runningMax = sessionMaxWeight;
       }
       
-      return { date, isPersonalRecord, sets };
+      sessionsByDate[date] = { date, isPersonalRecord, sets };
     });
 
-    // Reverse back so newest is first (the query was DESC but we mapped in order)
-    // Sessions are already in DESC order from the grouping, so PR marking 
-    // needs to be done from the end (oldest first)
-    const reversedHistory = [...history].reverse();
-    let runningMax = 0;
-    reversedHistory.forEach(session => {
-      const sessionMax = Math.max(...session.sets.map(s => s.weight || 0), 0);
-      if (sessionMax > runningMax && sessionMax > 0) {
-        session.isPersonalRecord = true;
-        runningMax = sessionMax;
-      } else {
-        session.isPersonalRecord = false;
-      }
-    });
-    // Reverse back to DESC order for display
-    reversedHistory.reverse();
+    // Now put them back into DESC order for the final history array
+    const history: ExerciseHistorySession[] = sessionDates.map(date => sessionsByDate[date]);
+
+    // Reverse for the trend comparison below
+    const reversedHistory = [...history];
 
     let trendMessage = 'Continue treinando para gerar mais dados de tendência.';
     let trendDirection: 'up' | 'down' | 'neutral' = 'neutral';

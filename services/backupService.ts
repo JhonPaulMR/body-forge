@@ -31,6 +31,14 @@ export async function createFullBackup() {
     
     await FileSystem.writeAsStringAsync(fileUri, jsonStr, { encoding: FileSystem.EncodingType.UTF8 });
     
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'application/json',
+        dialogTitle: 'Backup Body Forge',
+        UTI: 'public.json'
+      });
+    }
+    
     return { success: true, message: 'Backup completo salvo no dispositivo com sucesso!' };
   } catch (error) {
     console.error('Error creating full backup:', error);

@@ -43,7 +43,7 @@ export function useCalendarData() {
       const endStr = weekDays[6].toISOString().split('T')[0];
 
       const sessions = db.getAllSync<{ dateStr: string }>(
-        `SELECT DISTINCT date(start_time) as dateStr FROM sessions WHERE date(start_time) >= ? AND date(start_time) <= ?`,
+        `SELECT DISTINCT date(start_time) as dateStr FROM sessions WHERE date(start_time) >= ? AND date(start_time) <= ? AND end_time IS NOT NULL`,
         [startStr, endStr]
       );
 

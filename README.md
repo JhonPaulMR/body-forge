@@ -48,18 +48,18 @@ A persistência de dados será estritamente **Local**, utilizando **SQLite** (vi
 * **Modelo Entidade-Relacionamento (DER):**
 * <img width="984" height="897" alt="image" src="https://github.com/user-attachments/assets/e75f0674-6846-4ee5-8d1d-67058cfd474c" />
 
-### Estrutura Base de Dados (Tabelas)
-O banco de dados é composto por 10 tabelas principais:
-1. `users`: Gerencia os dados base do perfil, status premium e XP de gamificação.
-2. `body_metrics`: Histórico de peso e percentual de gordura do usuário.
-3. `exercises`: O catálogo mestre de movimentos, agrupados por músculo/equipamento.
-4. `routines`: Os programas de treinamento macro (ex: "PPL Hipertrofia").
-5. `routine_days`: A subdivisão da rotina em dias específicos (ex: "Dia 1 - Push").
-6. `routine_exercises`: A relação de quais exercícios pertencem a qual dia, incluindo ordem e grupos de *Superset*.
-7. `sessions`: O registro histórico de uma ida à academia (Início, Fim, Volume Total).
-8. `session_exercises`: O agrupador de séries de um exercício específico naquele dia, permitindo anotações isoladas.
-9. `sets`: Registro exato de Carga, Repetições e RPE de cada série.
-10. `reminders`: Configurações de alarmes locais para consistência de treino e pesagem.
+### Estrutura Base de Dados (Tabelas Atuais)
+O banco principal conta atualmente com a seguinte estrutura lógica mapeada no app:
+1. `users`: Gerencia os dados do perfil local e a altura do usuário (para cálculos médicos).
+2. `body_metrics`: Histórico de métricas de pesagem e percentual de gordura ao longo do tempo.
+3. `exercises`: O catálogo principal contendo metadados (equipamento, parte do corpo), mapeamento de API e caminhos dos GIFs.
+4. `exercise_media` & `exercise_notes`: Tabelas auxiliares para armazenar links e notas atemporais sobre exercícios específicos.
+5. `routines`: Os programas/planos macro de treinamento, classificados por categoria.
+6. `routine_days`: A subdivisão da rotina em dias de treino.
+7. `routine_exercises`: A amarração do exercício ao dia, lidando com Supersets, ordem e atributos aninhados de setup (`set_configs`).
+8. `sessions`: O registro do treino executado, controlando duração e volume total levantado.
+9. `session_exercises`: O agrupador que copia os dados do plano no momento da execução, registrando supersets e notas exclusivas daquele dia.
+10. `sets`: O registro exato de cada série, abrangendo Carga, Repetições, tipo de série (`is_warmup`, `is_dropset`) e controle de conclusão.
 
 ---
 
@@ -69,31 +69,23 @@ O desenvolvimento está estruturado em 6 Sprints semanais, focando inicialmente 
 
 * [x] **Sprint 1 (Semana 1): Infraestrutura e Navegação Base**
   * Configuração do Expo, React Navigation (Tabs) e repositório.
-  * Implementação da conexão SQLite e execução das *migrations* das 10 tabelas criadas.
+  * Implementação da conexão SQLite e execução das *migrations* iniciais.
   * Criação do *Seed* de dados com exercícios básicos no catálogo.
 
 * [x] **Sprint 2 (Semana 2): Biblioteca e Métricas Corporais**
   * Tela de "Listagem de Exercícios" com pesquisa e filtros (Músculo/Equipamento).
   * Tela de "Corpo" para registrar inserções na tabela `body_metrics`.
-  * Criação do componente visual de Gráfico de Linha simples para evolução do peso.
 
 * [x] **Sprint 3 (Semana 3): O Construtor de Planos (Planner)**
-  * Interface "Configuração do Plano" (Nome e setup inicial na tabela `routines`).
-  * Interface "Editor de Dias" permitindo criar abas (Dia 1, Dia 2) na tabela `routine_days`.
-  * Lógica para buscar exercícios no catálogo e atrelá-los a um dia (`routine_exercises`).
-  * Funcionalidades Adicionais para criação de planos (Definição de Tempo, Numero de Séries, Numero de Repetições, Ordem de Execução, Superset e Dropsets).
-* [x] **Preparação Sprint 4 (Semana 4): Refatoração e Preparação**
-  * Limpeza do código e organização dos arquivos.
-  * Implementação de novas funcionalidades.
-  * Testes e correção de bugs.
-* [x] **Sprint 4 (Semana 5): O Treino Ativo (Logger) - O Coração do App**
-  * Desenvolvimento da tela "Treino Ativo" renderizando os exercícios do dia escolhido.
-  * Componentes numéricos de fácil toque (Carga/Reps/RPE) e marcação de série concluída (Tabela `sets`).
-  * Lógica de "Preenchimento Inteligente": Query que busca e exibe a carga da última sessão.
-  * Tela de treino inativo (quando não há treino em andamento).
-  * Modal de anotações do exercício durante e fora do treino.
-  * Tela de Resumo Pós-Treino calculando o volume total da `session`.
-  * Timer de descanso entre séries com estado global via Zustand.
+  * Interface "Configuração do Plano" na tabela `routines`.
+  * Interface "Editor de Dias" e atrelamento lógico à tabela `routine_exercises`.
+  * Funcionalidades de arrastar (Drag and Drop), Supersets e exclusão.
+
+* [x] **Sprint 4 (Semana 4 & 5): O Treino Ativo (Logger) - O Coração do App**
+  * Desenvolvimento da tela "Treino Ativo" usando FlashList otimizada.
+  * Componentes numéricos e botões de `is_completed` alimentando a tabela `sets`.
+  * Lógica de "Preenchimento Inteligente" (herança de carga do treino anterior).
+  * Timer global construído com Zustand.
 
 * [x] **Sprint 5 (Semana 6): Dataset, Estatísticas Funcionais, Histórico e Otimizações**
   * Adição de dataset de exercícios com GIFs, instruções e nome do exercício (`exercises_seed.json`).
@@ -107,10 +99,11 @@ O desenvolvimento está estruturado em 6 Sprints semanais, focando inicialmente 
   * Otimização de queries no dashboard (N+1 → JOIN único), hook leve `useCalendarData` para reduzir re-renders.
   * Tradução completa de modais para PT-BR.
 
-* [ ] **Sprint 6 (Semana 7): Polimento, Configurações e Entrega**
-  * Implementação da tela de "Configurações" (incremento de peso +/-, meta de água, permissões de notificação, exportar/importar dados).
-  * Refinamento visual aplicando os detalhes da UI "Titanium Steel" (Ajuste de cores e *haptics* de vibração do Expo).
-  * Atualização da documentação (este README) e build final (APK) para entrega do Checkpoint.
+* [x] **Sprint 6 (Semana 7): Polimento, Configurações e Entrega**
+  * Tela de "Configurações" consolidada (Gerenciamento de DB, Backup CSV).
+  * Implementação em cascata de Sistema Dinâmico de Unidades (LBS/KG, IN/CM).
+  * Notificações avançadas e robustas via `@notifee/react-native` configurando Foreground Services em Android.
+  * Geração de Builds via EAS (*Expo Application Services*).
 
 ---
 

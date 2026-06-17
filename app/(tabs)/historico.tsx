@@ -46,7 +46,7 @@ export default function HistoricoTab() {
       <ScrollView
         className="flex-1 px-5"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
         <Text className="text-white text-3xl font-black tracking-tight mb-1">
           Histórico

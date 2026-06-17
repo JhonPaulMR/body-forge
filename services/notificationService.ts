@@ -1,16 +1,47 @@
+import type { TimestampTrigger } from '@notifee/react-native';
 import Constants from 'expo-constants';
 import { PermissionStatus } from 'expo-modules-core';
 import { LogBox, Platform } from 'react-native';
 
-/**
- * Porque o tigrinho-app pode mostrar notificações locais no Expo Go e o body-forge não (Android):
- * - tigrinho-app usa Expo SDK ~54 e import estático de expo-notifications em app/index.tsx
- *   (ver tigrinho-app/package.json: "expo": "~54.0.0", expo-notifications ~0.32).
- * - body-forge usa Expo SDK 55 (package.json expo ^55): no Expo Go Android o módulo pode
- *   inicializar incompleto ou com APIs undefined; por isso carregamos só por import dinâmico,
- *   validamos funções expostas e evitamos import em Expo Go Android (Constants.appOwnership === 'expo').
- * Notificações fiáveis: development build ou `npx expo run:android` / `expo run:ios`.
- */
+const isExpoGo = Constants.appOwnership === 'expo';
+
+let notifee: any;
+let AndroidImportance: any = { HIGH: 4, DEFAULT: 3, LOW: 2, MIN: 1, NONE: 0 };
+let TriggerType: any = { TIMESTAMP: 0, INTERVAL: 1 };
+
+function createMockNotifee() {
+  return {
+    requestPermission: async () => ({ authorizationStatus: 1 }),
+    createChannel: async () => 'mock-channel',
+    displayNotification: async () => {},
+    createTriggerNotification: async () => {},
+    cancelNotification: async () => {},
+    getTriggerNotificationIds: async () => [],
+    cancelTriggerNotifications: async () => {},
+    registerForegroundService: () => {},
+  };
+}
+
+if (!isExpoGo) {
+  try {
+    const notifeeModule = require('@notifee/react-native');
+    notifee = notifeeModule.default;
+    AndroidImportance = notifeeModule.AndroidImportance;
+    TriggerType = notifeeModule.TriggerType;
+    
+    if (notifee && notifee.registerForegroundService) {
+      notifee.registerForegroundService(() => {
+        return new Promise(() => { });
+      });
+    }
+  } catch (e) {
+    console.warn('[notifee] Native module not found, using mock.');
+    notifee = createMockNotifee();
+  }
+} else {
+  notifee = createMockNotifee();
+}
+
 type ExpoNotifications = typeof import('expo-notifications');
 
 /** Canal Android usado por todas as notificações locais; exige rebuild nativo após alterar o plugin em app.json. */
@@ -157,24 +188,184 @@ export async function scheduleImmediateLocalNotification(
   payload: ImmediateNotificationPayload
 ): Promise<void> {
   try {
-    const Notifications = await loadNotifications();
-    if (!Notifications) return;
+    await requestNotifeePermissions();
+    const channelId = await notifee.createChannel({
+      id: 'default',
+      name: 'Geral',
+      importance: AndroidImportance.HIGH,
+    });
 
-    const granted = await ensureNotificationPermission();
-    if (!granted) return;
-
-    const trigger: null | { channelId: string } =
-      Platform.OS === 'android' ? { channelId: DEFAULT_NOTIFICATION_CHANNEL_ID } : null;
-
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: payload.title,
-        body: payload.body,
-        data: payload.data ?? {},
+    await notifee.displayNotification({
+      title: payload.title,
+      body: payload.body,
+      data: payload.data as any,
+      android: {
+        channelId,
+        importance: AndroidImportance.HIGH,
       },
-      trigger,
     });
   } catch (e) {
-    console.warn('[notifications] schedule failed:', e);
+    console.warn('[notifee] schedule immediate failed:', e);
+  }
+}
+
+// ==========================================
+// NOTIFEE IMPLEMENTATION (Novas Notificações)
+// ==========================================
+
+export async function requestNotifeePermissions() {
+  await notifee.requestPermission();
+}
+
+export async function startRestTimerNotification(seconds: number) {
+  if (!notifee || !notifee.createChannel) return;
+  
+  const { useSettingsStore } = require('@/hooks/useSettingsStore');
+  const settings = useSettingsStore.getState();
+  
+  if (!settings.restTimerEnabled) return;
+
+  try {
+    await requestNotifeePermissions();
+
+    const channelId = await notifee.createChannel({
+      id: 'rest_timer',
+      name: 'Cronômetro de Descanso',
+      importance: AndroidImportance.HIGH,
+    });
+
+    const alertChannelId = await notifee.createChannel({
+      id: 'rest_timer_alerts',
+      name: 'Alertas de Descanso',
+      importance: AndroidImportance.HIGH,
+      sound: settings.restTimerSound ? 'default' : undefined,
+    });
+
+    const timestamp = Date.now() + seconds * 1000;
+    
+    // Usaremos esta ID para o cronômetro visual
+    const NOTIFICATION_ID = 'rest_timer_notification'; 
+
+    // 1. Exibe a notificação inicial com o cronômetro rodando
+    await notifee.displayNotification({
+      id: NOTIFICATION_ID,
+      title: 'Descanso Ativo ⏱️',
+      body: 'Recuperando o fôlego...',
+      android: {
+        channelId,
+        onlyAlertOnce: true,
+        ongoing: true, // Impede que o usuário arraste e feche a notificação
+        showChronometer: true,
+        chronometerDirection: 'down',
+        timestamp,
+        color: '#A0C4FF',
+      },
+    });
+
+    // 2. Agendar aviso de finalização (Uma nova notificação separada)
+    const trigger0s: TimestampTrigger = {
+      type: TriggerType.TIMESTAMP,
+      timestamp: timestamp,
+      alarmManager: {
+        allowWhileIdle: true,
+      },
+    };
+    
+    await notifee.createTriggerNotification(
+      {
+        id: 'rest_timer_end_notification',
+        title: '🔥 Tempo esgotado!',
+        body: 'Fim do descanso. Volte para a barra!',
+        android: {
+          channelId: alertChannelId,
+          importance: AndroidImportance.HIGH,
+          ongoing: false, // Agora permite que o usuário feche a notificação
+          vibrationPattern: settings.restTimerVibration ? [0, 500, 200, 500] : undefined,
+        },
+      },
+      trigger0s
+    );
+  } catch (e) {
+    console.warn('[notifee] Falha ao iniciar cronômetro:', e);
+  }
+}
+
+export async function stopRestTimerNotification() {
+  if (!notifee || !notifee.cancelNotification) return;
+  try {
+    await notifee.cancelNotification('rest_timer_notification');
+    await notifee.cancelTriggerNotification('rest_timer_end_notification');
+    await notifee.cancelNotification('rest_timer_end_notification');
+  } catch (e) { }
+}
+
+export function setupNotificationListeners(router: any) {
+  if (!notifee || !notifee.onForegroundEvent) return () => {};
+
+  const unsubscribe = notifee.onForegroundEvent(({ type, detail }: any) => {
+    // 1 é EventType.PRESS
+    if (type === 1 && detail.notification?.id?.startsWith('rest_timer')) {
+      router.push('/treino');
+    }
+  });
+
+  notifee.getInitialNotification().then((initialNotification: any) => {
+    if (initialNotification && initialNotification.notification?.id?.startsWith('rest_timer')) {
+      setTimeout(() => router.push('/treino'), 500);
+    }
+  });
+
+  return unsubscribe;
+}
+
+export async function scheduleDailyWorkoutReminder(routineName: string, dayName: string) {
+  const { useSettingsStore } = require('@/hooks/useSettingsStore');
+  const settings = useSettingsStore.getState();
+
+  try {
+    // Se estiver desativado, apenas garantimos que a notificação existente seja cancelada
+    if (!settings.dailyReminders) {
+      if (notifee && notifee.cancelNotification) {
+        await notifee.cancelNotification('daily_workout_reminder');
+      }
+      return;
+    }
+
+    await requestNotifeePermissions();
+    const channelId = await notifee.createChannel({
+      id: 'daily_reminder',
+      name: 'Lembretes de Treino',
+      importance: AndroidImportance.DEFAULT,
+    });
+
+    await notifee.cancelNotification('daily_workout_reminder');
+
+    const now = new Date();
+    let triggerTime = new Date();
+    triggerTime.setHours(8, 0, 0, 0);
+
+    if (now.getTime() >= triggerTime.getTime()) {
+      triggerTime.setDate(triggerTime.getDate() + 1);
+    }
+
+    const trigger: TimestampTrigger = {
+      type: TriggerType.TIMESTAMP,
+      timestamp: triggerTime.getTime(),
+      alarmManager: true, // required for exact timing in background
+    };
+
+    await notifee.createTriggerNotification(
+      {
+        id: 'daily_workout_reminder',
+        title: 'Lembrete de Treino do Dia 💪',
+        body: `Hoje o treino é o ${dayName} do plano ${routineName}.`,
+        android: {
+          channelId,
+        },
+      },
+      trigger
+    );
+  } catch (e) {
+    console.warn('[notifee] Falha ao agendar lembrete:', e);
   }
 }

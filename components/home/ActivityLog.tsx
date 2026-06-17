@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, Modal, Pressable } from 'react-native';
 import { Activity, MoreVertical, Dumbbell, Zap } from 'lucide-react-native';
 import { ActivityStats, WeeklyMuscleData } from '@/hooks/useHomeData';
 import { DonutChart } from '@/components/ui/DonutChart';
+import { useSettingsStore } from '@/hooks/useSettingsStore';
+import { getDisplayWeight } from '@/utils/units';
 
 interface ActivityLogProps {
   completedDays: number;
@@ -14,6 +16,7 @@ export function ActivityLog({ completedDays, weeklyStats, weeklyMuscleData = [] 
   const [activityViewType, setActivityViewType] = useState<'volume' | 'rpe' | 'muscle'>('volume');
   const [showActivityMenu, setShowActivityMenu] = useState(false);
   const [selectedBarStat, setSelectedBarStat] = useState<ActivityStats | null>(null);
+  const weightUnit = useSettingsStore(state => state.weightUnit);
 
   const getHeatmapColor = (rpe: number) => {
     if (rpe === 0) return '#FCA5A5'; // Salmão padrão caso não haja RPE avaliado ainda
@@ -74,7 +77,7 @@ export function ActivityLog({ completedDays, weeklyStats, weeklyMuscleData = [] 
                 })()}
               </Text>
               <Text className="text-forge-muted text-[11px] mt-0.5">
-                {selectedBarStat.workoutName} • {selectedBarStat.setsCompleted} séries • {selectedBarStat.volume} kg
+                {selectedBarStat.workoutName} • {selectedBarStat.setsCompleted} séries • {getDisplayWeight(selectedBarStat.volume, weightUnit)} {weightUnit}
               </Text>
             </View>
           </View>
@@ -129,7 +132,7 @@ export function ActivityLog({ completedDays, weeklyStats, weeklyMuscleData = [] 
         <View className="flex-row justify-between items-center z-10">
           <Text className="text-white text-[11px] font-bold tracking-wide">
             REGISTRO DE ATIVIDADE: 
-            {activityViewType === 'volume' ? ' VOLUME (KG)' : activityViewType === 'rpe' ? ' CONSISTÊNCIA' : ' MÚSCULOS'}
+            {activityViewType === 'volume' ? ` VOLUME (${weightUnit.toUpperCase()})` : activityViewType === 'rpe' ? ' CONSISTÊNCIA' : ' MÚSCULOS'}
           </Text>
           <TouchableOpacity onPress={() => setShowActivityMenu(true)}>
             <MoreVertical size={20} color="#5F6368" />
@@ -160,7 +163,7 @@ export function ActivityLog({ completedDays, weeklyStats, weeklyMuscleData = [] 
               onPress={() => { setActivityViewType('volume'); setShowActivityMenu(false); }}
             >
               <Dumbbell size={16} color={activityViewType === 'volume' ? '#A0C4FF' : '#5F6368'} />
-              <Text className={`ml-3 text-sm font-semibold ${activityViewType === 'volume' ? 'text-forge-accent' : 'text-white'}`}>Volume de Carga (KG)</Text>
+              <Text className={`ml-3 text-sm font-semibold ${activityViewType === 'volume' ? 'text-forge-accent' : 'text-white'}`}>Volume de Carga ({weightUnit.toUpperCase()})</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 

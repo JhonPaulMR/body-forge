@@ -1,4 +1,5 @@
 import { db } from '../schema';
+import { useSettingsStore } from '@/hooks/useSettingsStore';
 
 // ---- Types ----
 export interface RoutineDay {
@@ -52,17 +53,30 @@ export class RoutineRepository {
     const daysResult = db.getAllSync<RoutineDay>(
       'SELECT * FROM routine_days WHERE routine_id = ? ORDER BY order_index', [routineId]
     );
+    
+    const exercisesResult = db.getAllSync<DayExercise & { routine_day_id: string }>(
+      `SELECT re.id, re.exercise_id, re.routine_day_id, re.order_index, re.superset_id,
+              re.target_sets, re.target_reps, re.rest_time_seconds, re.set_configs,
+              e.name, e.muscle_group, COALESCE(e.gif_url, e.image_uri) as image_uri
+       FROM routine_exercises re 
+       JOIN exercises e ON re.exercise_id = e.id
+       JOIN routine_days rd ON re.routine_day_id = rd.id
+       WHERE rd.routine_id = ? 
+       ORDER BY rd.order_index, re.order_index`,
+      [routineId]
+    );
+
     const exMap: Record<string, DayExercise[]> = {};
     for (const day of daysResult) {
-      exMap[day.id] = db.getAllSync<DayExercise>(
-        `SELECT re.id, re.exercise_id, re.order_index, re.superset_id,
-                re.target_sets, re.target_reps, re.rest_time_seconds, re.set_configs,
-                e.name, e.muscle_group, COALESCE(e.gif_url, e.image_uri) as image_uri
-         FROM routine_exercises re JOIN exercises e ON re.exercise_id = e.id
-         WHERE re.routine_day_id = ? ORDER BY re.order_index`,
-        [day.id]
-      );
+      exMap[day.id] = [];
     }
+    
+    for (const row of exercisesResult) {
+      if (exMap[row.routine_day_id]) {
+        exMap[row.routine_day_id].push(row);
+      }
+    }
+    
     return { days: daysResult, exerciseMap: exMap };
   }
 
@@ -301,16 +315,20 @@ export class RoutineRepository {
 
       const supersetGroupId = supersetIds.size >= 2 ? 'ss_' + Date.now() : null;
 
+      const settings = useSettingsStore.getState();
+      const defaultSets = settings.defaultSets || 3;
+      const defaultRestTime = settings.defaultRestTime || 60;
+
       const stmt = db.prepareSync(
         `INSERT INTO routine_exercises
           (id, routine_day_id, exercise_id, order_index, superset_id, target_sets, target_reps, rest_time_seconds)
-         VALUES (?, ?, ?, ?, ?, 3, '8-12', 90)`
+         VALUES (?, ?, ?, ?, ?, ?, '8-12', ?)`
       );
 
       for (const exId of selectedIds) {
         const reId = 're_' + Date.now() + '_' + nextIndex;
         const ssId = supersetIds.has(exId) ? supersetGroupId : null;
-        stmt.executeSync([reId, dayId, exId, nextIndex, ssId]);
+        stmt.executeSync([reId, dayId, exId, nextIndex, ssId, defaultSets, defaultRestTime]);
         nextIndex++;
       }
     });

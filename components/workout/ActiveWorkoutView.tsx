@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Dimensions, Alert, FlatList, Animated, BackHandler } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions, Alert, FlatList, Animated, BackHandler } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { toTitleCase } from '@/utils/stringUtils';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +14,7 @@ import { SupersetPagerCard } from './SupersetPagerCard';
 import { HistoryModal, NotesModal, CreateSupersetModal, ActionMenuModal } from './ActiveWorkoutModals';
 import TimePadModal from '@/components/ui/TimePadModal';
 import { WorkoutTimer } from './WorkoutTimer';
+import { ActiveWorkoutHeader } from './ActiveWorkoutHeader';
 import { useShallow } from 'zustand/react/shallow';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -239,36 +241,25 @@ export function ActiveWorkoutView() {
   if (activeExerciseIndex === null) {
     return (
       <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
-        {/* Cabeçalho */}
-        <View className="flex-row items-center justify-between px-4 py-4 border-b border-forge-border">
-          <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-            <ArrowLeft size={24} color="#8A8F98" />
-          </TouchableOpacity>
-          <WorkoutTimer className="text-white font-black text-xl" />
-          <TouchableOpacity onPress={handleFinish}>
-            <Text className="text-white font-bold text-xs uppercase tracking-widest">FINALIZAR</Text>
-          </TouchableOpacity>
-        </View>
+        <ActiveWorkoutHeader onFinish={handleFinish} />
 
-        <ScrollView 
-          className="flex-1" 
-          contentContainerStyle={{ paddingBottom: 100 }}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-        >
-          {pagerBlocks.length === 0 ? (
-            <View className="flex-1 items-center justify-center py-20 px-6">
-              <Text className="text-forge-muted text-base font-medium text-center">
-                Nenhum exercício adicionado ainda
-              </Text>
-            </View>
-          ) : (
-            <View className="p-4 gap-4">
-              {pagerBlocks.map((block, blockIndex) => {
-                const isSuperset = block.length > 1;
-              
+        <View className="flex-1">
+          <FlashList 
+            data={pagerBlocks}
+            contentContainerStyle={{ paddingBottom: 100, padding: 16 }}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            ListEmptyComponent={
+              <View className="flex-1 items-center justify-center py-20 px-6">
+                <Text className="text-forge-muted text-base font-medium text-center">
+                  Nenhum exercício adicionado ainda
+                </Text>
+              </View>
+            }
+            renderItem={({ item: block, index: blockIndex }) => {
+              const isSuperset = block.length > 1;
               return (
-                <View key={blockIndex}>
+                <View className="mb-4">
                   {isSuperset && (
                     <View className="flex-row items-center justify-between mb-3 ml-2">
                       <Text className="text-forge-muted text-xs font-bold tracking-widest uppercase">
@@ -281,7 +272,6 @@ export function ActiveWorkoutView() {
                             { 
                               label: 'Remover superset', 
                               onPress: () => {
-                                // Assume that the block belongs to one superset
                                 const ssId = block[0].superset_id;
                                 if (ssId) useWorkoutStore.getState().removeSuperset(ssId);
                               } 
@@ -349,10 +339,9 @@ export function ActiveWorkoutView() {
                   </View>
                 </View>
               );
-            })}
-          </View>
-          )}
-        </ScrollView>
+            }}
+          />
+        </View>
 
         <View 
           className="p-4 bg-forge-bg border-t border-forge-border"

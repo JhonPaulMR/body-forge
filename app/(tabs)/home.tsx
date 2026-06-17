@@ -14,12 +14,17 @@ import { ActivePlans } from '@/components/home/ActivePlans';
 import { ActivityLog } from '@/components/home/ActivityLog';
 import { BodyMetrics } from '@/components/home/BodyMetrics';
 import { WaterTracker } from '@/components/home/WaterTracker';
+import { scheduleNextWorkoutReminder } from '@/services/plannerUtils';
 
 export default function HomeScreen() {
   const router = useRouter();
   const homeData = useHomeData();
   const waterData = useWaterTracker();
   const isWorkoutActive = useWorkoutStore(s => s.isActive);
+
+  React.useEffect(() => {
+    scheduleNextWorkoutReminder();
+  }, []);
 
   return (
     <View className="flex-1 bg-forge-bg">

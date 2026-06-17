@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { Check, Plus, Minus, MoreVertical } from 'lucide-react-native';
 import { useWorkoutStore, WorkoutSet, WorkoutExercise } from '@/hooks/useWorkoutStore';
+import { useSettingsStore } from '@/hooks/useSettingsStore';
+import { getDisplayWeight, convertToKg } from '@/utils/units';
 
 interface WorkoutSetRowProps {
   set: WorkoutSet;
@@ -26,21 +28,30 @@ const WorkoutSetRowComponent = ({
   setMenuVisibleId,
   handleComplete,
 }: WorkoutSetRowProps) => {
-  const [localWeight, setLocalWeight] = useState(set.weight ? set.weight.toString() : '');
+  const weightIncrement = useSettingsStore(state => state.weightIncrement);
+  const weightUnit = useSettingsStore(state => state.weightUnit);
+  const [localWeight, setLocalWeight] = useState(set.weight ? getDisplayWeight(set.weight, weightUnit).toString() : '');
   const [localReps, setLocalReps] = useState(set.reps ? set.reps.toString() : '');
 
   // Sincroniza estado externo quando botões de +/- forem usados ou banco de dados alterar
   useEffect(() => {
-    setLocalWeight(set.weight ? set.weight.toString() : '');
-  }, [set.weight]);
+    setLocalWeight(set.weight ? getDisplayWeight(set.weight, weightUnit).toString() : '');
+  }, [set.weight, weightUnit]);
 
   useEffect(() => {
     setLocalReps(set.reps ? set.reps.toString() : '');
   }, [set.reps]);
 
   const handleAdjustValue = (field: 'weight' | 'reps', currentVal: number, delta: number) => {
-    const newVal = Math.max(0, currentVal + delta);
-    useWorkoutStore.getState().updateSet(exercise.id, set.id, { [field]: newVal });
+    if (field === 'weight') {
+      const currentDisplay = currentVal ? getDisplayWeight(currentVal, weightUnit) : 0;
+      const newDisplay = Math.max(0, currentDisplay + delta);
+      const newKg = convertToKg(newDisplay, weightUnit);
+      useWorkoutStore.getState().updateSet(exercise.id, set.id, { weight: newKg });
+    } else {
+      const newVal = Math.max(0, currentVal + delta);
+      useWorkoutStore.getState().updateSet(exercise.id, set.id, { reps: newVal });
+    }
   };
 
   const handleBlur = (field: 'weight' | 'reps') => {
@@ -48,14 +59,15 @@ const WorkoutSetRowComponent = ({
     // Substitui vírgula por ponto para parse correto
     const parsed = parseFloat(rawVal.replace(',', '.')) || 0;
     
-    // Converte para float se peso, int se repetições
-    const finalVal = field === 'weight' ? parsed : Math.round(parsed);
-    
-    useWorkoutStore.getState().updateSet(exercise.id, set.id, { [field]: finalVal });
-    
-    // Atualiza input visualmente para remover zeros excessivos
-    if (field === 'weight') setLocalWeight(finalVal.toString());
-    else setLocalReps(finalVal.toString());
+    if (field === 'weight') {
+      const newKg = convertToKg(parsed, weightUnit);
+      useWorkoutStore.getState().updateSet(exercise.id, set.id, { weight: newKg });
+      setLocalWeight(parsed.toString()); // Atualiza input visualmente para remover zeros excessivos
+    } else {
+      const finalVal = Math.round(parsed);
+      useWorkoutStore.getState().updateSet(exercise.id, set.id, { reps: finalVal });
+      setLocalReps(finalVal.toString());
+    }
   };
 
   return (
@@ -88,9 +100,9 @@ const WorkoutSetRowComponent = ({
 
       <View className="flex-row gap-4 mb-4">
         <View className="flex-1">
-          <Text className="text-forge-muted text-[10px] font-bold mb-2 tracking-widest">PESO (KG)</Text>
+          <Text className="text-forge-muted text-[10px] font-bold mb-2 tracking-widest">PESO ({weightUnit.toUpperCase()})</Text>
           <View className="bg-forge-bg border border-forge-border flex-row items-center justify-between rounded-xl px-2 h-12">
-            <TouchableOpacity onPress={() => handleAdjustValue('weight', set.weight, -1)} className="p-2">
+            <TouchableOpacity onPress={() => handleAdjustValue('weight', set.weight, -weightIncrement)} className="p-2">
               <Minus size={18} color="#A0C4FF" />
             </TouchableOpacity>
             <TextInput 
@@ -103,7 +115,7 @@ const WorkoutSetRowComponent = ({
               onSubmitEditing={() => handleBlur('weight')}
               editable={!set.is_completed}
             />
-            <TouchableOpacity onPress={() => handleAdjustValue('weight', set.weight, 1)} className="p-2">
+            <TouchableOpacity onPress={() => handleAdjustValue('weight', set.weight, weightIncrement)} className="p-2">
               <Plus size={18} color="#A0C4FF" />
             </TouchableOpacity>
           </View>

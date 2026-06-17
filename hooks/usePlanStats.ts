@@ -56,7 +56,8 @@ export function usePlanStats(routineId: string) {
           label = monthNames[d.getMonth()];
         } else if (groupBy === 'week') {
           // Calculate week of the month or just simple day/month for the start of the week
-          const firstDayOfWeek = new Date(d.setDate(d.getDate() - d.getDay()));
+          const firstDayOfWeek = new Date(d);
+          firstDayOfWeek.setDate(d.getDate() - d.getDay());
           key = `${firstDayOfWeek.getFullYear()}-${firstDayOfWeek.getMonth()}-${firstDayOfWeek.getDate()}`;
           label = `${String(firstDayOfWeek.getDate()).padStart(2, '0')}/${String(firstDayOfWeek.getMonth() + 1).padStart(2, '0')}`;
         } else {

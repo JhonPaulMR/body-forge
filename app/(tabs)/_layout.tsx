@@ -38,8 +38,8 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     <Animated.View
       className="absolute left-0 right-0 bg-forge-surface-alt rounded-t-[24px] pt-3 px-3 border-t border-forge-border"
       style={{
-        bottom: -20,
-        paddingBottom: (insets.bottom > 0 ? insets.bottom : 12) + 20,
+        bottom: 0,
+        paddingBottom: Math.max(insets.bottom, 16) + 12,
         elevation: 10,
         transform: [{ translateY }]
       }}

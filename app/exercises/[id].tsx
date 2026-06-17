@@ -7,9 +7,12 @@ import { muscleImages, muscleStringMap } from '@/constants/muscleImages';
 import { ExerciseMediaRepository, ExerciseMedia } from '@/database/repositories/ExerciseMediaRepository';
 import { Exercise, getExerciseById, getExerciseStats, ExerciseStats } from '@/services/exerciseService';
 import { ExerciseNotesModal } from '@/components/exercises/ExerciseNotesModal';
+import { ExerciseOptionsMenu } from '@/components/exercises/ExerciseOptionsMenu';
+import { useSettingsStore } from '@/hooks/useSettingsStore';
+import { getDisplayWeight } from '@/utils/units';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { ArrowLeft, ChevronRight, FileText, TrendingUp, Minus, MoreVertical, Trash2, Pencil, X } from 'lucide-react-native';
+import { ArrowLeft, ChevronRight, FileText, TrendingUp, Minus, MoreVertical } from 'lucide-react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Modal,
@@ -35,6 +38,7 @@ export default function ExerciseDetailScreen() {
   const [stats, setStats] = useState<ExerciseStats>({ weeklyVolume: 0, history: [], trendMessage: '', trendDirection: 'neutral' });
   const [activeTab, setActiveTab] = useState<'resumo' | 'historico'>('resumo');
   const [isNotesVisible, setIsNotesVisible] = useState(false);
+  const weightUnit = useSettingsStore(state => state.weightUnit);
 
   // Media states
   const [exerciseMedia, setExerciseMedia] = useState<ExerciseMedia[]>([]);
@@ -43,7 +47,6 @@ export default function ExerciseDetailScreen() {
 
   // Exercise options state
   const [isExerciseMenuVisible, setIsExerciseMenuVisible] = useState(false);
-  const [showExerciseDeleteConfirm, setShowExerciseDeleteConfirm] = useState(false);
 
   const loadMedia = () => {
     if (id) {
@@ -353,8 +356,8 @@ export default function ExerciseDetailScreen() {
                             <Text className={`text-sm font-extrabold ${set.is_warmup ? 'text-[#F59E0B]' : 'text-white'}`}>{setIdx + 1}</Text>
                           </View>
                           <View className="flex-1 flex-row items-baseline gap-2">
-                            <Text className="text-white text-[22px] font-black">{set.weight || 0}</Text>
-                            <Text className="text-forge-muted text-[13px] font-semibold"> kg</Text>
+                            <Text className="text-white text-[22px] font-black">{getDisplayWeight(set.weight || 0, weightUnit)}</Text>
+                            <Text className="text-forge-muted text-[13px] font-semibold"> {weightUnit}</Text>
                             <Text className="text-forge-muted-dark text-lg font-semibold">×</Text>
                             <Text className="text-white text-[22px] font-black">{set.reps || 0}</Text>
                             <Text className="text-forge-muted text-[13px] font-semibold"> reps</Text>
@@ -363,7 +366,7 @@ export default function ExerciseDetailScreen() {
                             <Text className="text-[#EF4444] font-bold text-[10px] ml-2 uppercase">Falha</Text>
                           )}
                           {volume > 0 && (
-                            <Text className="text-forge-muted-dark text-[9px] font-bold tracking-tight mt-1 w-full pl-12">VOLUME: {volume} KG</Text>
+                            <Text className="text-forge-muted-dark text-[9px] font-bold tracking-tight mt-1 w-full pl-12">VOLUME: {getDisplayWeight(volume, weightUnit)} {weightUnit.toUpperCase()}</Text>
                           )}
                         </View>
                       );
@@ -426,83 +429,16 @@ export default function ExerciseDetailScreen() {
 
       {/* Exercise Options Modal */}
       {exercise && exercise.is_custom === 1 && (
-        <Modal visible={isExerciseMenuVisible} transparent animationType="fade">
-          <Pressable className="flex-1 bg-black/60 justify-end" onPress={() => {
-            setShowExerciseDeleteConfirm(false);
+        <ExerciseOptionsMenu
+          visible={isExerciseMenuVisible}
+          onClose={() => setIsExerciseMenuVisible(false)}
+          exerciseId={exercise.id}
+          exerciseName={exercise.name}
+          onDelete={() => {
             setIsExerciseMenuVisible(false);
-          }}>
-            <Pressable className="bg-forge-surface rounded-t-3xl px-5 pt-5 pb-10">
-              {!showExerciseDeleteConfirm ? (
-                <>
-                  <View className="flex-row items-center justify-between mb-5">
-                    <Text className="text-white text-base font-extrabold tracking-wide">OPÇÕES DO EXERCÍCIO</Text>
-                    <TouchableOpacity
-                      onPress={() => setIsExerciseMenuVisible(false)}
-                      className="w-8 h-8 rounded-full bg-forge-border justify-center items-center"
-                    >
-                      <X size={16} color="#FFF" />
-                    </TouchableOpacity>
-                  </View>
-
-                  <TouchableOpacity
-                    className="flex-row items-center py-4 border-b border-forge-border"
-                    onPress={() => {
-                      setIsExerciseMenuVisible(false);
-                      router.push(`/exercises/edit/${exercise.id}`);
-                    }}
-                  >
-                    <View className="w-10 h-10 rounded-xl bg-forge-accent/15 justify-center items-center mr-4">
-                      <Pencil size={18} color="#A0C4FF" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-white text-sm font-bold">Editar Exercício</Text>
-                      <Text className="text-forge-muted text-[11px]">Modificar nome, músculos ou mídia</Text>
-                    </View>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    className="flex-row items-center py-4"
-                    onPress={() => setShowExerciseDeleteConfirm(true)}
-                  >
-                    <View className="w-10 h-10 rounded-xl bg-red-500/15 justify-center items-center mr-4">
-                      <Trash2 size={18} color="#EF4444" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-red-400 text-sm font-bold">Excluir Exercício</Text>
-                      <Text className="text-forge-muted text-[11px]">Remover do aplicativo permanentemente</Text>
-                    </View>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <View className="items-center px-4 py-2">
-                  <View className="w-16 h-16 rounded-full bg-red-500/10 justify-center items-center mb-5">
-                    <Trash2 size={28} color="#EF4444" />
-                  </View>
-                  <Text className="text-white text-xl font-black mb-2 text-center">Excluir Exercício?</Text>
-                  <Text className="text-forge-muted text-sm text-center mb-8 leading-5">
-                    Isso removerá "{exercise.name}" de todas as suas rotinas e excluirá o histórico de treinos associado. Essa ação é irreversível.
-                  </Text>
-                  
-                  <View className="flex-row gap-3 w-full">
-                    <TouchableOpacity 
-                      className="flex-1 py-4 rounded-xl bg-forge-surface border border-forge-border items-center"
-                      onPress={() => setShowExerciseDeleteConfirm(false)}
-                    >
-                      <Text className="text-white text-sm font-bold tracking-wide">CANCELAR</Text>
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity 
-                      className="flex-1 py-4 rounded-xl bg-red-500 items-center"
-                      onPress={handleDeleteExercise}
-                    >
-                      <Text className="text-white text-sm font-bold tracking-wide">EXCLUIR</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              )}
-            </Pressable>
-          </Pressable>
-        </Modal>
+            handleDeleteExercise();
+          }}
+        />
       )}
     </SafeAreaView>
   );

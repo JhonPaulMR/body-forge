@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Menu, Dumbbell, Plus } from 'lucide-react-native';
+// @ts-ignore - lucide-react-native type definitions have a bug missing some icons
+import { Settings, Dumbbell, Plus } from 'lucide-react-native';
 
 import { usePlansData } from '@/hooks/usePlansData';
 import { PlanCarousel } from '@/components/plans/PlanCarousel';
@@ -14,11 +15,11 @@ export default function PlanosScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-forge-bg" edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingLeft: 20, paddingTop: 10, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingLeft: 20, paddingTop: 10, paddingBottom: 180 }} showsVerticalScrollIndicator={false}>
 
         <View className="flex-row items-center justify-between mb-6 pr-5">
-          <TouchableOpacity>
-            <Menu size={24} color="#FFF" />
+          <TouchableOpacity onPress={() => router.push('/settings')}>
+            <Settings size={24} color="#FFF" />
           </TouchableOpacity>
           <Text className="text-white text-lg font-black tracking-wide">BODY FORGE</Text>
           <View className="w-9 h-9 rounded-full bg-forge-border justify-center items-center">

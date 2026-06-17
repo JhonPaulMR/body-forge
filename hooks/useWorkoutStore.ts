@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { startRestTimerNotification, stopRestTimerNotification } from '@/services/notificationService';
 
 export interface WorkoutSet {
   id: string;
@@ -99,80 +102,85 @@ const findExSet = (exercises: WorkoutExercise[], exerciseId: string, setId: stri
 };
 
 export const useWorkoutStore = create<WorkoutState>()(
-  immer((set) => ({
-    isActive: false,
-    sessionId: null,
-    routineDayId: null,
-    startTime: null,
-    elapsedSeconds: 0,
-    exercises: [],
-    modifications: [],
-    hasStructuralChanges: false,
-    restTimer: {
+  persist(
+    immer((set) => ({
       isActive: false,
-      totalSeconds: 0,
-      restEndTime: null,
-    },
+      sessionId: null,
+      routineDayId: null,
+      startTime: null,
+      elapsedSeconds: 0,
+      exercises: [],
+      modifications: [],
+      hasStructuralChanges: false,
+      restTimer: {
+        isActive: false,
+        totalSeconds: 0,
+        restEndTime: null,
+      },
 
-    startWorkout: (sessionId, routineDayId, exercises) =>
-      set((state) => {
-        state.isActive = true;
-        state.sessionId = sessionId;
-        state.routineDayId = routineDayId;
-        state.startTime = Date.now();
-        state.elapsedSeconds = 0;
-        state.exercises = exercises;
-        state.modifications = [];
-        state.hasStructuralChanges = false;
-        state.restTimer = { isActive: false, totalSeconds: 0, restEndTime: null };
-      }),
+      startWorkout: (sessionId, routineDayId, exercises) =>
+        set((state) => {
+          state.isActive = true;
+          state.sessionId = sessionId;
+          state.routineDayId = routineDayId;
+          state.startTime = Date.now();
+          state.elapsedSeconds = 0;
+          state.exercises = exercises;
+          state.modifications = [];
+          state.hasStructuralChanges = false;
+          state.restTimer = { isActive: false, totalSeconds: 0, restEndTime: null };
+        }),
 
-    startFreeWorkout: (sessionId) =>
-      set((state) => {
-        state.isActive = true;
-        state.sessionId = sessionId;
-        state.routineDayId = null;
-        state.startTime = Date.now();
-        state.elapsedSeconds = 0;
-        state.exercises = [];
-        state.modifications = [];
-        state.hasStructuralChanges = false;
-        state.restTimer = { isActive: false, totalSeconds: 0, restEndTime: null };
-      }),
+      startFreeWorkout: (sessionId) =>
+        set((state) => {
+          state.isActive = true;
+          state.sessionId = sessionId;
+          state.routineDayId = null;
+          state.startTime = Date.now();
+          state.elapsedSeconds = 0;
+          state.exercises = [];
+          state.modifications = [];
+          state.hasStructuralChanges = false;
+          state.restTimer = { isActive: false, totalSeconds: 0, restEndTime: null };
+        }),
 
-    finishWorkout: () =>
-      set((state) => {
-        state.isActive = false;
-        state.sessionId = null;
-        state.routineDayId = null;
-        state.startTime = null;
-        state.elapsedSeconds = 0;
-        state.exercises = [];
-        state.modifications = [];
-        state.hasStructuralChanges = false;
-        state.restTimer = { isActive: false, totalSeconds: 0, restEndTime: null };
-      }),
+      finishWorkout: () => {
+        set((state) => {
+          state.isActive = false;
+          state.sessionId = null;
+          state.routineDayId = null;
+          state.startTime = null;
+          state.elapsedSeconds = 0;
+          state.exercises = [];
+          state.modifications = [];
+          state.hasStructuralChanges = false;
+          state.restTimer = { isActive: false, totalSeconds: 0, restEndTime: null };
+        });
+        stopRestTimerNotification();
+      },
 
-    cancelWorkout: () =>
-      set((state) => {
-        state.isActive = false;
-        state.sessionId = null;
-        state.routineDayId = null;
-        state.startTime = null;
-        state.elapsedSeconds = 0;
-        state.exercises = [];
-        state.modifications = [];
-        state.hasStructuralChanges = false;
-        state.restTimer = { isActive: false, totalSeconds: 0, restEndTime: null };
-      }),
+      cancelWorkout: () => {
+        set((state) => {
+          state.isActive = false;
+          state.sessionId = null;
+          state.routineDayId = null;
+          state.startTime = null;
+          state.elapsedSeconds = 0;
+          state.exercises = [];
+          state.modifications = [];
+          state.hasStructuralChanges = false;
+          state.restTimer = { isActive: false, totalSeconds: 0, restEndTime: null };
+        });
+        stopRestTimerNotification();
+      },
 
-    // Only touches elapsedSeconds — isolated from exercises
-    incrementTime: () =>
-      set((state) => {
-        if (state.isActive && state.startTime) {
-          state.elapsedSeconds = Math.floor((Date.now() - state.startTime) / 1000);
-        }
-      }),
+      // Only touches elapsedSeconds — isolated from exercises
+      incrementTime: () =>
+        set((state) => {
+          if (state.isActive && state.startTime) {
+            state.elapsedSeconds = Math.floor((Date.now() - state.startTime) / 1000);
+          }
+        }),
 
     // SURGICAL: only mutates the specific set
     updateSet: (exerciseId, setId, data) =>
@@ -311,14 +319,16 @@ export const useWorkoutStore = create<WorkoutState>()(
         state.hasStructuralChanges = true;
       }),
 
-    startRestTimer: (seconds) =>
+    startRestTimer: (seconds) => {
       set((state) => {
         state.restTimer = {
           isActive: true,
           totalSeconds: seconds,
           restEndTime: Date.now() + seconds * 1000,
         };
-      }),
+      });
+      startRestTimerNotification(seconds);
+    },
 
     decrementRestTimer: () =>
       set((state) => {
@@ -330,19 +340,32 @@ export const useWorkoutStore = create<WorkoutState>()(
         }
       }),
 
-    stopRestTimer: () =>
+    stopRestTimer: () => {
       set((state) => {
         state.restTimer.isActive = false;
         state.restTimer.restEndTime = null;
-      }),
+      });
+      stopRestTimerNotification();
+    },
 
-    addRestTime: (seconds) =>
+    addRestTime: (seconds) => {
+      let newTotal = 0;
+      let remaining = 0;
       set((state) => {
         state.restTimer.totalSeconds += seconds;
         state.restTimer.restEndTime = state.restTimer.restEndTime
           ? state.restTimer.restEndTime + seconds * 1000
           : Date.now() + seconds * 1000;
-      }),
+        newTotal = state.restTimer.totalSeconds;
+        remaining = Math.max(0, Math.ceil((state.restTimer.restEndTime - Date.now()) / 1000));
+      });
+      if (remaining > 0) {
+        // Cancel old and start new to refresh foreground service and triggers
+        stopRestTimerNotification().then(() => {
+          startRestTimerNotification(remaining);
+        });
+      }
+    },
 
     swapExercise: (oldExerciseId, newExerciseId, newName, newImage) =>
       set((state) => {
@@ -381,5 +404,20 @@ export const useWorkoutStore = create<WorkoutState>()(
           exerciseName: exercise.name,
         });
       }),
-  }))
+    })),
+    {
+      name: 'workout-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        isActive: state.isActive,
+        sessionId: state.sessionId,
+        routineDayId: state.routineDayId,
+        startTime: state.startTime,
+        exercises: state.exercises,
+        modifications: state.modifications,
+        restTimer: state.restTimer,
+        hasStructuralChanges: state.hasStructuralChanges,
+      }),
+    }
+  )
 );

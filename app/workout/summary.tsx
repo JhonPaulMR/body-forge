@@ -7,7 +7,10 @@ import { toTitleCase } from '@/utils/stringUtils';
 import { useWorkoutStore, WorkoutExercise } from '@/hooks/useWorkoutStore';
 import { SessionRepository } from '@/database/repositories/SessionRepository';
 import { RoutineRepository } from '@/database/repositories/RoutineRepository';
+import { scheduleNextWorkoutReminder } from '@/services/plannerUtils';
 import { ConfirmUpdateModal, DetectedModification } from '@/components/workout/ActiveWorkoutModals';
+import { useSettingsStore } from '@/hooks/useSettingsStore';
+import { getDisplayWeight } from '@/utils/units';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -25,6 +28,7 @@ export default function WorkoutSummaryScreen() {
   const [modifications, setModifications] = useState<DetectedModification[]>([]);
   const [selectedModIds, setSelectedModIds] = useState<Set<string>>(new Set());
   const [originalExercises, setOriginalExercises] = useState<any[]>([]);
+  const weightUnit = useSettingsStore(state => state.weightUnit);
 
   React.useEffect(() => {
     if (hasStructuralChanges && routineDayId) {
@@ -198,6 +202,7 @@ export default function WorkoutSummaryScreen() {
         SessionRepository.finishSession(sessionId, new Date().toISOString(), stats.totalVolume, exercises);
       }
       
+      scheduleNextWorkoutReminder();
       finishWorkout();
       router.replace('/workout/complete');
 
@@ -240,8 +245,8 @@ export default function WorkoutSummaryScreen() {
               <Text className="text-white text-2xl font-black">{stats.completedSetsCount}</Text>
             </View>
             <View className="flex-1 bg-forge-surface p-4 rounded-2xl border border-forge-border">
-              <Text className="text-forge-muted text-[10px] font-bold tracking-wider mb-2">PESO (KG)</Text>
-              <Text className="text-[#FCA5A5] text-2xl font-black">{formatVolume(stats.totalVolume)}</Text>
+              <Text className="text-forge-muted text-[10px] font-bold tracking-wider mb-2 uppercase">VOLUME ({weightUnit})</Text>
+              <Text className="text-[#FCA5A5] text-2xl font-black">{formatVolume(getDisplayWeight(stats.totalVolume, weightUnit))}</Text>
             </View>
           </View>
 
@@ -264,7 +269,7 @@ export default function WorkoutSummaryScreen() {
                         <View className="flex-row items-center gap-4">
                           <Text className="text-forge-muted font-bold text-xs w-4">{i + 1}</Text>
                           {set.is_completed ? (
-                            <Text className="text-white font-semibold text-sm">{set.weight}kg x {set.reps}</Text>
+                            <Text className="text-white font-semibold text-sm">{getDisplayWeight(set.weight || 0, weightUnit)}{weightUnit} x {set.reps}</Text>
                           ) : (
                             <Text className="text-forge-muted font-medium text-sm italic">Incompleto</Text>
                           )}

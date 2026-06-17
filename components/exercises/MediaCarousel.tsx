@@ -10,12 +10,20 @@ try {
   Video = ExpoAV?.Video;
   ResizeMode = ExpoAV?.ResizeMode || ResizeMode;
 } catch (e) {
-  console.warn('expo-av not available in Expo Go', e);
-  Video = (props: any) => (
-    <View style={[props.style, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }]}>
-      <Text style={{ color: '#fff' }}>Vídeo offline (Requer Build Nativa)</Text>
-    </View>
-  );
+  console.warn('expo-av not available', e);
+  Video = React.forwardRef((props: any, ref: any) => {
+    React.useImperativeHandle(ref, () => ({
+      playAsync: async () => {},
+      pauseAsync: async () => {},
+    }));
+    return (
+      <View style={[props.style, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#2D3038' }]}>
+        <Text style={{ color: '#A0C4FF', fontSize: 12, textAlign: 'center' }}>
+          Módulo de Vídeo Indisponível
+        </Text>
+      </View>
+    );
+  });
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');

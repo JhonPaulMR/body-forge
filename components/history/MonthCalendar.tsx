@@ -90,7 +90,13 @@ export function MonthCalendar({ currentDate, onChangeMonth, markedDates }: Month
 
               return (
                 <View key={cIndex} className="flex-1 items-center justify-center py-1">
-                  <View className={`w-8 h-8 rounded-xl items-center justify-center ${isToday ? 'bg-[#2D3038]' : ''}`}>
+                  <View 
+                    className="w-8 h-8 items-center justify-center"
+                    style={{ 
+                      borderRadius: 12, 
+                      backgroundColor: isToday ? '#2D3038' : 'transparent' 
+                    }}
+                  >
                     <Text className={`text-[13px] font-medium ${isToday ? 'text-[#A0C4FF]' : 'text-forge-text-secondary'}`}>
                       {day}
                     </Text>

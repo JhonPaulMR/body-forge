@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Clock, Dumbbell, Check } from 'lucide-react-native';
 import { HistorySession } from '@/database/repositories/SessionRepository';
+import { useSettingsStore } from '@/hooks/useSettingsStore';
+import { getDisplayWeight } from '@/utils/units';
 
 interface SessionHistoryItemProps {
   session: HistorySession;
@@ -10,6 +12,7 @@ interface SessionHistoryItemProps {
 }
 
 export function SessionHistoryItem({ session, onPress, index }: SessionHistoryItemProps) {
+  const weightUnit = useSettingsStore(state => state.weightUnit);
   const dateObj = new Date(session.start_time);
   const weekdays = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
   const months = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
@@ -53,7 +56,7 @@ export function SessionHistoryItem({ session, onPress, index }: SessionHistoryIt
           <View className="flex-row items-center gap-1.5">
             <Dumbbell size={14} color="#9CA3AF" />
             <Text className="text-forge-muted text-xs font-medium">
-              {session.total_volume_kg.toLocaleString('pt-BR')} kg
+              {getDisplayWeight(session.total_volume_kg, weightUnit).toLocaleString('pt-BR')} {weightUnit}
             </Text>
           </View>
 

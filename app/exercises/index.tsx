@@ -17,6 +17,7 @@ import { db } from '@/database/schema';
 import { getMuscleById } from '@/components/exercises/MuscleSelectionModal';
 import { muscleImages } from '@/constants/muscleImages';
 import { parseMuscleGroup } from '@/services/muscleGroupUtils';
+import { toTitleCase } from '@/utils/stringUtils';
 
 interface Exercise {
   id: string;
@@ -30,6 +31,7 @@ interface Exercise {
   target?: string;
   is_custom: number;
 }
+
 
 export default function ExercisesListScreen() {
   const router = useRouter();
@@ -126,13 +128,6 @@ export default function ExercisesListScreen() {
       </Pressable>
     </Modal>
   );
-
-  const toTitleCase = (str: string) => {
-    return str.replace(
-      /\w\S*/g,
-      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
-    );
-  };
 
   const renderExerciseItem = ({ item }: { item: Exercise }) => {
     const muscleData = parseMuscleGroup(item.muscle_group);

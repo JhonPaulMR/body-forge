@@ -1,6 +1,6 @@
 import { ExerciseMedia } from '@/database/repositories/ExerciseMediaRepository';
-import { Camera, MoreVertical, Play } from 'lucide-react-native';
-import React, { useCallback, useRef, useState } from 'react';
+import { Camera, MoreVertical, Play, Pause, Volume2, VolumeX } from 'lucide-react-native';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { Dimensions, FlatList, Image as RNImage, Text, TouchableOpacity, View } from 'react-native';
 
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -141,13 +141,20 @@ export function MediaCarousel({ heroImageUri, exerciseMedia, fallbackImage, onMe
   );
 }
 
-// ─── Video Slide ──────────────────────────────────────────────────
 function VideoSlide({ uri }: { uri: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   const player = useVideoPlayer(uri, (player) => {
     player.loop = true;
+    player.muted = isMuted;
   });
+
+  useEffect(() => {
+    if (player) {
+      player.muted = isMuted;
+    }
+  }, [isMuted, player]);
 
   const togglePlay = () => {
     if (!player) return;
@@ -160,12 +167,12 @@ function VideoSlide({ uri }: { uri: string }) {
     }
   };
 
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={togglePlay}
-      style={{ width: SCREEN_WIDTH, height: CAROUSEL_HEIGHT }}
-    >
+    <View style={{ width: SCREEN_WIDTH, height: CAROUSEL_HEIGHT }}>
       <VideoView
         player={player}
         style={{ width: '100%', height: '100%' }}
@@ -173,14 +180,33 @@ function VideoSlide({ uri }: { uri: string }) {
         nativeControls={false}
       />
 
-      {/* Play overlay */}
-      {!isPlaying && (
-        <View className="absolute inset-0 justify-center items-center bg-black/20" pointerEvents="none">
-          <View className="w-14 h-14 rounded-full bg-black/50 justify-center items-center">
-            <Play size={24} color="#FFF" fill="#FFF" />
-          </View>
+      {/* Center Play/Pause button */}
+      <TouchableOpacity
+        className="absolute inset-0 justify-center items-center"
+        activeOpacity={0.9}
+        onPress={togglePlay}
+      >
+        <View className="w-16 h-16 rounded-full bg-black/40 justify-center items-center">
+          {isPlaying ? (
+            <Pause size={28} color="#FFF" fill="#FFF" />
+          ) : (
+            <Play size={28} color="#FFF" fill="#FFF" style={{ marginLeft: 4 }} />
+          )}
         </View>
-      )}
-    </TouchableOpacity>
+      </TouchableOpacity>
+
+      {/* Mute toggle button */}
+      <TouchableOpacity
+        className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-black/50 justify-center items-center"
+        activeOpacity={0.7}
+        onPress={toggleMute}
+      >
+        {isMuted ? (
+          <VolumeX size={20} color="#FFF" />
+        ) : (
+          <Volume2 size={20} color="#FFF" />
+        )}
+      </TouchableOpacity>
+    </View>
   );
 }

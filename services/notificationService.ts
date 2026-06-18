@@ -290,12 +290,14 @@ export async function startRestTimerNotification(seconds: number) {
   }
 }
 
-export async function stopRestTimerNotification() {
+export async function stopRestTimerNotification(cancelAlert: boolean = true) {
   if (!notifee || !notifee.cancelNotification) return;
   try {
     await notifee.cancelNotification('rest_timer_notification');
-    await notifee.cancelTriggerNotification('rest_timer_end_notification');
-    await notifee.cancelNotification('rest_timer_end_notification');
+    if (cancelAlert) {
+      await notifee.cancelTriggerNotification('rest_timer_end_notification');
+      await notifee.cancelNotification('rest_timer_end_notification');
+    }
   } catch (e) { }
 }
 

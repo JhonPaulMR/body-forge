@@ -81,7 +81,7 @@ interface WorkoutState {
   // Ações de Descanso
   startRestTimer: (seconds: number) => void;
   decrementRestTimer: () => void;
-  stopRestTimer: () => void;
+  stopRestTimer: (isManual?: boolean | any) => void;
   addRestTime: (seconds: number) => void;
 
   // Modificações de Treino
@@ -340,12 +340,13 @@ export const useWorkoutStore = create<WorkoutState>()(
         }
       }),
 
-    stopRestTimer: () => {
+    stopRestTimer: (isManual) => {
+      const shouldCancelAlert = isManual === true || typeof isManual === 'object';
       set((state) => {
         state.restTimer.isActive = false;
         state.restTimer.restEndTime = null;
       });
-      stopRestTimerNotification();
+      stopRestTimerNotification(shouldCancelAlert);
     },
 
     addRestTime: (seconds) => {

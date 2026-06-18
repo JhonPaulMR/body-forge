@@ -4,7 +4,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import "../global.css";
@@ -23,6 +23,7 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const [dbReady, setDbReady] = useState(false);
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
@@ -34,13 +35,17 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
+      // Execute synchronous database initialization and seeding
       initDatabase();
       seedDatabase();
+      
+      // Mark database as ready and hide splash screen
+      setDbReady(true);
       SplashScreen.hideAsync();
     }
   }, [loaded]);
 
-  if (!loaded) {
+  if (!loaded || !dbReady) {
     return null;
   }
 

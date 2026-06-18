@@ -3,28 +3,7 @@ import { Camera, MoreVertical, Play } from 'lucide-react-native';
 import React, { useCallback, useRef, useState } from 'react';
 import { Dimensions, FlatList, Image as RNImage, Text, TouchableOpacity, View } from 'react-native';
 
-let Video: any = null;
-let ResizeMode: any = { CONTAIN: 'contain', COVER: 'cover', STRETCH: 'stretch' };
-try {
-  const ExpoAV = require('expo-av');
-  Video = ExpoAV?.Video;
-  ResizeMode = ExpoAV?.ResizeMode || ResizeMode;
-} catch (e) {
-  console.warn('expo-av not available', e);
-  Video = React.forwardRef((props: any, ref: any) => {
-    React.useImperativeHandle(ref, () => ({
-      playAsync: async () => {},
-      pauseAsync: async () => {},
-    }));
-    return (
-      <View style={[props.style, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#2D3038' }]}>
-        <Text style={{ color: '#A0C4FF', fontSize: 12, textAlign: 'center' }}>
-          Módulo de Vídeo Indisponível
-        </Text>
-      </View>
-    );
-  });
-}
+import { useVideoPlayer, VideoView } from 'expo-video';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CAROUSEL_HEIGHT = 280;
@@ -164,17 +143,21 @@ export function MediaCarousel({ heroImageUri, exerciseMedia, fallbackImage, onMe
 
 // ─── Video Slide ──────────────────────────────────────────────────
 function VideoSlide({ uri }: { uri: string }) {
-  const videoRef = useRef<any>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const togglePlay = async () => {
-    if (!videoRef.current) return;
-    if (isPlaying && videoRef.current.pauseAsync) {
-      await videoRef.current.pauseAsync();
-    } else if (!isPlaying && videoRef.current.playAsync) {
-      await videoRef.current.playAsync();
+  const player = useVideoPlayer(uri, (player) => {
+    player.loop = true;
+  });
+
+  const togglePlay = () => {
+    if (!player) return;
+    if (player.playing) {
+      player.pause();
+      setIsPlaying(false);
+    } else {
+      player.play();
+      setIsPlaying(true);
     }
-    setIsPlaying(!isPlaying);
   };
 
   return (
@@ -183,24 +166,16 @@ function VideoSlide({ uri }: { uri: string }) {
       onPress={togglePlay}
       style={{ width: SCREEN_WIDTH, height: CAROUSEL_HEIGHT }}
     >
-      <Video
-        ref={videoRef}
-        source={{ uri }}
+      <VideoView
+        player={player}
         style={{ width: '100%', height: '100%' }}
-        resizeMode={ResizeMode.COVER}
-        isLooping
-        shouldPlay={false}
-        useNativeControls={false}
-        onPlaybackStatusUpdate={(status: any) => {
-          if (status.isLoaded) {
-            setIsPlaying(status.isPlaying);
-          }
-        }}
+        contentFit="cover"
+        nativeControls={false}
       />
 
       {/* Play overlay */}
       {!isPlaying && (
-        <View className="absolute inset-0 justify-center items-center bg-black/20">
+        <View className="absolute inset-0 justify-center items-center bg-black/20" pointerEvents="none">
           <View className="w-14 h-14 rounded-full bg-black/50 justify-center items-center">
             <Play size={24} color="#FFF" fill="#FFF" />
           </View>
